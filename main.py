@@ -6,6 +6,46 @@ set default output to cable a
 
 # Character name is "〜NOVA〜"
 
+# Play startup sound
+############################################################################################
+import pyaudio
+import wave
+
+def play_audio_file(file_path, output_device_index=AUDIO_OUTPUT_INDEX):
+    """
+    Args:
+        file_path (string): The path to the audio file.
+        output_device_index (integer, optional): The index of the audio device to play to. Defaults to None (default device).
+
+    Plays the specified audio file directly to the output device.
+    """
+    wf = wave.open(file_path, 'rb')
+    p = pyaudio.PyAudio()
+
+    # Open the audio stream
+    stream = p.open(
+        format=p.get_format_from_width(wf.getsampwidth()),
+        channels=wf.getnchannels(),
+        rate=wf.getframerate(),
+        output=True,
+        output_device_index=output_device_index
+    )
+
+    # Read and play audio data
+    data = wf.readframes(1024)
+    while data:
+        stream.write(data)
+        data = wf.readframes(1024)
+
+    # Cleanup
+    stream.stop_stream()
+    stream.close()
+    wf.close()
+    p.terminate()
+
+play_audio_file("audio_files/mac_startup.wav")
+############################################################################################
+
 # import and initialize debugging
 from debug_function_library import Debug as debug
 debug.clear()
@@ -29,9 +69,7 @@ try:
     import os
     import pyttsx3
     import time
-    import pyaudio
     import re
-    import wave
     import sys
     import whisper
     from pydub import AudioSegment
@@ -250,38 +288,6 @@ def send_message_snapchat(message, ai_generated=False):
         debug.write("SNAPCHAT", message)
 
     keyboard.press_and_release("enter")
-
-def play_audio_file(file_path, output_device_index=AUDIO_OUTPUT_INDEX):
-    """
-    Args:
-        file_path (string): The path to the audio file.
-        output_device_index (integer, optional): The index of the audio device to play to. Defaults to None (default device).
-
-    Plays the specified audio file directly to the output device.
-    """
-    wf = wave.open(file_path, 'rb')
-    p = pyaudio.PyAudio()
-
-    # Open the audio stream
-    stream = p.open(
-        format=p.get_format_from_width(wf.getsampwidth()),
-        channels=wf.getnchannels(),
-        rate=wf.getframerate(),
-        output=True,
-        output_device_index=output_device_index
-    )
-
-    # Read and play audio data
-    data = wf.readframes(1024)
-    while data:
-        stream.write(data)
-        data = wf.readframes(1024)
-
-    # Cleanup
-    stream.stop_stream()
-    stream.close()
-    wf.close()
-    p.terminate()
 
 def play_tts(output_file, output_device_index=AUDIO_OUTPUT_INDEX):
     """
@@ -568,14 +574,6 @@ def ai_system_command_catcher(ai_input):
         send_message_snapchat("PLEASING MODE CALLED BY ~NOVA~")
         restart_program()
 
-type_in_chat("System Loading...")
-
-# Delete temporary files.
-delete_file("output.wav")
-delete_file("temp.wav")
-
-send_message_snapchat(F"PROGRAM STARTED IN {mood.upper()} MODE")
-
 def find_matching_words(word_list, string_to_check):
     """
     Args:
@@ -589,8 +587,17 @@ def find_matching_words(word_list, string_to_check):
     """    
     return [word for word in word_list if word in string_to_check]
 
+type_in_chat("System Loading...")
+
+# Delete temporary files.
+delete_file("output.wav")
+delete_file("temp.wav")
+
+send_message_snapchat(F"PROGRAM STARTED IN {mood.upper()} MODE")
+
 # Main loop
 while True:
+    play_audio_file("audio_files/sucsesful_startup.wav")
     try:
         # Creates model parameters
         completion = openai_client.chat.completions.create(
