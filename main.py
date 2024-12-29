@@ -6,12 +6,11 @@ import constants as constant
 from openai import OpenAI
 import datetime
 import pyttsx3
-import asyncio
+import wave
+import pyaudio
 # import http_server
 import re
 import os
-import sounddevice as sd
-import soundfile as sf
 
 osc = VRChatOSC(constant.LOCAL_IP, constant.PORT)
 transcriber = WhisperTranscriber()
@@ -35,26 +34,52 @@ history = [
 # Set up LLM
 openai_client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
 
-def play_tts(text, output_device_index=constant.AUDIO_OUTPUT_INDEX):
-    engine = pyttsx3.init()
-    engine.setProperty('rate', 200)  # Speed of speech
-    engine.setProperty('volume', 1)  # Volume level (0.0 to 1.0)
-    voices = engine.getProperty('voices')
+# Initialize pyttsx3 and set properties
+engine = pyttsx3.init()
+engine.setProperty('rate', 200)  # Speed of speech
+engine.setProperty('volume', 1)  # Volume level (0.0 to 1.0)
+voices = engine.getProperty('voices')
 
-    file_path = f"tts_output.wav"
+def play_tts(output_file, output_device_index=constant.AUDIO_OUTPUT_INDEX):
+    """
+    Args:
+        output_file (string): The path to the output location
+        output_device_index (integer, optional): The index of the audio device that pyttsx3 plays to. Defaults to AUDIO_OUTPUT_INDEX.
 
-    if os.path.exists(file_path):
-        os.remove("tts_output.wav")
+    Create a output based on the input and play it to an audio's index.
+    """
+    wf = wave.open(output_file, 'rb')
+    p = pyaudio.PyAudio()
 
-    engine.save_to_file(text, file_path)
-    engine.runAndWait()
+    # Open the audio stream
+    try:
+        sample_rate = wf.getframerate()
+        if sample_rate != p.get_device_info_by_index(output_device_index)['defaultSampleRate']:
+            print(f"Error: Sample rate {sample_rate} not supported by output device")
+            wf.close()
+            p.terminate()
+            return
 
-    def play_audio(file_path, output_device_index):
-        data, samplerate = sf.read(file_path, always_2d=True)
-        sd.play(data, samplerate, device=output_device_index)
-        sd.wait()
+        stream = p.open(
+            format=p.get_format_from_width(wf.getsampwidth()),
+            channels=wf.getnchannels(),
+            rate=sample_rate,
+            output=True,
+            output_device_index=output_device_index
+        )
+    except OSError as e:
+        print(f"Error opening stream: {e}")
+        return
+    data = wf.readframes(1024)
+    while data:
+        stream.write(data)
+        data = wf.readframes(1024)
 
-    play_audio(file_path, output_device_index)
+    # Cleanup
+    stream.stop_stream()
+    stream.close()
+    wf.close()
+    p.terminate()
 
 def chunk_text(text):
     """
@@ -81,6 +106,11 @@ def find_matching_words(word_list, string_to_check):
     Parse the string to check for words in the list.
     """    
     return [word for word in word_list if word in string_to_check]
+
+def generate_tts(sentence):
+    os.remove("tts_output.wav")
+    engine.save_to_file(sentence, "tts_output.wav")
+    engine.runAndWait()
 
 # Main logic
 while True:
@@ -110,7 +140,8 @@ while True:
                 full_response += f" {sentence}"
                 print(f"AI: {sentence}")
                 osc.send_message(sentence)
-                play_tts(sentence)
+                generate_tts(sentence)
+                play_tts("tts_output.wav")
             buffer = sentence_chunks[0]
 
     if buffer:
@@ -118,7 +149,8 @@ while True:
         full_response += f" {buffer}"
         print(f"AI: {buffer}")
         osc.send_message(buffer)
-        play_tts(buffer)
+        generate_tts(buffer)
+        play_tts("tts_output.wav")
         new_message["content"] = full_response
 
     osc.set_typing_indicator(False)
