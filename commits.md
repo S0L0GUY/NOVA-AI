@@ -1,5 +1,69 @@
 # Commit History
 
+- **Commit:** [72f70e0](https://github.com/S0L0GUY/NOVA-AI/commit/72f70e079664b5792c6d59e3010bbe033ed00790)
+  **Author:** Evan Grinnell
+  **Message:** 11 delete and re code nova (#14)
+
+* Got Started on Re-Coding Nova
+
+* Finished Creating Basic Code (Needs to be Tested)
+
+* Imported Bad Words
+
+Co-Authored-By: DuckSong510 <179771719+DuckSong510@users.noreply.github.com>
+
+* Updated Goals
+
+* Updated README.md
+
+* Updated Constants
+
+* Fixed Issues in Code
+
+* Added Ability to Get Recent Commits
+
+* Updated TTS Command
+
+* Updated OSC and TTS
+
+TTS still does not work, but OSC does.
+
+* Made attempts toward making tts work
+
+* audio output still does not work -_-
+
+* Flake8
+
+Formatted code to flake 8 specifications.
+
+* Removed Cross Class Contamination
+
+'system_prompt.py' was trying to use 'JsonWrapper' and the program did not like that.
+
+* Added 'Start Xvfb' to 'python-lint.yml'
+
+* Update python-lint.yml
+
+* Spelling Errors.
+
+Updated a spelling error.
+
+* Update requirements.txt
+
+* Update python-lint.yml
+
+Lessoned the rules.
+
+* Update python-lint.yml
+
+* Removed 'pylint'
+
+pylint makes me so sad
+
+---------
+
+Co-authored-by: DuckSong510 <179771719+DuckSong510@users.noreply.github.com>
+
 - **Commit:** [a8352d2](https://github.com/S0L0GUY/NOVA-AI/commit/a8352d264ccab37d5c2ba4eac26de714ba547013)
   **Author:** Evan Grinnell
   **Message:** 12 add linting on code pushpr (#13)
@@ -181,8 +245,4 @@ Refined comments a little bit, made it so you can change between running comment
   **Message:** Fine tuned language support
 
 Fixed the server side errors for translation and added all of the Microsoft voice names corresponding to the languages. Fixed many language support problems.
-
-- **Commit:** [d21b37f](https://github.com/S0L0GUY/NOVA-AI/commit/d21b37f460ff04636f2fea369a520f4ab474c653)
-  **Author:** Evan Grinnell
-  **Message:** Started to add basic language translation.
 
