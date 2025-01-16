@@ -13,7 +13,7 @@ def run_code():
     import sounddevice as sd
     import soundfile as sf
 
-    osc = VRChatOSC(constant.LOCAL_IP, constant.PORT)
+    osc = VRChatOSC(constant.LOCAL_IP, constant.VRC_PORT)
     transcriber = WhisperTranscriber()
 
     # Send message to VRChat to indicate that the system is starting

@@ -11,7 +11,7 @@ logging.basicConfig(
 
 
 def main():
-    osc = VRChatOSC(constant.LOCAL_IP, constant.PORT)
+    osc = VRChatOSC(constant.LOCAL_IP, constant.VRC_PORT)
     while True:
         try:
             nova.run_code()
