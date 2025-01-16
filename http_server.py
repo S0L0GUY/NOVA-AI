@@ -256,18 +256,8 @@ def run(
 
     Create a web server on port 8080
     """
-    import signal
-    import sys
-
-    def signal_handler(sig, frame):
-        print('\nShutting down the server...')
-        httpd.shutdown()
-        sys.exit(0)
-
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
     print(f'Starting httpd server on port {port}...')
     httpd.serve_forever()
 

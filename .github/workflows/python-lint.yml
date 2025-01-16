@@ -40,7 +40,7 @@ jobs:
 
     - name: Run Python scripts
       run: |
-        for file in $(find . -name "*.py"); do
+        for file in $(find . -name "*.py" ! -name "http_server.py"); do
           echo "Running $file"
           python $file
         done
