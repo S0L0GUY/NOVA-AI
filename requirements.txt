@@ -9,4 +9,3 @@ keyboard
 translate
 googletrans
 requests
-espeak
