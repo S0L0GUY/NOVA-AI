@@ -39,14 +39,18 @@ jobs:
         pip install flake8
         flake8 .
 
+    - name: Install Xvfb
+      run: sudo apt-get install -y xvfb
+
     - name: Start Xvfb
       run: |
         Xvfb :99 -screen 0 1920x1080x24 &
+        sleep 3
         export DISPLAY=:99
 
     - name: Run Python scripts
       run: |
         for file in $(find . -name "*.py" ! -name "http_server.py"); do
           echo "Running $file"
-          xvfb-run python $file
+          xvfb-run -a python $file
         done
