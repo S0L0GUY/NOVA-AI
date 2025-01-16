@@ -1,10 +1,12 @@
 import json
 
+
 class JsonWrapper:
     @staticmethod
     def read_json(file_path):
         """
-        Reads a JSON file and returns its contents as a pretty-printed JSON string.
+        Reads a JSON file and returns its contents as a pretty-printed JSON
+        string.
         Args:
             file_path (str): The path to the JSON file to be read.
         Returns:
@@ -14,7 +16,7 @@ class JsonWrapper:
         with open(file_path, 'r') as file:
             data = json.load(file)
             return json.dumps(data, indent=4)
-        
+
     def read_txt(file_path):
         """
         Reads a text file and returns its contents as a string.
@@ -32,7 +34,8 @@ class JsonWrapper:
         """
         Writes the given data to a JSON file at the specified file path.
         Args:
-            file_path (str): The path to the file where the data should be written.
+            file_path (str): The path to the file where the data should be
+            written.
             data (dict): The data to be written to the file.
         Raises:
             IOError: If the file cannot be opened or written to.
@@ -53,13 +56,14 @@ class JsonWrapper:
 
         with open(file_path, 'r') as file:
             data = json.load(file)
-        
+
         if isinstance(data, list):
             empty_data = []
         elif isinstance(data, dict):
             empty_data = {}
         else:
-            raise ValueError("The file does not contain a JSON object or array.")
-        
+            raise ValueError(
+                "The file does not contain a JSON object or array.")
+
         with open(file_path, 'w') as file:
             json.dump(empty_data, file, indent=4)

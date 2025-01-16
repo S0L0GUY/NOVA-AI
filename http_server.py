@@ -2,10 +2,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import constants as constant
 import classes.json_wrapper as json_wrapper
 import urllib.parse
-import wave
-import pyaudio
-import os
 import threading
+
 
 def run_http_server():
     def add_message(message):
@@ -14,7 +12,8 @@ def run_http_server():
         Args:
             message (str): The message to be added to the history.
         Returns:
-            str: A confirmation message indicating that the message was added to the history.
+            str: A confirmation message indicating that the message was added
+            to the history.
         """
 
         json_wrapper.JsonWrapper.write(constant.HISTORY_PATH, message)
@@ -25,7 +24,8 @@ def run_http_server():
         """
         Reads the mood from a JSON file and returns it as a formatted string.
         Returns:
-            str: A string representing the mood in the format "mood: <mood_value>".
+            str: A string representing the mood in the format "mood:
+            <mood_value>".
         """
 
         mood = json_wrapper.JsonWrapper.read(constant.MOOD_PATH).toString()
@@ -34,7 +34,8 @@ def run_http_server():
 
     def logs():
         """
-        Reads the logs from the specified history path and returns them as a string.
+        Reads the logs from the specified history path and returns them as a
+        string.
         Returns:
             str: The logs read from the history path.
         """
@@ -58,7 +59,8 @@ def run_http_server():
         specified by HISTORY_PATH in the constant module, effectively clearing
         any existing log entries.
         Returns:
-            str: A confirmation message indicating that the logs have been cleared.
+            str: A confirmation message indicating that the logs have been
+            cleared.
         """
 
         json_wrapper.JsonWrapper.write(constant.HISTORY_PATH, [])
@@ -82,7 +84,7 @@ def run_http_server():
             return "Command Not Found."
 
     class RequestHandler(BaseHTTPRequestHandler):
-        def _send_response(self, message):   
+        def _send_response(self, message):
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
@@ -113,6 +115,7 @@ def run_http_server():
     server_thread = threading.Thread(target=start_server)
     server_thread.daemon = True
     server_thread.start()
+
 
 # Call run_http_server() to start the server
 run_http_server()

@@ -1,5 +1,51 @@
 # Commit History
 
+- **Commit:** [a8352d2](https://github.com/S0L0GUY/NOVA-AI/commit/a8352d264ccab37d5c2ba4eac26de714ba547013)
+  **Author:** Evan Grinnell
+  **Message:** 12 add linting on code pushpr (#13)
+
+* Added CL Linting
+
+* Updated YML file
+
+* Added 'requirememts.txt'
+
+* Removed Unneeded Requirement
+
+* Added Needed Dependency
+
+* Added espeak to requirements
+
+* Update requirements.txt
+
+* Update python-lint.yml
+
+* Removed unused Import
+
+* Update nova_placement.py
+
+* Deleted unneeded files
+
+* Update http_server.py
+
+* Update python-lint.yml
+
+* Update python-lint.yml
+
+* flake8
+
+* Flake 8 Formatting
+
+* Flake 8 Formatting
+
+* Flake 8 Formatting
+
+* Update http_server.py
+
+* Skip 'http_server.py'
+
+* Update python-lint.yml
+
 - **Commit:** [7c582c9](https://github.com/S0L0GUY/NOVA-AI/commit/7c582c90da9a54ab133dc11df02b6e0e506a3818)
   **Author:** Evan Grinnell
   **Message:** Added Duck Song to 'README.md' (#10)
@@ -139,8 +185,4 @@ Fixed the server side errors for translation and added all of the Microsoft voic
 - **Commit:** [d21b37f](https://github.com/S0L0GUY/NOVA-AI/commit/d21b37f460ff04636f2fea369a520f4ab474c653)
   **Author:** Evan Grinnell
   **Message:** Started to add basic language translation.
-
-- **Commit:** [1f364ab](https://github.com/S0L0GUY/NOVA-AI/commit/1f364aba2b0c0b4eca3ce3eaed5949d2755a11e1)
-  **Author:** Evan Grinnell
-  **Message:** Fixed Spelling Errors.
 

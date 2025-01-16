@@ -1,5 +1,6 @@
 from pythonosc import udp_client
 
+
 class VRChatOSC:
     def __init__(self, ip: str, port: int):
         """
@@ -25,7 +26,8 @@ class VRChatOSC:
         """
         Sets the typing indicator status in the chatbox.
         Args:
-            typing (bool): If True, the typing indicator will be shown. If False, it will be hidden.
+            typing (bool): If True, the typing indicator will be shown. If
+            False, it will be hidden.
         """
 
         self.client.send_message("/chatbox/typing", typing)
