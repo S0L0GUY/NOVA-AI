@@ -1,0 +1,11 @@
+python-osc
+openai
+pyttsx3
+pyaudio
+whisper
+pydub
+pyautogui
+keyboard
+translate
+googletrans
+requests

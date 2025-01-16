@@ -8,4 +8,9 @@ engine = pyttsx3.init()
 
 voices = engine.getProperty('voices')
 for voice in voices:
-    print(f"ID: {voice.id}\nName: {voice.name}\nGender: {voice.gender}\nLanguage: {voice.languages}\n")
+    print(
+        f"ID: {voice.id}\n"
+        f"Name: {voice.name}\n"
+        f"Gender: {voice.gender}\n"
+        f"Language: {voice.languages}\n"
+    )
