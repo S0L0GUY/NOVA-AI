@@ -9,3 +9,5 @@ keyboard
 translate
 googletrans
 requests
+sounddevice
+soundfile
