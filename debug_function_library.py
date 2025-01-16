@@ -23,15 +23,15 @@ class Debug:
 
         # Writes the log to debug_log.txt using UTF-8 encoding
         try:
-            with open('text_files/current_debug_log.txt', 'a', 
-                     encoding='utf-8') as file:
+            with open('text_files/current_debug_log.txt', 'a',
+                      encoding='utf-8') as file:
                 file.write(log_message + '\n')
         except UnicodeEncodeError:
             print(f"Skipping message due to encoding error: {message}")
 
         try:
             with open('text_files/alltime_debug_log.txt', 'a', 
-                     encoding='utf-8') as file:
+                      encoding='utf-8') as file:
                 file.write(log_message + '\n')
         except UnicodeEncodeError:
             print(f"Skipping message due to encoding error: {message}")
@@ -40,5 +40,5 @@ class Debug:
     def clear():
         """Delete the content in current_debug_log.txt"""
         with open('text_files/current_debug_log.txt', 'w', 
-                 encoding='utf-8') as file:
+                  encoding='utf-8') as file:
             file.write('')
