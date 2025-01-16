@@ -15,7 +15,7 @@ import os
 
 AUDIO_OUTPUT_INDEX = 7 # The index of the audio output device (VB-Audio Cable B)
 
-def play_audio_file(sound, output_device_index=AUDIO_OUTPUT_INDEX):
+def play_audio_file(output_device_index=AUDIO_OUTPUT_INDEX):
     """
     Args:
         file_path (string): The path to the audio file.
@@ -29,7 +29,7 @@ def play_audio_file(sound, output_device_index=AUDIO_OUTPUT_INDEX):
     directory = 'audio_files'
     file_list = []
 
-    for root, dirs, files in os.walk(directory):
+    for root, _, files in os.walk(directory):
         for file in files:
             file_list.append(os.path.join(root, file))
 
@@ -161,7 +161,7 @@ def reset_logs():
 
     history = [
         {"role": "system", "content": system_prompt},
-        {"role": "system", "content": f"Today is {now.strftime("%Y-%m-%d")}"},
+        {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
         {"role": "user", "content": "Hey"},
         {"role": "assistant", "content": "Hi, im Nova."},
         {"role": "user", "content": "Are you a real person?"},
