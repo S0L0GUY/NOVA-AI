@@ -7,3 +7,4 @@ text_files/current_debug_log.txt
 /__pycache__
 temp.wav
 /text_files
+json_files/gmail_api.json
