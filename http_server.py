@@ -17,7 +17,7 @@ def play_audio_file(output_device_index=AUDIO_OUTPUT_INDEX):
     """
     Args:
         file_path (string): The path to the audio file.
-        output_device_index (integer, optional): The index of the audio device 
+        output_device_index (integer, optional): The index of the audio device
             to play to. Defaults to None (default device).
 
     Plays the specified audio file directly to the output device.
@@ -139,7 +139,8 @@ def reset_logs():
     mood_prompts = {
         "normal": 'text_files/prompts/normal_system_prompt.txt',
         "argument": 'text_files/prompts/argument_system_prompt.txt',
-        "misinformation": 'text_files/prompts/misinformation_system_prompt.txt',
+        "misinformation": ('text_files/prompts/'
+                           'misinformation_system_prompt.txt'),
         "drunk": 'text_files/prompts/drunk_system_prompt.txt',
         "depressed": 'text_files/prompts/depressed_system_prompt.txt',
         "therapy": 'text_files/prompts/therapy_system_prompt.txt',
@@ -242,7 +243,11 @@ class RequestHandler(BaseHTTPRequestHandler):
             self._send_response(f"Error: {str(e)}")
 
 
-def run(server_class=ThreadingHTTPServer, handler_class=RequestHandler, port=8080):
+def run(
+    server_class=ThreadingHTTPServer,
+    handler_class=RequestHandler,
+    port=8080
+):
     """
     Args:
         server_class: The type of server that is being run.
