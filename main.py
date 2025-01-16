@@ -107,7 +107,7 @@ now = datetime.now()
 
 history = [
     {"role": "system", "content": system_prompt},
-    {"role": "system", "content": f"Today is {now.strftime("%Y-%m-%d")}"},
+    {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
     {"role": "user", "content": "Hey"},
 ]
 

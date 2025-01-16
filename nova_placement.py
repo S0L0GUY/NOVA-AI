@@ -8,26 +8,31 @@ time.sleep(15)
 osc_client = udp_client.SimpleUDPClient(constant.LOCAL_IP, constant.VRC_PORT)
 osc_client.send_message("/chatbox/input", ["Positioning...", True])
 
-################################################################################################
-# "The Black Cat" Positions: "Downstairs Bar" "Upstairs Bar" "Front Desk" "Downstairs Bar Back"
+##########################################################################
+# "The Black Cat" Positions: "Downstairs Bar" "Upstairs Bar" "Front Desk"
+# "Downstairs Bar Back"
 world = "The Black Cat"
 position = "Downstairs Bar"
-################################################################################################
+##########################################################################
+
 
 def move_forward(duration, speed=1):
     osc_client.send_message("/input/MoveForward", speed)
     time.sleep(duration)
     osc_client.send_message("/input/MoveForward", 0)
 
+
 def look_right(duration, speed=1):
     osc_client.send_message("/input/LookRight", speed)
     time.sleep(duration)
     osc_client.send_message("/input/LookRight", 0)
 
+
 def look_left(duration, speed=1):
     osc_client.send_message("/input/LookLeft", speed)
     time.sleep(duration)
     osc_client.send_message("/input/LookLeft", 0)
+
 
 if world == "The Black Cat":
     if position == "Downstairs Bar":
