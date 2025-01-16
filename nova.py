@@ -71,19 +71,6 @@ def run_code():
         chunks = re.split(r'(?<=[.,;:!?]) +', text)
         return chunks
 
-    def find_matching_words(word_list, string_to_check):
-        """
-        Args:
-            word_list (list): All of the words that you want to detect.
-            string_to_check (): The string that you want to parse for words.
-
-        Returns:
-            boolean: Is there a word from the list in the string to check?
-
-        Parse the string to check for words in the list.
-        """
-        return [word for word in word_list if word in string_to_check]
-
     # Main logic
     while True:
         # Creates model parameters
