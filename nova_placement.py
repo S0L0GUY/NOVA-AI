@@ -14,19 +14,19 @@ world = "The Black Cat"
 position = "Downstairs Bar"
 ################################################################################################
 
-def move_forward(time, speed=1):
+def move_forward(duration, speed=1):
     osc_client.send_message("/input/MoveForward", speed)
-    time.sleep(time)
+    time.sleep(duration)
     osc_client.send_message("/input/MoveForward", 0)
 
-def look_right(time, speed=1):
+def look_right(duration, speed=1):
     osc_client.send_message("/input/LookRight", speed)
-    time.sleep(time)
+    time.sleep(duration)
     osc_client.send_message("/input/LookRight", 0)
 
-def look_left(time, speed=1):
+def look_left(duration, speed=1):
     osc_client.send_message("/input/LookLeft", speed)
-    time.sleep(time)
+    time.sleep(duration)
     osc_client.send_message("/input/LookLeft", 0)
 
 if world == "The Black Cat":
