@@ -1,7 +1,6 @@
 import constants as constant
 from pythonosc import udp_client
 import time
-import os
 
 time.sleep(15)
 
