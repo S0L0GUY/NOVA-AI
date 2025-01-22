@@ -52,7 +52,7 @@ def run_code():
         engine.runAndWait()
 
         def play_audio(file_path, output_device_index):
-            data, samplerate = sf.read(file_path, always_2d=True)
+            data, samplerate = sf.read(file_path, always_2d=False)
             sd.play(data, samplerate, device=output_device_index)
             sd.wait()
 
