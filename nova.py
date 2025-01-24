@@ -6,7 +6,7 @@ def run_code():
     import constants as constant
     from openai import OpenAI
     import datetime
-    import pyttsx3
+    import edge_tts
     # import http_server
     import re
     import os
@@ -38,18 +38,14 @@ def run_code():
         api_key="lm-studio"
     )
 
-    def play_tts(text, output_device_index=constant.AUDIO_OUTPUT_INDEX):
-        engine = pyttsx3.init()
-        engine.setProperty('rate', 200)  # Speed of speech
-        engine.setProperty('volume', 1)  # Volume level (0.0 to 1.0)
-
+    async def play_tts(text, output_device_index=constant.AUDIO_OUTPUT_INDEX):
+        communicate = edge_tts.Communicate(text, "en-US-JennyNeural")
         file_path = "tts_output.wav"
 
         if os.path.exists(file_path):
-            os.remove("tts_output.wav")
+            os.remove(file_path)
 
-        engine.save_to_file(text, file_path)
-        engine.runAndWait()
+        await communicate.save(file_path)
 
         def play_audio(file_path, output_device_index):
             data, samplerate = sf.read(file_path, always_2d=True)
