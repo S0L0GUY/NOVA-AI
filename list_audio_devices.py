@@ -2,14 +2,14 @@ import pyaudio
 
 
 def list_audio_devices():
-    """List all of the audio devices and their indexes."""
+    """List all of the audio devices, their indexes, and number of channels."""
     p = pyaudio.PyAudio()
     device_count = p.get_device_count()
 
     print("Available Audio Devices:")
     for i in range(device_count):
         device_info = p.get_device_info_by_index(i)
-        print(f"Index {i}: {device_info['name']}")
+        print(f"Index {i}: {device_info['name']}, Channels: {device_info['maxInputChannels']}")
 
     p.terminate()
 
