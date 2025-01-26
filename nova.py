@@ -123,8 +123,13 @@ def run_code():
         user_speech = ""
 
         while not user_speech:
-            user_speech = transcriber.get_speech_input()
+            try:
+                user_speech = transcriber.get_speech_input()
+            except Exception as e:
+                osc.send_message(f"Error: {str(e)}")
+                osc.set_typing_indicator(True)
+                continue
 
-        f"HUMAN: {user_speech}"
+        print(f"HUMAN: {user_speech}")
 
         JsonWrapper.write(constant.HISTORY_PATH, user_speech)

@@ -27,7 +27,7 @@ class WhisperTranscriber:
         rate = 16000
         chunk = 1024
         silence_threshold = -40  # Silence threshold in dB
-        silence_duration = 1000  # Duration of silence in ms (1 second)
+        silence_duration = 1  # Duration of silence in seconds
 
         # Open the audio stream
         stream = p.open(format=format,
@@ -59,7 +59,7 @@ class WhisperTranscriber:
                 silent_chunks = 0
 
             # Stop recording after detecting sufficient silence
-            if silent_chunks > silence_duration / (1000 * chunk / rate):
+            if silent_chunks > silence_duration * (rate / chunk):
                 break
 
         # Stop and close the stream
