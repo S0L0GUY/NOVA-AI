@@ -5,6 +5,7 @@ VRC_PORT = 9000  # VR Chat VRC_PORT, 9000 is the default
 # Audio Settings
 # The index of the audio output device (VB-Audio Cable B)
 AUDIO_OUTPUT_INDEX = 10
+AUDIO_INPUT_INDEX = 16
 
 # LM Settings
 # The model ID of the LM
