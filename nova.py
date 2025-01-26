@@ -1,3 +1,5 @@
+import logging
+
 def run_code():
     from classes.whisper import WhisperTranscriber
     from classes.system_prompt import SystemPrompt
@@ -123,8 +125,10 @@ def run_code():
         user_speech = ""
 
         while not user_speech:
-            user_speech = transcriber.get_speech_input()
+            user_speech = transcriber.start_listening()
+            if not user_speech:
+                logging.info("No speech detected, waiting for input...")
 
-        f"HUMAN: {user_speech}"
+        logging.info(f"HUMAN: {user_speech}")
 
         JsonWrapper.write(constant.HISTORY_PATH, user_speech)

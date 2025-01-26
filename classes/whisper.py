@@ -2,7 +2,7 @@ import whisper
 import pyaudio
 import wave
 from pydub import AudioSegment
-
+import logging
 
 class WhisperTranscriber:
     def __init__(self):
@@ -26,8 +26,8 @@ class WhisperTranscriber:
         channels = 1
         rate = 16000
         chunk = 1024
-        silence_threshold = -40  # Silence threshold in dB
-        silence_duration = 1000  # Duration of silence in ms (1 second)
+        silence_threshold = -50  # Adjusted silence threshold in dB
+        silence_duration = 0.5  # Adjusted duration of silence in seconds
 
         # Open the audio stream
         stream = p.open(format=format,
@@ -59,7 +59,7 @@ class WhisperTranscriber:
                 silent_chunks = 0
 
             # Stop recording after detecting sufficient silence
-            if silent_chunks > silence_duration / (1000 * chunk / rate):
+            if silent_chunks > silence_duration * (rate / chunk):
                 break
 
         # Stop and close the stream
@@ -88,6 +88,17 @@ class WhisperTranscriber:
         ]
 
         if text not in unwanted_responses:
+            logging.info(f"Transcribed text: {text}")
             return text
         else:
+            logging.info("Unwanted response detected.")
             return ""
+
+    def start_listening(self):
+        """
+        Starts listening for speech input and returns the transcribed text.
+        Returns:
+            str: The transcribed text from the audio input.
+        """
+        logging.info("Listening for speech input...")
+        return self.get_speech_input()
