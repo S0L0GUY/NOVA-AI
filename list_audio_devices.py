@@ -9,7 +9,8 @@ def list_audio_devices():
     print("Available Audio Devices:")
     for i in range(device_count):
         device_info = p.get_device_info_by_index(i)
-        print(f"Index {i}: {device_info['name']}, Channels: {device_info['maxInputChannels']}")
+        print(f"Index {i}: {device_info['name']}, "
+              f"Channels: {device_info['maxInputChannels']}")
 
     p.terminate()
 
