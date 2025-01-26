@@ -40,6 +40,11 @@ def run_code():
 
     def play_tts(text, output_device_index=constant.AUDIO_OUTPUT_INDEX):
         engine = pyttsx3.init()
+        voices = engine.getProperty('voices')
+        for voice in voices:
+            if 'Zira' in voice.name:
+                engine.setProperty('voice', voice.id)
+                break
         engine.setProperty('rate', 200)  # Speed of speech
         engine.setProperty('volume', 1)  # Volume level (0.0 to 1.0)
 
