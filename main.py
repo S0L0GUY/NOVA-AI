@@ -14,6 +14,7 @@ def main():
     osc = VRChatOSC(constant.LOCAL_IP, constant.VRC_PORT)
     while True:
         try:
+            print("Program Starting...")
             nova.run_code()
         except Exception as e:
             logging.error(f"An error occurred: {e}")
