@@ -13,7 +13,7 @@ def run_code():
     import sounddevice as sd
     import soundfile as sf
 
-    osc = VRChatOSC(constant.LOCAL_IP, constant.VRC_PORT)
+    osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
     transcriber = WhisperTranscriber()
 
     # Send message to VRChat to indicate that the system is starting
@@ -38,11 +38,11 @@ def run_code():
         api_key="lm-studio"
     )
 
-    def play_tts(text, output_device_index=constant.AUDIO_OUTPUT_INDEX):
+    def play_tts(text, output_device_index=constant.Audio.AUDIO_OUTPUT_INDEX):
         engine = pyttsx3.init()
         voices = engine.getProperty('voices')
         for voice in voices:
-            if 'Zira' in voice.name:
+            if constant.Voice.VOICE_NAME in voice.name:
                 engine.setProperty('voice', voice.id)
                 break
         engine.setProperty('rate', 200)  # Speed of speech
@@ -80,9 +80,9 @@ def run_code():
     while True:
         # Creates model parameters
         completion = openai_client.chat.completions.create(
-            model=constant.MODEL_ID,
+            model=constant.LanguageModel.MODEL_ID,
             messages=history,
-            temperature=constant.LM_TEMPERATURE,
+            temperature=constant.LanguageModel.LM_TEMPERATURE,
             stream=True,
         )
 
@@ -117,7 +117,7 @@ def run_code():
 
         osc.set_typing_indicator(False)
 
-        JsonWrapper.write(constant.HISTORY_PATH, new_message)
+        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, new_message)
 
         # Get user speech input
         user_speech = ""
@@ -127,4 +127,4 @@ def run_code():
 
         f"HUMAN: {user_speech}"
 
-        JsonWrapper.write(constant.HISTORY_PATH, user_speech)
+        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, user_speech)

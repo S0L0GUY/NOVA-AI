@@ -11,7 +11,7 @@ logging.basicConfig(
 
 
 def main():
-    osc = VRChatOSC(constant.LOCAL_IP, constant.VRC_PORT)
+    osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
     while True:
         try:
             print("Program Starting...")

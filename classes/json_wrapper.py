@@ -17,7 +17,7 @@ class JsonWrapper:
             data = json.load(file)
             return json.dumps(data, indent=4)
 
-    def read_txt(file_path):
+    def read_txt(self, file_path):
         """
         Reads a text file and returns its contents as a string.
         Args:
