@@ -37,7 +37,10 @@ import constants as constant
 time.sleep(15)
 
 # Set up OSC
-osc_client = udp_client.SimpleUDPClient(constant.LOCAL_IP, constant.VRC_PORT)
+osc_client = udp_client.SimpleUDPClient(
+    constant.Network.LOCAL_IP,
+    constant.Network.VRC_PORT
+)
 osc_client.send_message("/chatbox/input", ["Positioning...", True])
 
 ##########################################################################

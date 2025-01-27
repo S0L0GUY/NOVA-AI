@@ -33,7 +33,7 @@ def main():
         Exception: If an error occurs during the execution of nova.run_code().
     """
 
-    osc = VRChatOSC(constant.LOCAL_IP, constant.VRC_PORT)
+    osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
     while True:
         try:
             print("Program Starting...")

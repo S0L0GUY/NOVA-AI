@@ -40,8 +40,8 @@ Dependencies:
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import urllib.parse
 import threading
-import classes.json_wrapper as json_wrapper
 import constants as constant
+import classes.json_wrapper as json_wrapper
 
 
 def run_http_server():
@@ -71,7 +71,8 @@ def run_http_server():
             to the history.
         """
 
-        json_wrapper.JsonWrapper.write(constant.HISTORY_PATH, message)
+        json_wrapper.JsonWrapper.write(
+            constant.FilePaths.HISTORY_PATH, message)
 
         return f"Added '{message}' to history."
 
@@ -83,8 +84,10 @@ def run_http_server():
             str: The logs read from the history path.
         """
 
-        history = json_wrapper.JsonWrapper.read_json(constant.HISTORY_PATH)
-        logs = history.toString()
+        history_data = json_wrapper.JsonWrapper.read(
+            constant.FilePaths.HISTORY_PATH
+        )
+        logs = history_data.toString()
 
         return logs
 
@@ -107,7 +110,7 @@ def run_http_server():
             cleared.
         """
 
-        json_wrapper.JsonWrapper.write(constant.HISTORY_PATH, [])
+        json_wrapper.JsonWrapper.write(constant.FilePaths.HISTORY_PATH, [])
 
         return "Logs Cleared"
 

@@ -42,7 +42,7 @@ def initialize_components():
             - openai_client (OpenAI): An instance of the OpenAI client.
     """
 
-    osc = VRChatOSC(constant.LOCAL_IP, constant.VRC_PORT)
+    osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
     transcriber = WhisperTranscriber()
     system_prompt = SystemPrompt.get_full_prompt("normal")
     now = datetime.datetime.now()
@@ -55,29 +55,16 @@ def initialize_components():
         base_url="http://localhost:1234/v1",
         api_key="lm-studio"
     )
-    return osc, transcriber, history, openai_client
 
-
-def play_tts(text, output_device_index):
-    """
-    Converts text to speech using the pyttsx3 library, saves the speech to a
-    WAV file, and plays the audio using the sounddevice library.
-    Args:
-        text (str): The text to be converted to speech.
-        output_device_index (int): The index of the output audio device to
-        play the speech.
-    Raises:
-        RuntimeError: If there is an error in playing the audio file.
-    """
-
-    engine = pyttsx3.init()
-    voices = engine.getProperty('voices')
-    for voice in voices:
-        if 'Zira' in voice.name:
-            engine.setProperty('voice', voice.id)
-            break
-    engine.setProperty('rate', 200)  # Speed of speech
-    engine.setProperty('volume', 1)  # Volume level (0.0 to 1.0)
+    def play_tts(text, output_device_index=constant.Audio.AUDIO_OUTPUT_INDEX):
+        engine = pyttsx3.init()
+        voices = engine.getProperty('voices')
+        for voice in voices:
+            if constant.Voice.VOICE_NAME in voice.name:
+                engine.setProperty('voice', voice.id)
+                break
+        engine.setProperty('rate', 200)  # Speed of speech
+        engine.setProperty('volume', 1)  # Volume level (0.0 to 1.0)
 
     file_path = "tts_output.wav"
 
@@ -176,9 +163,9 @@ def run_code():
     while True:
         # Creates model parameters
         completion = openai_client.chat.completions.create(
-            model=constant.MODEL_ID,
+            model=constant.LanguageModel.MODEL_ID,
             messages=history,
-            temperature=constant.LM_TEMPERATURE,
+            temperature=constant.LanguageModel.LM_TEMPERATURE,
             stream=True,
         )
 
@@ -189,12 +176,15 @@ def run_code():
         full_response = process_completion(completion, osc)
         new_message["content"] = full_response
 
-        JsonWrapper.write(constant.HISTORY_PATH, new_message)
+        osc.set_typing_indicator(False)
+
+        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, new_message)
 
         # Get user speech input
         user_speech = ""
         while not user_speech:
             user_speech = transcriber.get_speech_input()
 
-        print(f"HUMAN: {user_speech}")
-        JsonWrapper.write(constant.HISTORY_PATH, user_speech)
+        f"HUMAN: {user_speech}"
+
+        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, user_speech)
