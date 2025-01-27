@@ -29,7 +29,7 @@ def run_http_server():
             str: The logs read from the history path.
         """
 
-        history_data = json_wrapper.JsonWrapper.read(
+        history_data = json_wrapper.JsonWrapper.read_json(
             constant.FilePaths.HISTORY_PATH
         )
         logs = history_data.toString()
@@ -90,7 +90,10 @@ def run_http_server():
             try:
                 result = handle_command(command, *args)
                 self._send_response(result)
-            except Exception as e:
+            except (
+                FileNotFoundError,
+                ValueError
+            ) as e:
                 self._send_response(f"Error: {str(e)}")
 
     def start_server():
