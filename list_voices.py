@@ -1,8 +1,8 @@
-import pyttsx3
-
 '''
 List all of the voices available for pyttsx3 on this system.
 '''
+import pyttsx3
+
 
 engine = pyttsx3.init()
 

@@ -1,3 +1,12 @@
+"""
+This script lists all available audio devices along with their indexes and
+number of channels.
+Functions:
+    list_audio_devices(): Lists all of the audio devices, their indexes, and
+    number of channels.
+Usage:
+    Run this script directly to print the list of audio devices.
+"""
 import pyaudio
 
 
