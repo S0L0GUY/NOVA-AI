@@ -1,8 +1,8 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import constants as constant
-import classes.json_wrapper as json_wrapper
 import urllib.parse
 import threading
+import constants as constant
+import classes.json_wrapper as json_wrapper
 
 
 def run_http_server():
@@ -16,21 +16,10 @@ def run_http_server():
             to the history.
         """
 
-        json_wrapper.JsonWrapper.write(constant.HISTORY_PATH, message)
+        json_wrapper.JsonWrapper.write(
+            constant.FilePaths.HISTORY_PATH, message)
 
         return f"Added '{message}' to history."
-
-    def mood():
-        """
-        Reads the mood from a JSON file and returns it as a formatted string.
-        Returns:
-            str: A string representing the mood in the format "mood:
-            <mood_value>".
-        """
-
-        mood = json_wrapper.JsonWrapper.read(constant.MOOD_PATH).toString()
-
-        return f"mood: {mood}"
 
     def logs():
         """
@@ -40,7 +29,10 @@ def run_http_server():
             str: The logs read from the history path.
         """
 
-        logs = json_wrapper.JsonWrapper.read(constant.HISTORY_PATH).toString()
+        history_data = json_wrapper.JsonWrapper.read(
+            constant.FilePaths.HISTORY_PATH
+        )
+        logs = history_data.toString()
 
         return logs
 
@@ -63,7 +55,7 @@ def run_http_server():
             cleared.
         """
 
-        json_wrapper.JsonWrapper.write(constant.HISTORY_PATH, [])
+        json_wrapper.JsonWrapper.write(constant.FilePaths.HISTORY_PATH, [])
 
         return "Logs Cleared"
 
@@ -76,8 +68,6 @@ def run_http_server():
             return logs()
         elif command == "status":
             return status()
-        elif command == "mood":
-            return mood()
         elif command == "restart":
             return reset_logs()
         else:
