@@ -12,11 +12,11 @@ import re
 import sounddevice as sd
 import pyttsx3
 import soundfile as sf
+from openai import OpenAI
 from classes.osc import VRChatOSC
 from classes.whisper import WhisperTranscriber
 from classes.system_prompt import SystemPrompt
 from classes.json_wrapper import JsonWrapper
-from openai import OpenAI
 import constants as constant
 
 
