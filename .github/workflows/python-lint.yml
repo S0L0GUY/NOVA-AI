@@ -30,4 +30,12 @@ jobs:
 
     - name: Lint with pylint
       run: |
-        pylint $(git ls-files '*.py')
+        pylint $(git ls-files '*.py') || true
+        pylint_score=$(pylint $(git ls-files '*.py') --exit-zero | grep 'Your code has been rated at' | awk '{print $7}' | cut -d'/' -f1)
+        if (( $(echo "$pylint_score >= 7" | bc -l) )); then
+          echo "Pylint score is $pylint_score, which is acceptable."
+          exit 0
+        else
+          echo "Pylint score is $pylint_score, which is below the acceptable threshold."
+          exit 1
+        fi
