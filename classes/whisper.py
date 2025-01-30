@@ -19,7 +19,7 @@ class WhisperTranscriber:
 
     def __init__(self):
         """Initialize the WhisperTranscriber with the base Whisper model."""
-        self.model = whisper.load_model("base")
+        self.model = whisper.load("base")
 
     def transcribe_file(self, audio_file_path):
         """
@@ -53,7 +53,7 @@ class WhisperTranscriber:
         rate = 16000
         chunk = 1024
         silence_threshold = -40  # Silence threshold in dB
-        silence_duration = 1000  # Duration of silence in ms (1 second)
+        silence_duration = 1  # Duration of silence in seconds
 
         # Open the audio stream
         stream = p.open(format=audio_format,
@@ -96,7 +96,7 @@ class WhisperTranscriber:
         # Save the recorded data to a WAV file
         with wave.open('temp.wav', 'wb') as wf:
             wf.setnchannels(channels)
-            wf.setsampwidth(p.get_sample_size(format))
+            wf.setsampwidth(p.get_sample_size(audio_format))
             wf.setframerate(rate)
             wf.writeframes(b''.join(frames))
 
@@ -115,5 +115,4 @@ class WhisperTranscriber:
 
         if text not in unwanted_responses:
             return text
-        else:
-            return ""
+        return ""
