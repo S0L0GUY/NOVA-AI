@@ -42,7 +42,7 @@ def initialize_components():
             - openai_client (OpenAI): An instance of the OpenAI client.
     """
 
-    osc = VRChatOSC(constant.LOCAL_IP, constant.VRC_PORT)
+    osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
     transcriber = WhisperTranscriber()
     system_prompt = SystemPrompt.get_full_prompt("normal")
     now = datetime.datetime.now()
@@ -135,7 +135,7 @@ def process_completion(completion, osc):
                 osc.send_message(sentence)
                 play_tts(
                     sentence,
-                    output_device_index=constant.AUDIO_OUTPUT_INDEX
+                    output_device_index=constant.Audio.AUDIO_OUTPUT_INDEX
                 )
             buffer = sentence_chunks[0]
     if buffer:
@@ -143,7 +143,7 @@ def process_completion(completion, osc):
         full_response += f" {buffer}"
         print(f"AI: {buffer}")
         osc.send_message(buffer)
-        play_tts(buffer, output_device_index=constant.AUDIO_OUTPUT_INDEX)
+        play_tts(buffer, output_device_index=constant.Audio.AUDIO_OUTPUT_INDEX)
     osc.set_typing_indicator(False)
     return full_response
 
@@ -176,9 +176,9 @@ def run_code():
     while True:
         # Creates model parameters
         completion = openai_client.chat.completions.create(
-            model=constant.MODEL_ID,
+            model=constant.LanguageModel.MODEL_ID,
             messages=history,
-            temperature=constant.LM_TEMPERATURE,
+            temperature=constant.LanguageModel.LM_TEMPERATURE,
             stream=True,
         )
 
@@ -189,7 +189,7 @@ def run_code():
         full_response = process_completion(completion, osc)
         new_message["content"] = full_response
 
-        JsonWrapper.write(constant.HISTORY_PATH, new_message)
+        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, new_message)
 
         # Get user speech input
         user_speech = ""
@@ -197,4 +197,4 @@ def run_code():
             user_speech = transcriber.get_speech_input()
 
         print(f"HUMAN: {user_speech}")
-        JsonWrapper.write(constant.HISTORY_PATH, user_speech)
+        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, user_speech)
