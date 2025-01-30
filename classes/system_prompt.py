@@ -1,36 +1,7 @@
-"""
-A class that handles system prompts for an AI assistant.
-This class provides static methods to manage and retrieve prompts from
-a 'prompts' directory. It can combine mood-specific prompts with additional
-prompt content to create comprehensive system instructions.
-The class assumes a specific directory structure where prompt files are
-stored in a 'prompts' directory, with filenames that begin with a mood
-identifier followed by underscores.
-Example:
-    full_prompt = SystemPrompt.get_full_prompt('happy')
-Attributes:
-    None
-Methods:
-    get_prompt_directory(): Returns a dictionary of prompt files.
-    get_full_prompt(mood): Returns combined prompt content for a specific mood.
-"""
 import os
 
 
 class SystemPrompt:
-    """
-    A class that handles system prompts for an AI assistant.
-
-    This class provides static methods to manage and retrieve prompts from
-    a 'prompts' directory. It combines mood-specific prompts with additional
-    prompt content to create comprehensive system instructions.
-
-    Methods:
-        get_prompt_directory(): Returns a dictionary of prompt files.
-        get_full_prompt(mood): Returns combined prompt content for a specific
-        mood.
-    """
-
     @staticmethod
     def get_prompt_directory():
         """
@@ -80,11 +51,10 @@ class SystemPrompt:
         mood_prompt_path = prompt_dict[mood]
         additional_prompt_path = prompt_dict['additional']
 
-        with open(mood_prompt_path, 'r', encoding='utf-8') as mood_file:
+        with open(mood_prompt_path, 'r') as mood_file:
             mood_prompt_content = mood_file.read()
 
-        with open(additional_prompt_path, 'r',
-                  encoding='utf-8') as additional_file:
+        with open(additional_prompt_path, 'r') as additional_file:
             additional_prompt_content = additional_file.read()
 
         return mood_prompt_content + "\n" + additional_prompt_content

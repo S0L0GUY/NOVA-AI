@@ -1,38 +1,12 @@
-"""
-This module provides functionality for transcribing speech to text using
-OpenAI's Whisper model. It includes audio recording capabilities and silence
-detection for automatic recording termination.
-"""
-
-import wave
-import pyaudio
 import whisper
+import pyaudio
+import wave
 from pydub import AudioSegment
 
 
 class WhisperTranscriber:
-    """
-    A class for transcribing speech to text using OpenAI's Whisper model.
-    Provides functionality for real-time audio recording and transcription,
-    as well as transcription from existing audio files.
-    """
-
     def __init__(self):
-        """Initialize the WhisperTranscriber with the base Whisper model."""
         self.model = whisper.load_model("base")
-
-    def transcribe_file(self, audio_file_path):
-        """
-        Transcribe an existing audio file using the Whisper model.
-
-        Args:
-            audio_file_path (str): Path to the audio file to transcribe
-
-        Returns:
-            str: The transcribed text from the audio file
-        """
-        result = self.model.transcribe(audio_file_path)
-        return result['text']
 
     def get_speech_input(self):
         """
@@ -48,7 +22,7 @@ class WhisperTranscriber:
         p = pyaudio.PyAudio()
 
         # Set audio recording parameters
-        audio_format = pyaudio.paInt16
+        format = pyaudio.paInt16
         channels = 1
         rate = 16000
         chunk = 1024
@@ -56,7 +30,7 @@ class WhisperTranscriber:
         silence_duration = 1000  # Duration of silence in ms (1 second)
 
         # Open the audio stream
-        stream = p.open(format=audio_format,
+        stream = p.open(format=format,
                         channels=channels,
                         rate=rate,
                         input=True,
@@ -73,7 +47,7 @@ class WhisperTranscriber:
             # Convert audio chunk to Pydub's AudioSegment for silence detection
             audio_chunk = AudioSegment(
                 data,
-                sample_width=p.get_sample_size(audio_format),
+                sample_width=p.get_sample_size(format),
                 frame_rate=rate,
                 channels=channels
             )

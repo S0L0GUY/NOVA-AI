@@ -1,17 +1,7 @@
-"""
-This module provides a JsonWrapper class for handling JSON file operations.
-It includes functionality for reading, writing, and managing JSON files.
-"""
-
 import json
 
 
 class JsonWrapper:
-    """
-    A utility class for reading, writing, and managing JSON files.
-    Provides methods for reading JSON and text files, writing JSON data,
-    and clearing JSON file contents.
-    """
     @staticmethod
     def read_json(file_path):
         """
@@ -23,7 +13,7 @@ class JsonWrapper:
             str: The contents of the JSON file as a pretty-printed JSON string.
         """
 
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, 'r') as file:
             data = json.load(file)
             return json.dumps(data, indent=4)
 
@@ -36,7 +26,7 @@ class JsonWrapper:
             str: The contents of the text file as a string.
         """
 
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, 'r') as file:
             return file.read()
 
     @staticmethod
@@ -51,7 +41,7 @@ class JsonWrapper:
             IOError: If the file cannot be opened or written to.
         """
 
-        with open(file_path, 'a', encoding='utf-8') as file:
+        with open(file_path, 'a') as file:
             json.dump(data, file, indent=4)
 
     @staticmethod
@@ -64,7 +54,7 @@ class JsonWrapper:
             IOError: If the file cannot be deleted.
         """
 
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, 'r') as file:
             data = json.load(file)
 
         if isinstance(data, list):
@@ -75,5 +65,5 @@ class JsonWrapper:
             raise ValueError(
                 "The file does not contain a JSON object or array.")
 
-        with open(file_path, 'w', encoding='utf-8') as file:
+        with open(file_path, 'w') as file:
             json.dump(empty_data, file, indent=4)
