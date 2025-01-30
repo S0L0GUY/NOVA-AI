@@ -26,16 +26,6 @@ class VRChatOSC:
 
         self.client = udp_client.SimpleUDPClient(ip, port)
 
-    def send_message(self, message: str):
-        """
-        Sends a message to the chatbox.
-        Args:
-            message (str): The message to be sent to the chatbox.
-        """
-
-        self.client.send_message("/chatbox/input", [message, True])
-        self.client.send_message("/chatbox/typing", False)
-
     def set_typing_indicator(self, typing: bool):
         """
         Sets the typing indicator status in the chatbox.
@@ -45,3 +35,13 @@ class VRChatOSC:
         """
 
         self.client.send_message("/chatbox/typing", typing)
+
+    def send_message(self, message: str):
+        """
+        Sends a message to the chatbox.
+        Args:
+            message (str): The message to be sent to the chatbox.
+        """
+
+        self.client.send_message("/chatbox/input", [message, True])
+        self.client.send_message("/chatbox/typing", False)

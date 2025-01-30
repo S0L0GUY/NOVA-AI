@@ -71,7 +71,10 @@ def run_http_server():
             to the history.
         """
 
-        json_wrapper.JsonWrapper.write(constant.HISTORY_PATH, message)
+        json_wrapper.JsonWrapper.write(
+            constant.FilePaths.HISTORY_PATH,
+            message
+        )
 
         return f"Added '{message}' to history."
 
@@ -83,7 +86,8 @@ def run_http_server():
             str: The logs read from the history path.
         """
 
-        history = json_wrapper.JsonWrapper.read_json(constant.HISTORY_PATH)
+        history = json_wrapper.JsonWrapper.read_json(
+            constant.FilePaths.HISTORY_PATH)
         logs = history.toString()
 
         return logs
@@ -107,7 +111,7 @@ def run_http_server():
             cleared.
         """
 
-        json_wrapper.JsonWrapper.write(constant.HISTORY_PATH, [])
+        json_wrapper.JsonWrapper.write(constant.FilePaths.HISTORY_PATH, [])
 
         return "Logs Cleared"
 
