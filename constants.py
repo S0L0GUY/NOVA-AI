@@ -1,4 +1,3 @@
-@staticmethod
 class Network:
     """
     Class representing network configuration parameters.
@@ -8,11 +7,10 @@ class Network:
         VRC_PORT (int): The port number used for VRChat communication. Default
         is 9000.
     """
-    LOCAL_IP = "192.168.0.195"
+    LOCAL_IP = "192.168.0.128"
     VRC_PORT = 9000
 
 
-@staticmethod
 class Audio:
     """
     A class containing audio device configuration constants.
@@ -28,7 +26,6 @@ class Audio:
     AUDIO_INPUT_INDEX = 16
 
 
-@staticmethod
 class Voice:
     """
     A class that defines constants for voice-related configurations in
@@ -40,7 +37,6 @@ class Voice:
     VOICE_NAME = "Zira"
 
 
-@staticmethod
 class LanguageModel:
     """
     A class representing configuration settings for a language model.
@@ -57,7 +53,6 @@ class LanguageModel:
     LM_TEMPERATURE = 0.5
 
 
-@staticmethod
 class FilePaths:
     """
     A class containing file path constants used in the application.
