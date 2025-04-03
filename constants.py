@@ -26,7 +26,7 @@ class Audio:
             configured for VB-Audio Cable A Output (default: 16)
     """
     AUDIO_OUTPUT_INDEX = 13
-    AUDIO_INPUT_INDEX = 9
+    AUDIO_INPUT_INDEX = 2
 
 
 class Voice:
