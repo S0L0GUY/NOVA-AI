@@ -19,7 +19,7 @@ class WhisperTranscriber:
 
     def __init__(self):
         """Initialize the WhisperTranscriber with the base Whisper model."""
-        self.model = whisper.load("base")
+        self.model = whisper.load_model("base")
 
     def transcribe_file(self, audio_file_path):
         """

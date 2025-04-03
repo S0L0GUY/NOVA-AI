@@ -14,6 +14,12 @@ import logging
 import nova
 import constants as constant
 from classes.osc import VRChatOSC
+import warnings
+
+warnings.filterwarnings(
+                    "ignore",
+                    message="FP16 is not supported on CPU; using FP32 instead"
+    )
 
 logging.basicConfig(
     level=logging.ERROR,
