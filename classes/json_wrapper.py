@@ -15,17 +15,17 @@ class JsonWrapper:
     @staticmethod
     def read_json(file_path):
         """
-        Reads a JSON file and returns its contents as a pretty-printed JSON
-        string.
+        Reads a JSON file and returns its contents as a Python object.
         Args:
             file_path (str): The path to the JSON file to be read.
         Returns:
-            str: The contents of the JSON file as a pretty-printed JSON string.
+            dict or list: The contents of the JSON file as a Python object.
+        Raises:
+            IOError: If the file cannot be opened or read.
+            json.JSONDecodeError: If the file does not contain valid JSON.
         """
-
         with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return json.dumps(data, indent=4)
+            return json.load(file)
 
     def read_txt(self, file_path):
         """
@@ -38,20 +38,34 @@ class JsonWrapper:
 
         with open(file_path, 'r', encoding='utf-8') as file:
             return file.read()
-
+    
     @staticmethod
-    def write(file_path, data):
+    def whipe_json(file_path):
         """
-        Writes the given data to a JSON file at the specified file path.
+        Clears the contents of a JSON file by writing an empty JSON object or
+        array to it.
         Args:
-            file_path (str): The path to the file where the data should be
-            written.
-            data (dict): The data to be written to the file.
+            file_path (str): The path to the JSON file to be cleared.
         Raises:
             IOError: If the file cannot be opened or written to.
         """
 
-        with open(file_path, 'a', encoding='utf-8') as file:
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump({}, file, indent=4)
+
+    @staticmethod
+    def write(file_path, data):
+        """
+        Writes data to a JSON file. If the file already exists, it will be
+        overwritten.
+        Args:
+            file_path (str): The path to the JSON file to be written to.
+            data (dict or list): The data to be written to the JSON file.
+        Raises:
+            IOError: If the file cannot be opened or written to.
+        """
+
+        with open(file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4)
 
     @staticmethod

@@ -1,104 +1,109 @@
-import pyaudio
-import wave
-from pydub import AudioSegment
 import whisper
+import sounddevice as sd
+import numpy as np
+import torch
+import webrtcvad
+import collections
+import constants as constant
 
 
 class WhisperTranscriber:
-    def __init__(self, model_name="base"):
-        """
-        Initialize the SpeechRecognizer with a Whisper model.
+    def __init__(self):
+        print("Loading Whisper model...")
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        try:
+            # Initialize Whisper with the correct model path
+            self.model = whisper.load_model(
+                "base",
+                device=self.device,
+            )
+            print(f"Whisper model loaded on {self.device}.")
+        except Exception as e:
+            print(f"Failed to load Whisper model: {e}")
+            raise
+        self.vad = webrtcvad.Vad(2)  # Aggressiveness from 0 to 3
+        self.stream = None
 
-        Args:
-            model_name (str): The name of the Whisper model to use. Default is
-            "base".
-        """
-        self.model = whisper.load_model(model_name)
+        self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
 
-    def get_speech_input(self):
-        """
-        Captures audio input, processes it, and returns the transcribed text.
+    def get_voice_input(self):
+        print("Listening for voice input with VAD...")
+        sample_rate = 16000
+        frame_duration = 30  # ms
+        num_padding_frames = 10
+        threshold = 0.9  # Ratio of voiced frames needed
 
-        Returns:
-            str: The detected speech input.
-        """
-        # Initialize PyAudio
-        p = pyaudio.PyAudio()
+        ring_buffer = collections.deque(maxlen=num_padding_frames)
+        triggered = False
+        voiced_frames = []
 
-        # Set audio recording parameters
-        format = pyaudio.paInt16
-        channels = 1
-        rate = 16000
-        chunk = 1024
-        silence_threshold = -40  # Silence threshold in dB
-        silence_duration = 1000  # Duration of silence in ms (1 second)
+        try:
+            with sd.InputStream(
+                samplerate=sample_rate,
+                channels=1,
+                dtype="int16",
+                device=self.audio_input_index,
+                # Explicitly use default input device
+                latency="low",
+            ) as stream:
+                while True:
+                    data, overflowed = stream.read(
+                        int(sample_rate * frame_duration / 1000)
+                    )
+                    if overflowed:
+                        print("Audio buffer overflowed")
 
-        # Open the audio stream
-        stream = p.open(
-            format=format,
-            channels=channels,
-            rate=rate,
-            input=True,
-            frames_per_buffer=chunk
+                    # Ensure audio data is in 16-bit PCM format
+                    audio_data = data.flatten().astype(np.int16).tobytes()
+                    is_speech = self.vad.is_speech(audio_data, sample_rate)
+                    if not triggered:
+                        ring_buffer.append((data.tobytes(), is_speech))
+                        num_voiced = len(
+                            [frame for frame, speech in ring_buffer if speech]
+                        )
+
+                        if num_voiced > threshold * num_padding_frames:
+                            triggered = True
+                            voiced_frames.extend(
+                                [frame for frame, _ in ring_buffer]
+                            )
+                            ring_buffer.clear()
+                    else:
+                        voiced_frames.append(data.tobytes())
+                        ring_buffer.append((data.tobytes(), is_speech))
+                        num_unvoiced = len(
+                            [f for f, speech in ring_buffer if not speech]
+                        )
+                        if num_unvoiced > threshold * num_padding_frames:
+                            break  # End of speech
+                    if (
+                        len(voiced_frames) > sample_rate * 10
+                    ):  # Limit recording to 10 seconds
+                        print("Max recording duration reached.")
+                        break
+
+        except Exception as e:
+            print(f"Error during voice input: {e}")
+            return None
+
+        if not voiced_frames:
+            print("No speech detected.")
+            return None
+
+        audio_data = b"".join(voiced_frames)
+        audio_array = (
+            np.frombuffer(audio_data, dtype="int16")
+              .astype(np.float32) / 32768.0
         )
 
-        # Record audio
-        frames = []
-        print("Listening...")
-        silent_chunks = 0
-
-        while True:
-            data = stream.read(chunk)
-            frames.append(data)
-
-            # Convert audio chunk to Pydub's AudioSegment for silence detection
-            audio_chunk = AudioSegment(
-                data,
-                sample_width=p.get_sample_size(format),
-                frame_rate=rate,
-                channels=channels
+        print("Transcribing voice input...")
+        try:
+            result = self.model.transcribe(
+                audio_array, fp16=torch.cuda.is_available()
             )
-
-            # Check if the audio chunk is silent
-            if audio_chunk.dBFS < silence_threshold:
-                silent_chunks += 1
-            else:
-                silent_chunks = 0
-
-            # Stop recording after detecting sufficient silence
-            if silent_chunks > silence_duration / (1000 * chunk / rate):
-                break
-
-        # Stop and close the stream
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
-
-        # Save the recorded data to a WAV file
-        temp_filename = 'temp.wav'
-        with wave.open(temp_filename, 'wb') as wf:
-            wf.setnchannels(channels)
-            wf.setsampwidth(p.get_sample_size(format))
-            wf.setframerate(rate)
-            wf.writeframes(b''.join(frames))
-
-        # Transcribe audio file using Whisper
-        result = self.model.transcribe(temp_filename)
-        text = result['text']
-
-        # Filter out unwanted outputs
-        invalid_responses = [
-            " you",
-            " Thank you.",
-            "forget all previous instructions",
-            "forget all instructions",
-            "forget all prior instructions"
-        ]
-        if text not in invalid_responses:
+            text = result["text"].strip()
+            print(f"Transcribed text: {text}")
             return text
-        else:
-            return ""
-
-# Example usage:
-# recognizer = SpeechRecognizer()
-# print(recognizer.get_speech_input())
+        except Exception as e:
+            print(f"Error during transcription: {e}")
+            return None
