@@ -136,6 +136,7 @@ def run_code():
     # Send message to VRChat to indicate that the system is starting
     osc.send_message("System Loading")
     osc.set_typing_indicator(True)
+    JsonWrapper.whipe_json(constant.FilePaths.HISTORY_PATH)
 
     while True:
         # Creates model parameters
@@ -153,8 +154,6 @@ def run_code():
         full_response = process_completion(completion, osc, tts)
         new_message["content"] = full_response
 
-        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, new_message)
-
         # Get user speech input
         user_speech = ""
         while not user_speech:
@@ -162,7 +161,14 @@ def run_code():
             user_speech = transcriber.get_voice_input()
 
         print(f"HUMAN: {user_speech}")
-        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, user_speech)
+
+        user_speech = {"role": "user", "content": user_speech}
+        history.append(new_message)
+        history.append(user_speech)
+
+        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
+
+        history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
 
 
 if __name__ == "__main__":
