@@ -1,8 +1,7 @@
-# outputmanager.py
+# edge_tts.py
 
 import logging
 import asyncio
-from pythonosc.udp_client import SimpleUDPClient
 import edge_tts
 import queue
 import tempfile
@@ -14,18 +13,13 @@ from pydub import AudioSegment
 import numpy as np
 
 
-class OutputManager:
+class TextToSpeechManager:
     def __init__(
         self,
-        chatbox_ip="127.0.0.1",
-        chatbox_port=9000,
         voice_engine="edge-tts",
-        voice=None, 
+        voice=None,
         device_index=None
     ):
-        self.chatbox_ip = chatbox_ip
-        self.chatbox_port = chatbox_port
-        self.client = SimpleUDPClient(self.chatbox_ip, self.chatbox_port)
         self.voice_engine = voice_engine
         self.voice = voice
         self.tts_queue = queue.Queue()
@@ -41,12 +35,9 @@ class OutputManager:
             logging.error(f"Unknown voice engine: {self.voice_engine}")
 
     def update_settings(
-        self, chatbox_ip, chatbox_port, voice_engine, voice, device_index
+        self, voice_engine, voice, device_index
     ):
         old_engine = self.voice_engine
-        self.chatbox_ip = chatbox_ip
-        self.chatbox_port = int(chatbox_port)
-        self.client = SimpleUDPClient(self.chatbox_ip, self.chatbox_port)
         self.voice_engine = voice_engine
         self.voice = voice
         self.device_index = device_index
@@ -125,7 +116,3 @@ class OutputManager:
         if self.is_playing:
             sd.stop()
             self.is_playing = False
-
-    def send_to_chatbox(self, text):
-        logging.info(f"Sending to chatbox: {text}")
-        self.client.send_message("/chatbox/input", [text, True])

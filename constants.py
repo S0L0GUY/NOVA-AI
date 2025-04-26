@@ -18,12 +18,12 @@ class Audio:
     specifically for VB-Audio Cable virtual audio devices.
     Attributes:
         AUDIO_OUTPUT_INDEX (int): The device index for audio output,
-            configured for VB-Audio Cable B Input (default: 10)
+            configured for VB-Audio Cable B Input
         AUDIO_INPUT_INDEX (int): The device index for audio input,
-            configured for VB-Audio Cable A Output (default: 16)
+            configured for VB-Audio Cable A Output
     """
     AUDIO_OUTPUT_INDEX = 16
-    AUDIO_INPUT_INDEX = 12
+    AUDIO_INPUT_INDEX = 2  # 12 25 36
 
 
 class Voice:

@@ -11,7 +11,7 @@ import datetime
 import re
 from openai import OpenAI
 from classes.osc import VRChatOSC
-from classes.output_manager import OutputManager
+from classes.edge_tts import TextToSpeechManager
 from classes.whisper import WhisperTranscriber
 from classes.system_prompt import SystemPrompt
 from classes.json_wrapper import JsonWrapper
@@ -54,7 +54,7 @@ def initialize_components():
         api_key="lm-studio"
     )
 
-    tts = OutputManager(
+    tts = TextToSpeechManager(
         voice=constant.Voice.VOICE_NAME,
         device_index=constant.Audio.AUDIO_OUTPUT_INDEX
     )
