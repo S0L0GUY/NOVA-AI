@@ -72,7 +72,7 @@ def chunk_text(text):
 
     Split the text by sentence-ending punctuation
     """
-    chunks = re.split(r'(?<=[.,;:!?]) +', text)
+    chunks = re.split(r'(?<=[.!?]) +', text)
     return chunks
 
 
@@ -155,10 +155,14 @@ def run_code():
         new_message["content"] = full_response
 
         # Get user speech input
+        osc.set_typing_indicator(False)
         user_speech = ""
         while not user_speech:
             osc.send_message("Listening")
             user_speech = transcriber.get_voice_input()
+
+        osc.send_message("Thinking")
+        osc.set_typing_indicator(True)
 
         print(f"HUMAN: {user_speech}")
 
