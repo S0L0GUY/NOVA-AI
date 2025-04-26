@@ -1,6 +1,3 @@
-import socket
-
-
 class Network:
     """
     Class representing network configuration parameters.
@@ -10,7 +7,7 @@ class Network:
         VRC_PORT (int): The port number used for VRChat communication. Default
         is 9000.
     """
-    LOCAL_IP = socket.gethostbyname(socket.gethostname())
+    LOCAL_IP = "192.168.0.199"
     VRC_PORT = 9000
 
 
@@ -25,7 +22,7 @@ class Audio:
         AUDIO_INPUT_INDEX (int): The device index for audio input,
             configured for VB-Audio Cable A Output (default: 16)
     """
-    AUDIO_OUTPUT_INDEX = 13
+    AUDIO_OUTPUT_INDEX = 16
     AUDIO_INPUT_INDEX = 2
 
 
@@ -37,7 +34,7 @@ class Voice:
         VOICE_NAME (str): The default voice name used for text-to-speech
         synthesis. Currently set to "Zira".
     """
-    VOICE_NAME = "Zira"
+    VOICE_NAME = "en-US-AvaNeural"
 
 
 class LanguageModel:

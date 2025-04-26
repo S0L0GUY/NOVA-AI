@@ -6,14 +6,12 @@ VRChat, sets up the system prompt and history, and enters a loop to
 continuously process user speech input and generate AI responses.
 """
 
+import asyncio
 import datetime
-import os
 import re
-import sounddevice as sd
-import pyttsx3
-import soundfile as sf
 from openai import OpenAI
 from classes.osc import VRChatOSC
+from classes.output_manager import OutputManager
 from classes.whisper import WhisperTranscriber
 from classes.system_prompt import SystemPrompt
 from classes.json_wrapper import JsonWrapper
@@ -55,44 +53,13 @@ def initialize_components():
         base_url="http://localhost:1234/v1",
         api_key="lm-studio"
     )
-    return osc, transcriber, history, openai_client
 
-
-def play_tts(text, output_device_index):
-    """
-    Converts text to speech using the pyttsx3 library, saves the speech to a
-    WAV file, and plays the audio using the sounddevice library.
-    Args:
-        text (str): The text to be converted to speech.
-        output_device_index (int): The index of the output audio device to
-        play the speech.
-    Raises:
-        RuntimeError: If there is an error in playing the audio file.
-    """
-
-    engine = pyttsx3.init()
-    voices = engine.getProperty('voices')
-    for voice in voices:
-        if 'Zira' in voice.name:
-            engine.setProperty('voice', voice.id)
-            break
-    engine.setProperty('rate', 200)  # Speed of speech
-    engine.setProperty('volume', 1)  # Volume level (0.0 to 1.0)
-
-    file_path = "tts_output.wav"
-
-    if os.path.exists(file_path):
-        os.remove("tts_output.wav")
-
-    engine.save_to_file(text, file_path)
-    engine.runAndWait()
-
-    def play_audio(file_path, output_device_index):
-        data, samplerate = sf.read(file_path, always_2d=False)
-        sd.play(data, samplerate, device=output_device_index)
-        sd.wait()
-
-    play_audio(file_path, output_device_index)
+    tts = OutputManager(
+        voice=constant.Voice.VOICE_NAME,
+        device_index=constant.Audio.AUDIO_OUTPUT_INDEX
+    )
+    tts.initialize_tts_engine()
+    return osc, transcriber, history, openai_client, tts
 
 
 def chunk_text(text):
@@ -109,7 +76,7 @@ def chunk_text(text):
     return chunks
 
 
-def process_completion(completion, osc):
+def process_completion(completion, osc, tts):
     """
     Processes the completion chunks from an AI model and sends the processed
     sentences to an output system controller (OSC).
@@ -133,17 +100,14 @@ def process_completion(completion, osc):
                 full_response += f" {sentence}"
                 print(f"AI: {sentence}")
                 osc.send_message(sentence)
-                play_tts(
-                    sentence,
-                    output_device_index=constant.Audio.AUDIO_OUTPUT_INDEX
-                )
+                asyncio.run(tts.generate_and_play_audio_edge(sentence))
             buffer = sentence_chunks[0]
     if buffer:
         osc.set_typing_indicator(True)
         full_response += f" {buffer}"
         print(f"AI: {buffer}")
         osc.send_message(buffer)
-        play_tts(buffer, output_device_index=constant.Audio.AUDIO_OUTPUT_INDEX)
+        asyncio.run(tts.generate_and_play_audio_edge(buffer))
     osc.set_typing_indicator(False)
     return full_response
 
@@ -167,7 +131,7 @@ def run_code():
         file.
     """
 
-    osc, transcriber, history, openai_client = initialize_components()
+    osc, transcriber, history, openai_client, tts = initialize_components()
 
     # Send message to VRChat to indicate that the system is starting
     osc.send_message("System Loading")
@@ -186,7 +150,7 @@ def run_code():
         osc.send_message("Thinking")
         osc.set_typing_indicator(True)
 
-        full_response = process_completion(completion, osc)
+        full_response = process_completion(completion, osc, tts)
         new_message["content"] = full_response
 
         JsonWrapper.write(constant.FilePaths.HISTORY_PATH, new_message)
@@ -198,3 +162,7 @@ def run_code():
 
         print(f"HUMAN: {user_speech}")
         JsonWrapper.write(constant.FilePaths.HISTORY_PATH, user_speech)
+
+
+if __name__ == "__main__":
+    run_code()
