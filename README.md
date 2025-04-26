@@ -71,6 +71,7 @@ We welcome contributions from the community. To contribute, follow these steps:
 
 - [Evan Grinnell](https://github.com/S0L0GUY/NOVA-AI/commits?author=S0L0GUY)
 - [Duck Song](https://github.com/S0L0GUY/NOVA-AI/commits?author=DuckSong510)
+- [Viscrimson](https://github.com/S0L0GUY/NOVA-AI/commits?author=Viscrimson)
 
 ## License
 
