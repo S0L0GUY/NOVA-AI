@@ -10,7 +10,7 @@ import os
 import constants as constant
 
 
-class AudioTranscriber:
+class WhisperTranscriber:
     def __init__(self):
         logging.info("Loading Whisper model...")
         self.device = "cuda" if torch.cuda.is_available() else "cpu"

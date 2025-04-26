@@ -41,7 +41,7 @@ def initialize_components():
     """
 
     osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
-    transcriber = WhisperTranscriber(constant.Audio.AUDIO_INPUT_INDEX)
+    transcriber = WhisperTranscriber()
     system_prompt = SystemPrompt.get_full_prompt("normal")
     now = datetime.datetime.now()
     history = [
@@ -159,7 +159,7 @@ def run_code():
         user_speech = ""
         while not user_speech:
             osc.send_message("Listening")
-            user_speech = transcriber.get_speech_input()
+            user_speech = transcriber.get_voice_input()
 
         print(f"HUMAN: {user_speech}")
         JsonWrapper.write(constant.FilePaths.HISTORY_PATH, user_speech)
