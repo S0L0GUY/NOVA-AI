@@ -34,7 +34,7 @@ class Voice:
         VOICE_NAME (str): The default voice name used for text-to-speech
         synthesis. Currently set to "Zira".
     """
-    VOICE_NAME = "en-US-AvaNeural"
+    VOICE_NAME = "en-US-JennyNeural"
 
 
 class LanguageModel:
