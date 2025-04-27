@@ -49,8 +49,8 @@ class LanguageModel:
         model's output. Controls randomness in text generation (0.0 to 1.0,
         where higher means more random).
     """
-    MODEL_ID = "lmstudio-community/Meta-Llama-3.1-8B-Instruct-GGUF"
-    LM_TEMPERATURE = 0.5
+    MODEL_ID = "meta-llama-3.1-8b-instruct"
+    LM_TEMPERATURE = 0.7
 
 
 class FilePaths:
@@ -61,3 +61,6 @@ class FilePaths:
                            Default is "json_files/history.json"
     """
     HISTORY_PATH = "json_files/history.json"
+
+    NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
+    ADDITIONAL_PROMPT_PATH = "prompts/additional_system_prompt.txt"

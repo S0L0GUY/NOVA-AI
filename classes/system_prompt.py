@@ -15,6 +15,7 @@ Methods:
     get_full_prompt(mood): Returns combined prompt content for a specific mood.
 """
 import os
+import constants as constant
 
 
 class SystemPrompt:
@@ -58,7 +59,7 @@ class SystemPrompt:
         return prompt_dict
 
     @staticmethod
-    def get_full_prompt(mood):
+    def get_full_prompt():
         """
         Combines the prompt file content based on the given mood with the
         'additional' prompt.
@@ -70,21 +71,13 @@ class SystemPrompt:
             str: The combined content of the mood-specific prompt and the
             'additional' prompt.
         """
-        prompt_dict = SystemPrompt.get_prompt_directory()
+        with open(
+            constant.FilePaths.NORMAL_SYSTEM_PROMPT_PATH, 'r', encoding='utf-8'
+        ) as mood_file:
+            normal_prompt = mood_file.read()
 
-        if mood not in prompt_dict or 'additional' not in prompt_dict:
-            raise ValueError(
-                "Specified mood or 'additional' prompt not found in the "
-                "prompt directory.")
-
-        mood_prompt_path = prompt_dict[mood]
-        additional_prompt_path = prompt_dict['additional']
-
-        with open(mood_prompt_path, 'r', encoding='utf-8') as mood_file:
-            mood_prompt_content = mood_file.read()
-
-        with open(additional_prompt_path, 'r',
+        with open(constant.FilePaths.ADDITIONAL_PROMPT_PATH, 'r',
                   encoding='utf-8') as additional_file:
-            additional_prompt_content = additional_file.read()
+            additional_prompt = additional_file.read()
 
-        return mood_prompt_content + "\n" + additional_prompt_content
+        return additional_prompt + "\n" + normal_prompt

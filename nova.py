@@ -42,7 +42,7 @@ def initialize_components():
 
     osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
     transcriber = WhisperTranscriber()
-    system_prompt = SystemPrompt.get_full_prompt("normal")
+    system_prompt = SystemPrompt.get_full_prompt()
     now = datetime.datetime.now()
     history = [
         {"role": "system", "content": system_prompt},

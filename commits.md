@@ -1,5 +1,112 @@
 # Commit History
 
+- **Commit:** [558999b](https://github.com/S0L0GUY/NOVA-AI/commit/558999b0caf23c5093f8fe1f2e91821e35c3a680)
+  **Author:** Evan Grinnell
+  **Message:** Fix text chunking regex and update OSC typing indicator handling
+
+- **Commit:** [34496ec](https://github.com/S0L0GUY/NOVA-AI/commit/34496ec53f2e6f6fa752f4e86706f6cdf9acbe7a)
+  **Author:** Evan Grinnell
+  **Message:** Added New Contributor
+
+- **Commit:** [02dc9c8](https://github.com/S0L0GUY/NOVA-AI/commit/02dc9c82c8a88d5e3a652ba1dbd3c6ab39404e51)
+  **Author:** Evan Grinnell
+  **Message:** Whisper fixes (#34)
+
+* Refactor code structure for improved readability and maintainability
+
+* Fixed Small Errors
+
+* Refactor output management; remove OutputManager class and implement TextToSpeechManager for Edge TTS integration
+
+* Refactor JsonWrapper class; update read_json method to return Python objects and add whipe_json method for clearing JSON file contents
+
+* Remove unused audio files: temp_audio.wav and tts_output.wav
+
+* Add pattern to ignore all .wav files in the repository
+
+* Removed Linting
+
+- **Commit:** [147c79a](https://github.com/S0L0GUY/NOVA-AI/commit/147c79a92b2c30c0f6cecb14983d2f81828d6248)
+  **Author:** Evan Grinnell
+  **Message:** Updated TTS to EdgeTTS
+
+- **Commit:** [a787e92](https://github.com/S0L0GUY/NOVA-AI/commit/a787e9218b87f26106c4e1438518b681b1318c9d)
+  **Author:** Evan Grinnell
+  **Message:** Refactor WhisperTranscriber class; update audio input index and improve silence detection
+
+- **Commit:** [d812229](https://github.com/S0L0GUY/NOVA-AI/commit/d812229ae79940acbcd2e658371c86115c21d2fc)
+  **Author:** Evan Grinnell
+  **Message:** Refactor requirements and update network configurations; suppress warnings in main.py
+
+- **Commit:** [ce73fcd](https://github.com/S0L0GUY/NOVA-AI/commit/ce73fcddc09b8f3496df4af744dacde6f84122dc)
+  **Author:** Evan Grinnell
+  **Message:** Created a Vertual Envionment
+
+- **Commit:** [17bdb6e](https://github.com/S0L0GUY/NOVA-AI/commit/17bdb6e2cfb8c07c12b270799ec8a34f61d6c348)
+  **Author:** Evan Grinnell
+  **Message:** 29 update constants format (#30)
+
+* Refactor constants into classes for better organization and clarity
+
+* Fix method signature in JsonWrapper and update error handling in HTTP server
+
+* Refactor constants into classes for better organization and clarity
+
+* Fix method signature in JsonWrapper and update error handling in HTTP server
+
+* Enhance documentation and improve code readability across multiple modules
+
+* Remove redundant methods and comments from VRChatOSC class for improved clarity
+
+* Refactor WhisperTranscriber initialization and silence duration; update constant references in main and add static methods to configuration classes
+
+* Refactor constant references to improve code organization and readability across multiple modules
+
+- **Commit:** [ce3bde3](https://github.com/S0L0GUY/NOVA-AI/commit/ce3bde31a7a69c49f34355c960ded541d5bb4729)
+  **Author:** Evan Grinnell
+  **Message:** 31 add pylance cli check (#32)
+
+* Enhance documentation and improve code readability across multiple modules
+
+* Reorder import statements for consistency and clarity
+
+* Enhance Python linting workflow to include score evaluation and exit status based on pylint results
+
+- **Commit:** [4910f94](https://github.com/S0L0GUY/NOVA-AI/commit/4910f942b7b713bb7ccc5975befda0b70d3a99f5)
+  **Author:** Evan Grinnell
+  **Message:** Update audio settings and add voice selection in TTS function (#25)
+
+- **Commit:** [ae2d905](https://github.com/S0L0GUY/NOVA-AI/commit/ae2d9050ccad051f1a1e655a071bafbc2e10ee50)
+  **Author:** Evan Grinnell
+  **Message:** Fix Audio Playback Issues (#17)
+
+* Fix Audio Playback Issues
+
+Fixes #16
+
+Update `play_audio` function to maintain original channel configuration.
+
+* Change `play_audio` function in `nova.py` to read the audio file with `always_2d=False`.
+* Update `play_tts` function to use the updated `play_audio` function.
+
+---
+
+For more details, open the [Copilot Workspace session](https://copilot-workspace.githubnext.com/S0L0GUY/NOVA-AI/issues/16?shareId=XXXX-XXXX-XXXX-XXXX).
+
+* Update audio settings and enhance device listing
+
+* Format output for audio device listing to improve readability
+
+- **Commit:** [89b773f](https://github.com/S0L0GUY/NOVA-AI/commit/89b773f71980d186a4eec93dd7bb5204ee7f08b9)
+  **Author:** Evan Grinnell
+  **Message:** Added Re-Factoring Form (#24)
+
+- **Commit:** [580db32](https://github.com/S0L0GUY/NOVA-AI/commit/580db32ef64d756a70b50786cad77206fa84dd01)
+  **Author:** Evan Grinnell
+  **Message:** Update commits.md
+
+:yippie:
+
 - **Commit:** [72f70e0](https://github.com/S0L0GUY/NOVA-AI/commit/72f70e079664b5792c6d59e3010bbe033ed00790)
   **Author:** Evan Grinnell
   **Message:** 11 delete and re code nova (#14)
@@ -179,70 +286,4 @@ Made NOVA Cooler
 - **Commit:** [f2b40b9](https://github.com/S0L0GUY/NOVA-AI/commit/f2b40b96bacbd06d0dbffaa36a916637d9cbb465)
   **Author:** Evan Grinnell
   **Message:** Added sample code which may work for live type.
-
-- **Commit:** [6943d88](https://github.com/S0L0GUY/NOVA-AI/commit/6943d887d00afacfdf62a8f3c4e0a1da1f26840e)
-  **Author:** Evan Grinnell
-  **Message:** Update README.md
-
-Made readme.md actually readable.
-
-- **Commit:** [13de19f](https://github.com/S0L0GUY/NOVA-AI/commit/13de19f7132d831af60a53a5a61de463e8652321)
-  **Author:** Evan Grinnell
-  **Message:** Made Nova Useable
-
-- **Commit:** [4b2a382](https://github.com/S0L0GUY/NOVA-AI/commit/4b2a382be3aa3501de24cf27ffd3fd2c8c772261)
-  **Author:** Evan Grinnell
-  **Message:** Updated Live Typing (Unclosed)
-
-Updated the live typing and re-capped all of the needed variable. Also changed audio device index.
-
-- **Commit:** [3b9dda6](https://github.com/S0L0GUY/NOVA-AI/commit/3b9dda648692daec450f1481007cd3adb08eda81)
-  **Author:** Evan Grinnell
-  **Message:** Added Live Typeing
-
-- **Commit:** [4d061da](https://github.com/S0L0GUY/NOVA-AI/commit/4d061da4a1507455e32a5094ae08f8bd7b88c133)
-  **Author:** Evan Grinnell
-  **Message:** Made NOVA useable
-
-- **Commit:** [376ae4f](https://github.com/S0L0GUY/NOVA-AI/commit/376ae4f96d9d69923d0e5ad7dd22713a3cd80a96)
-  **Author:** Evan Grinnell
-  **Message:** Revert "Fixed broken pieces"
-
-This reverts commit e5cf7e80dfa20a1c495eb0a2a7651e1a2ecd32c1.
-
-- **Commit:** [4a46c2a](https://github.com/S0L0GUY/NOVA-AI/commit/4a46c2a5a24528d22f66aafd3d7266a8cfe80829)
-  **Author:** Evan Grinnell
-  **Message:** *Tried to make nova remember conversations.
-
-- **Commit:** [e5cf7e8](https://github.com/S0L0GUY/NOVA-AI/commit/e5cf7e80dfa20a1c495eb0a2a7651e1a2ecd32c1)
-  **Author:** Evan Grinnell
-  **Message:** Fixed broken pieces
-
-- **Commit:** [49fffdd](https://github.com/S0L0GUY/NOVA-AI/commit/49fffdddcc80af762e214c47c7d221e1acfb6733)
-  **Author:** Evan Grinnell
-  **Message:** Removed Broken Code and added Audio Playback
-
-Deleted 'cool_font.json' and all related code. Worked on playing audio with an HTTP request but did not finish.
-
-- **Commit:** [9c37819](https://github.com/S0L0GUY/NOVA-AI/commit/9c37819632249aef1f73da805433393c103a2ea8)
-  **Author:** Evan Grinnell
-  **Message:** Worked on new features
-
-Formatted code to work more as expected. Started adding sound effect in the http server.
-
-- **Commit:** [4e9f435](https://github.com/S0L0GUY/NOVA-AI/commit/4e9f435d4fd633250dd176566626b4cc8b8c2728)
-  **Author:** Evan Grinnell
-  **Message:** Added cool font to vrchat chatbox
-
-- **Commit:** [b9305a0](https://github.com/S0L0GUY/NOVA-AI/commit/b9305a0833438bff508916aeaad589eaf9bbbe2e)
-  **Author:** Evan Grinnell
-  **Message:** Changed AI Snapchat Settings and moved bad words to JSON file
-
-Refined comments a little bit, made it so you can change between running comments sent to snapchat through ai or not. Moved bad words to a json file.
-
-- **Commit:** [00c2c9b](https://github.com/S0L0GUY/NOVA-AI/commit/00c2c9b8cbcf0a0055d5a338d0b3176ddf9874ce)
-  **Author:** Evan Grinnell
-  **Message:** Fine tuned language support
-
-Fixed the server side errors for translation and added all of the Microsoft voice names corresponding to the languages. Fixed many language support problems.
 
