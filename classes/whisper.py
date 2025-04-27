@@ -102,7 +102,6 @@ class WhisperTranscriber:
                 audio_array, fp16=torch.cuda.is_available()
             )
             text = result["text"].strip()
-            print(f"Transcribed text: {text}")
             return text
         except Exception as e:
             print(f"Error during transcription: {e}")

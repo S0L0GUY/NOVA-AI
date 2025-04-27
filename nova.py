@@ -6,7 +6,6 @@ VRChat, sets up the system prompt and history, and enters a loop to
 continuously process user speech input and generate AI responses.
 """
 
-import asyncio
 import datetime
 import re
 from openai import OpenAI
@@ -41,13 +40,17 @@ def initialize_components():
     """
 
     osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
+
+    osc.send_message("System Starting")
+    osc.set_typing_indicator(True)
+
     transcriber = WhisperTranscriber()
     system_prompt = SystemPrompt.get_full_prompt()
     now = datetime.datetime.now()
     history = [
         {"role": "system", "content": system_prompt},
         {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
-        {"role": "user", "content": "Hey"},
+        {"role": "user", "content": "hi"},
     ]
     openai_client = OpenAI(
         base_url="http://localhost:1234/v1",
@@ -56,7 +59,8 @@ def initialize_components():
 
     tts = TextToSpeechManager(
         voice=constant.Voice.VOICE_NAME,
-        device_index=constant.Audio.AUDIO_OUTPUT_INDEX
+        device_index=constant.Audio.AUDIO_OUTPUT_INDEX,
+        VRChatOSC=osc
     )
     tts.initialize_tts_engine()
     return osc, transcriber, history, openai_client, tts
@@ -90,25 +94,29 @@ def process_completion(completion, osc, tts):
 
     buffer = ""
     full_response = ""
+    osc.set_typing_indicator(True)
+
     for chunk in completion:
-        osc.set_typing_indicator(True)
         if chunk.choices[0].delta.content:
             buffer += chunk.choices[0].delta.content
             sentence_chunks = chunk_text(buffer)
+
             while len(sentence_chunks) > 1:
                 sentence = sentence_chunks.pop(0)
                 full_response += f" {sentence}"
                 print(f"AI: {sentence}")
-                osc.send_message(sentence)
-                asyncio.run(tts.generate_and_play_audio_edge(sentence))
+                tts.add_to_queue(sentence)
+
             buffer = sentence_chunks[0]
+
     if buffer:
-        osc.set_typing_indicator(True)
         full_response += f" {buffer}"
         print(f"AI: {buffer}")
-        osc.send_message(buffer)
-        asyncio.run(tts.generate_and_play_audio_edge(buffer))
-    osc.set_typing_indicator(False)
+        tts.add_to_queue(buffer)
+
+    while not tts.is_idle():
+        pass
+
     return full_response
 
 
@@ -134,11 +142,12 @@ def run_code():
     osc, transcriber, history, openai_client, tts = initialize_components()
 
     # Send message to VRChat to indicate that the system is starting
-    osc.send_message("System Loading")
-    osc.set_typing_indicator(True)
     JsonWrapper.whipe_json(constant.FilePaths.HISTORY_PATH)
 
     while True:
+        osc.send_message("Thinking")
+        osc.set_typing_indicator(True)
+
         # Creates model parameters
         completion = openai_client.chat.completions.create(
             model=constant.LanguageModel.MODEL_ID,
@@ -148,17 +157,15 @@ def run_code():
         )
 
         new_message = {"role": "assistant", "content": ""}
-        osc.send_message("Thinking")
-        osc.set_typing_indicator(True)
 
         full_response = process_completion(completion, osc, tts)
         new_message["content"] = full_response
 
         # Get user speech input
-        osc.set_typing_indicator(False)
         user_speech = ""
         while not user_speech:
             osc.send_message("Listening")
+            osc.set_typing_indicator(False)
             user_speech = transcriber.get_voice_input()
 
         osc.send_message("Thinking")
