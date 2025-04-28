@@ -14,19 +14,21 @@ import numpy as np
 
 
 class TextToSpeechManager:
-    def __init__(
-        self,
-        voice_engine="edge-tts",
-        voice=None,
-        device_index=None
-    ):
+    def __init__(self,
+                 voice_engine="edge-tts",
+                 voice=None,
+                 device_index=None,
+                 VRChatOSC=None
+                 ):
         self.voice_engine = voice_engine
         self.voice = voice
-        self.tts_queue = queue.Queue()
+        self.tts_queue = queue.Queue()  # Queue for text to generate audio
+        self.audio_queue = queue.Queue()  # Queue for generated audio files
         self.is_playing = False
-        self.playback_thread = None  # For managing playback thread
-        self.initialize_tts_engine()
         self.device_index = device_index
+        self.initialize_tts_engine()
+        self.osc = VRChatOSC
+        self.lock = threading.Lock()  # Lock to ensure sequential processing
 
     def initialize_tts_engine(self):
         if self.voice_engine == "edge-tts":
@@ -34,38 +36,31 @@ class TextToSpeechManager:
         else:
             logging.error(f"Unknown voice engine: {self.voice_engine}")
 
-    def update_settings(
-        self, voice_engine, voice, device_index
-    ):
-        old_engine = self.voice_engine
-        self.voice_engine = voice_engine
-        self.voice = voice
-        self.device_index = device_index
-
-        # No need to re-initialize pygame.mixer
-
-        if old_engine != self.voice_engine:
-            self.initialize_tts_engine()
-
-    def speak_text(self, text):
+    def add_to_queue(self, text):
+        """
+        Add text to the queue for TTS generation and playback.
+        """
         self.tts_queue.put(text)
+        threading.Thread(target=self.process_queue, daemon=True).start()
+
         if not self.is_playing:
-            threading.Thread(
-                target=self.tts_playback_loop, daemon=True
-            ).start()
+            threading.Thread(target=self.playback_loop, daemon=True).start()
 
-    def tts_playback_loop(self):
+    def process_queue(self):
+        """
+        Process the TTS queue sequentially to generate audio files in order.
+        """
         while not self.tts_queue.empty():
-            text = self.tts_queue.get()
-            if self.voice_engine == "edge-tts":
-                asyncio.run(self.generate_and_play_audio_edge(text))
-            elif self.voice_engine == "aws-polly":
-                self.generate_and_play_audio_polly(text)
-            else:
-                logging.error(f"Unknown voice engine: {self.voice_engine}")
+            # Ensure only one thread processes the queue at a time
+            with self.lock:
+                text = self.tts_queue.get()
+                self.generate_audio(text)
 
-    async def generate_and_play_audio_edge(self, text):
-        logging.info("Generating speech with Edge TTS...")
+    def generate_audio(self, text):
+        """
+        Generate audio for the given text and store it in the audio queue.
+        """
+        logging.info(f"Generating audio for: {text}")
         with tempfile.NamedTemporaryFile(
             delete=False, suffix='.wav'
         ) as tmp_file:
@@ -78,19 +73,32 @@ class TextToSpeechManager:
         )
 
         try:
-            communicate = edge_tts.Communicate(
-                text=text,
-                voice=self.voice
-            )
-            await communicate.save(output_file)
-            logging.info("Playing Edge TTS audio...")
-            self.play_audio_file(output_file)
-            logging.info("Edge TTS audio playback finished.")
+            communicate = edge_tts.Communicate(text=text, voice=self.voice)
+            asyncio.run(communicate.save(output_file))
+            self.audio_queue.put((text, output_file))
+            logging.info(f"Audio generated for: {text}")
         except Exception as e:
-            logging.error(f"Error during Edge TTS playback: {e}")
+            logging.error(f"Error generating audio for '{text}': {e}")
+
+    def playback_loop(self):
+        """
+        Continuously play audio files from the audio queue.
+        """
+        self.is_playing = True
+        try:
+            while not self.audio_queue.empty() or not self.tts_queue.empty():
+                self.osc.set_typing_indicator(True)
+                try:
+                    text, filepath = self.audio_queue.get()
+                    self.osc.send_message(text)
+                    self.osc.set_typing_indicator(True)
+                    self.play_audio_file(filepath)
+                    os.remove(filepath)
+                except Exception as e:
+                    logging.error(f"Error during playback: {e}")
         finally:
-            if os.path.exists(output_file):
-                os.remove(output_file)
+            # Ensure `self.is_playing` is set to False when playback ends
+            self.is_playing = False
 
     def play_audio_file(self, filepath):
         """
@@ -98,7 +106,6 @@ class TextToSpeechManager:
         audio device.
         """
         try:
-            self.stop_audio()
             if filepath.endswith('.wav'):
                 data, samplerate = sf.read(filepath)
             elif filepath.endswith('.mp3'):
@@ -109,16 +116,35 @@ class TextToSpeechManager:
             else:
                 logging.error(f"Unsupported audio format: {filepath}")
                 return
-            self.is_playing = True
             sd.play(data, samplerate, device=self.device_index)
             sd.wait()
-            self.is_playing = False
         except Exception as e:
             logging.error(f"Error playing audio file: {e}")
-            self.is_playing = False
 
-    def stop_audio(self):
-        """Stops audio playback."""
-        if self.is_playing:
-            sd.stop()
-            self.is_playing = False
+    def is_idle(self):
+        """
+        Check if the TTS manager is idle (no files in queue or playing).
+        """
+        return (
+            self.tts_queue.empty() and
+            self.audio_queue.empty() and
+            not self.is_playing
+        )
+
+
+# Usage Examples
+if __name__ == "__main__":
+    # Initialize the TTS manager
+    tts_manager = TextToSpeechManager(voice="en-US-AriaNeural")
+
+    # Add text to the queue
+    tts_manager.add_to_queue("Hello, this is the first sentence.")
+    tts_manager.add_to_queue("This is the second sentence.")
+    tts_manager.add_to_queue("And here is the third sentence.")
+
+    # Wait until the queue is drained
+    while not tts_manager.is_idle():
+        print("Waiting for TTS queue to finish...")
+        asyncio.sleep(1)
+
+    print("All text has been spoken.")
