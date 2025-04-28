@@ -115,8 +115,7 @@ def process_completion(completion, osc, tts):
         tts.add_to_queue(buffer)
 
     while not tts.is_idle():
-        pass
-
+        time.sleep(0.1)
     return full_response
 
 
