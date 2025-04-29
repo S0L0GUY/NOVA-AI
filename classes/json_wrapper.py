@@ -1,19 +1,9 @@
-"""
-This module provides a JsonWrapper class for handling JSON file operations.
-It includes functionality for reading, writing, and managing JSON files.
-"""
-
 import json
 
 
 class JsonWrapper:
-    """
-    A utility class for reading, writing, and managing JSON files.
-    Provides methods for reading JSON and text files, writing JSON data,
-    and clearing JSON file contents.
-    """
     @staticmethod
-    def read_json(file_path):
+    def read_json(file_path: str) -> tuple:
         """
         Reads a JSON file and returns its contents as a Python object.
         Args:
@@ -24,10 +14,10 @@ class JsonWrapper:
             IOError: If the file cannot be opened or read.
             json.JSONDecodeError: If the file does not contain valid JSON.
         """
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             return json.load(file)
 
-    def read_txt(self, file_path):
+    def read_txt(self, file_path: str) -> str:
         """
         Reads a text file and returns its contents as a string.
         Args:
@@ -36,11 +26,11 @@ class JsonWrapper:
             str: The contents of the text file as a string.
         """
 
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             return file.read()
-    
+
     @staticmethod
-    def whipe_json(file_path):
+    def wipe_json(file_path: str) -> None:
         """
         Clears the contents of a JSON file by writing an empty JSON object or
         array to it.
@@ -50,11 +40,11 @@ class JsonWrapper:
             IOError: If the file cannot be opened or written to.
         """
 
-        with open(file_path, 'w', encoding='utf-8') as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump({}, file, indent=4)
 
     @staticmethod
-    def write(file_path, data):
+    def write(file_path: str, data: tuple) -> None:
         """
         Writes data to a JSON file. If the file already exists, it will be
         overwritten.
@@ -65,11 +55,11 @@ class JsonWrapper:
             IOError: If the file cannot be opened or written to.
         """
 
-        with open(file_path, 'w', encoding='utf-8') as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=4)
 
     @staticmethod
-    def delete(file_path):
+    def delete(file_path: str) -> None:
         """
         Deletes the file at the specified file path.
         Args:
@@ -78,7 +68,7 @@ class JsonWrapper:
             IOError: If the file cannot be deleted.
         """
 
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
 
         if isinstance(data, list):
@@ -87,7 +77,8 @@ class JsonWrapper:
             empty_data = {}
         else:
             raise ValueError(
-                "The file does not contain a JSON object or array.")
+                "The file does not contain a JSON object or array."
+            )
 
-        with open(file_path, 'w', encoding='utf-8') as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(empty_data, file, indent=4)

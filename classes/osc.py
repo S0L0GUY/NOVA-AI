@@ -1,12 +1,3 @@
-"""
-Module for handling OSC (Open Sound Control) communications with VRChat.
-This module provides a class for sending messages and managing typing
-indicators in the VRChat chatbox through OSC protocol. It utilizes the
-python-osc library for UDP client functionality.
-Classes:
-    VRChatOSC: A class for managing OSC communications with VRChat chatbox.
-"""
-
 from pythonosc import udp_client
 
 

@@ -8,7 +8,26 @@ import constants as constant
 
 
 class WhisperTranscriber:
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Initializes the Whisper class.
+        This constructor sets up the Whisper model for speech recognition,
+        configures the device (CPU or GPU) for processing, and initializes
+        a WebRTC Voice Activity Detector (VAD) with a specified aggressiveness
+        level.
+        Attributes:
+            device (str): The device to run the model on, either 'cuda' (GPU)
+            or 'cpu'. model (whisper.Model): The Whisper model instance loaded
+            for speech recognition. vad (webrtcvad.Vad): The WebRTC Voice
+            Activity Detector instance. stream: Placeholder for the audio
+            stream (not initialized in this constructor).
+            audio_input_index: Index of the audio input device, retrieved from
+            constants.
+        Raises:
+            Exception: If the Whisper model fails to load, an exception is
+            raised with the error details.
+        """
+
         print("\033[95mLoading Whisper model...\033[0m")
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         try:
@@ -26,7 +45,34 @@ class WhisperTranscriber:
 
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
 
-    def get_voice_input(self):
+    def get_voice_input(self) -> None:
+        """
+        Captures voice input using Voice Activity Detection (VAD) and
+        transcribes it into text. This method listens for voice input through
+        the specified audio input device, processes the audio data to detect
+        speech using VAD, and transcribes the detected speech into text using
+        a speech-to-text model.
+        Returns:
+            str: The transcribed text from the voice input if successful.
+            None: If no speech is detected or an error occurs during
+            processing.
+        Raises:
+            Exception: If an error occurs during audio input or transcription.
+        Notes:
+            - The method uses a sample rate of 16 kHz and processes audio in
+            30 ms frames.
+            - A threshold ratio of voiced frames is used to determine the
+            start and end of speech.
+            - The recording duration is limited to a maximum of 10 seconds.
+            - The transcription is performed using a preloaded speech-to-text
+            model.
+        Example:
+            text = self.get_voice_input()
+            if text:
+                print(f"Transcribed text: {text}")
+                print("No speech detected or an error occurred.")
+        """
+
         print("\033[38;5;55mListening for voice input with VAD...\033[0m")
         sample_rate = 16000
         frame_duration = 30  # ms

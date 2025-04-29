@@ -1,5 +1,39 @@
 # Commit History
 
+- **Commit:** [187a5a9](https://github.com/S0L0GUY/NOVA-AI/commit/187a5a97360b361755a6f3150348d9a64fd8235b)
+  **Author:** Evan Grinnell
+  **Message:** Enhance console output with color coding for better visibility and add system monitor functionality (#37)
+
+- **Commit:** [435b370](https://github.com/S0L0GUY/NOVA-AI/commit/435b3706f6bf9288236a51013ef06daffa1a9765)
+  **Author:** Evan Grinnell
+  **Message:** Add time module import
+
+- **Commit:** [aa76750](https://github.com/S0L0GUY/NOVA-AI/commit/aa7675067c2313b0d3542b6d2b78b88f7a11cb65)
+  **Author:** Evan Grinnell
+  **Message:** Asynchronous TTS Processing (#36)
+
+* Refactor TextToSpeechManager to improve queue processing and add VRChatOSC support; update WhisperTranscriber to remove debug print statement; enhance system prompt instructions to clarify emoji usage and instruction adherence.
+
+* Fixed Spelling Errors
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Updated nova.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+- **Commit:** [612372c](https://github.com/S0L0GUY/NOVA-AI/commit/612372c99d69003f0f977041029d52d75927e544)
+  **Author:** Evan Grinnell
+  **Message:** Update default voice name to "en-US-JennyNeural" and enhance system prompt with new reference guidelines
+
+- **Commit:** [787e342](https://github.com/S0L0GUY/NOVA-AI/commit/787e3420bb90512383dde7380d5b48fc5bdb4ebd)
+  **Author:** Evan Grinnell
+  **Message:** Enhance TextToSpeechManager to filter out emojis and refactor SystemPrompt to improve prompt retrieval logic
+
 - **Commit:** [558999b](https://github.com/S0L0GUY/NOVA-AI/commit/558999b0caf23c5093f8fe1f2e91821e35c3a680)
   **Author:** Evan Grinnell
   **Message:** Fix text chunking regex and update OSC typing indicator handling
@@ -266,24 +300,4 @@ Added Functions to Make Placement More Editable
   **Message:** Merge pull request #2 from S0L0GUY/1-make-nova-speak-more-like-a-human
 
 Made NOVA Cooler
-
-- **Commit:** [9ddba3b](https://github.com/S0L0GUY/NOVA-AI/commit/9ddba3b0056f9c15a80599892cc44c84c3073815)
-  **Author:** Evan Grinnell
-  **Message:** Made NOVA Cooler
-
-- **Commit:** [ad973e7](https://github.com/S0L0GUY/NOVA-AI/commit/ad973e76f170fc34e5fa1288110d063532c35ae5)
-  **Author:** Evan Grinnell
-  **Message:** Create CONTRIBUTING.md
-
-- **Commit:** [f57f922](https://github.com/S0L0GUY/NOVA-AI/commit/f57f9225d46b298978a55a743227b05215fd6d3a)
-  **Author:** Evan Grinnell
-  **Message:** Create CODE_OF_CONDUCT.md
-
-- **Commit:** [1a6809e](https://github.com/S0L0GUY/NOVA-AI/commit/1a6809e2423694867492430420dfeba835903b13)
-  **Author:** Evan Grinnell
-  **Message:** Got rid of extra unneeded code.
-
-- **Commit:** [f2b40b9](https://github.com/S0L0GUY/NOVA-AI/commit/f2b40b96bacbd06d0dbffaa36a916637d9cbb465)
-  **Author:** Evan Grinnell
-  **Message:** Added sample code which may work for live type.
 

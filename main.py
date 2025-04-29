@@ -27,7 +27,7 @@ logging.basicConfig(
 )
 
 
-def main():
+def main() -> None:
     """
     Main function to start the VRChatOSC and run the Nova code.
     This function initializes the VRChatOSC with the local IP and VRC port

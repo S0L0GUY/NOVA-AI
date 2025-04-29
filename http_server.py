@@ -1,50 +1,11 @@
-"""
-A HTTP server implementation that handles various commands through GET
-requests. This module implements a threaded HTTP server that can handle
-different commands like adding messages to history, checking mood, viewing
-logs, and checking status. The server runs on port 8080 and processes commands
-through URL paths.
-Functions:
-    run_http_server(): Initializes and starts the HTTP server in a daemon
-    thread.
-Internal Functions:
-    add_message(message): Adds a message to the history file.
-    mood(): Retrieves the current mood from a JSON file.
-    logs(): Retrieves the log history.
-    status(): Returns the server status.
-    remove_leading_space(s): Utility function to remove leading spaces from
-    strings.
-    reset_logs(): Clears the log history.
-    handle_command(user_command, *args): Routes commands to appropriate
-    handlers.
-    start_server(): Initializes and starts the HTTP server.
-Classes:
-    RequestHandler: Handles HTTP GET requests and processes commands.
-The server supports the following commands:
-    - add_message: Adds a message to history
-    - logs: Retrieves all logs
-    - status: Checks server status
-    - mood: Retrieves current mood
-    - restart: Clears all logs
-Usage:
-    Simply call run_http_server() to start the server.
-    Access commands via HTTP GET requests to localhost:8080/<command>/<args>
-Dependencies:
-    - http.server
-    - constants
-    - classes.json_wrapper
-    - urllib.parse
-    - threading
-"""
-
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import ThreadingHTTPServer
 import urllib.parse
 import threading
 import classes.json_wrapper as json_wrapper
 import constants as constant
 
 
-def run_http_server():
+def run_http_server() -> None:
     """
     Sets up and runs an HTTP server that handles various commands through HTTP
     GET requests. The server runs on port 8080 and supports the following
@@ -61,7 +22,7 @@ def run_http_server():
         Exception: For any errors during command handling or server operation
     """
 
-    def add_message(message):
+    def add_message(message: str) -> None:
         """
         Adds a message to the history file.
         Args:
@@ -78,7 +39,7 @@ def run_http_server():
 
         return f"Added '{message}' to history."
 
-    def logs():
+    def logs() -> str:
         """
         Reads the logs from the specified history path and returns them as a
         string.
@@ -92,15 +53,25 @@ def run_http_server():
 
         return logs
 
-    def status():
+    def status() -> str:
+        """
+        Returns the status of the server.
+        """
         return "online"
 
-    def remove_leading_space(s):
+    def remove_leading_space(s: str) -> str:
+        """
+        Removes leading spaces from a string.
+        Args:
+            s (str): The string from which to remove leading spaces.
+        Returns:
+            str: The string with leading spaces removed.
+        """
         if s and s[0] == " ":
             return s[1:]
         return s
 
-    def reset_logs():
+    def reset_logs() -> str:
         """
         Clears the log history by writing an empty list to the history file.
         This function uses the JsonWrapper to write an empty list to the file
@@ -115,7 +86,24 @@ def run_http_server():
 
         return "Logs Cleared"
 
-    def handle_command(user_command, *args):
+    def handle_command(user_command: str, *args: str) -> str:
+        """
+        Handles a user command by executing the corresponding function.
+        Args:
+            user_command (str): The command string provided by the user.
+            *args: Additional arguments required by the command.
+        Returns:
+            str: The result of the executed command or an error message if the
+            command is not found.
+        Supported Commands:
+            - "add_message": Adds a message. Requires additional arguments to
+            form the message.
+            - "logs": Retrieves logs.
+            - "status": Retrieves the current status.
+            - "restart": Resets the logs.
+            - Any other command will return "Command Not Found."
+        """
+
         command = remove_leading_space(user_command)
 
         if command == "add_message":
@@ -129,45 +117,39 @@ def run_http_server():
         else:
             return "Command Not Found."
 
-    class RequestHandler(BaseHTTPRequestHandler):
-        """A handler for HTTP requests extending BaseHTTPRequestHandler.
-        This class handles incoming HTTP requests, specifically GET requests,
-        by parsing the URL path into commands and arguments, executing them,
-        and returning the results.
-        Methods:
-            _send_response(message): Sends an HTTP response with a given
-            message
-            do_GET(): Handles GET requests by parsing the path and executing
-            commands
-        Attributes:
-            Inherits all attributes from BaseHTTPRequestHandler
-        Example:
-            When receiving a GET request to "/command/arg1/arg2", it will:
-            1. Parse into command="command", args=["arg1", "arg2"]
-            2. Execute handle_command(command, arg1, arg2)
-            3. Return the result or error message
-        """
+    class RequestHandler():
+        def _send_response(self, message: str) -> None:
+            """
+            Sends an HTTP response with a 200 status code, a "Content-type"
+            header set to "text/plain", and the provided message as the
+            response body.
+            Args:
+                message (str): The message to include in the response body.
+            """
 
-        def _send_response(self, message):
             self.send_response(200)
             self.send_header("Content-type", "text/plain")
             self.end_headers()
             self.wfile.write(message.encode())
 
-        def do_get(self):
+        def do_get(self) -> None:
             """
-            Handle GET requests sent to the HTTP server.
-            This method parses the request path, extracts the command and its
-            arguments, and then attempts to handle the command using the
-            `handle_command` function. The result of the command is sent back
-            as the HTTP response. If an error occurs during command handling,
-            an error message is sent as the response. The expected format of
-            the request path is:
-            /<command>/<arg1>/<arg2>/...
-            Example:
-            /echo/hello/world
+            Handles HTTP GET requests by parsing the request path, extracting
+            the command and its arguments, and invoking the appropriate
+            handler function.
+            The method performs the following steps:
+            1. Extracts the path from the request and decodes it.
+            2. Splits the path into a command and its arguments.
+            3. Calls the `handle_command` function with the command and
+            arguments.
+            4. Sends the result back to the client as a response.
+            5. If an error occurs (e.g., ValueError, KeyError, or TypeError),
+            sends an
+               error message as the response.
             Raises:
-                Exception: If an error occurs during command handling.
+                ValueError: If the command or arguments are invalid.
+                KeyError: If the command is not recognized.
+                TypeError: If the arguments do not match the expected types.
             """
 
             path = self.path[1:]
@@ -182,7 +164,19 @@ def run_http_server():
             except (ValueError, KeyError, TypeError) as e:
                 self._send_response(f"Error: {str(e)}")
 
-    def start_server():
+    def start_server() -> None:
+        """
+        Starts an HTTP server using ThreadingHTTPServer and a custom request
+        handler. This function initializes and starts an HTTP server on a
+        specified port (default is 8080). It uses the ThreadingHTTPServer
+        class to handle requests in a multithreaded manner and a custom
+        RequestHandler class to process incoming HTTP requests. The server
+        runs indefinitely until manually stopped.
+        Prints:
+            A message indicating that the server has started and the port it is
+            listening on.
+        """
+
         server_class = ThreadingHTTPServer
         handler_class = RequestHandler
         port = 8080
@@ -196,5 +190,4 @@ def run_http_server():
     server_thread.start()
 
 
-# Call run_http_server() to start the server
 run_http_server()
