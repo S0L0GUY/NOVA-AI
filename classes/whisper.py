@@ -9,7 +9,7 @@ import constants as constant
 
 class WhisperTranscriber:
     def __init__(self):
-        print("Loading Whisper model...")
+        print("\033[95mLoading Whisper model...\033[0m")
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         try:
             # Initialize Whisper with the correct model path
@@ -17,9 +17,9 @@ class WhisperTranscriber:
                 "base",
                 device=self.device,
             )
-            print(f"Whisper model loaded on {self.device}.")
+            print(f"\033[35mWhisper model loaded on {self.device}.\033[0m")
         except Exception as e:
-            print(f"Failed to load Whisper model: {e}")
+            print(f"\033[38;5;55mFailed to load Whisper model: {e}\033[0m")
             raise
         self.vad = webrtcvad.Vad(2)  # Aggressiveness from 0 to 3
         self.stream = None
@@ -27,7 +27,7 @@ class WhisperTranscriber:
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
 
     def get_voice_input(self):
-        print("Listening for voice input with VAD...")
+        print("\033[38;5;55mListening for voice input with VAD...\033[0m")
         sample_rate = 16000
         frame_duration = 30  # ms
         num_padding_frames = 10
@@ -51,7 +51,7 @@ class WhisperTranscriber:
                         int(sample_rate * frame_duration / 1000)
                     )
                     if overflowed:
-                        print("Audio buffer overflowed")
+                        print("\033[38;5;55mAudio buffer overflowed\033[0m")
 
                     # Ensure audio data is in 16-bit PCM format
                     audio_data = data.flatten().astype(np.int16).tobytes()
@@ -79,15 +79,20 @@ class WhisperTranscriber:
                     if (
                         len(voiced_frames) > sample_rate * 10
                     ):  # Limit recording to 10 seconds
-                        print("Max recording duration reached.")
+                        print(
+                            (
+                                "\033[38;5;55mMax recording duration reached."
+                                "\033[0m"
+                            )
+                        )
                         break
 
         except Exception as e:
-            print(f"Error during voice input: {e}")
+            print(f"\033[38;5;55mError during voice input: {e}\033[0m")
             return None
 
         if not voiced_frames:
-            print("No speech detected.")
+            print("\033[38;5;55mNo speech detected.\033[0m")
             return None
 
         audio_data = b"".join(voiced_frames)
@@ -96,7 +101,7 @@ class WhisperTranscriber:
               .astype(np.float32) / 32768.0
         )
 
-        print("Transcribing voice input...")
+        print("\033[38;5;55mTranscribing voice input...\033[0m")
         try:
             result = self.model.transcribe(
                 audio_array, fp16=torch.cuda.is_available()
@@ -104,5 +109,5 @@ class WhisperTranscriber:
             text = result["text"].strip()
             return text
         except Exception as e:
-            print(f"Error during transcription: {e}")
+            print(f"\033[38;5;92mError during transcription: {e}\033[0m")
             return None

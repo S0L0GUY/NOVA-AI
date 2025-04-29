@@ -144,7 +144,7 @@ if __name__ == "__main__":
 
     # Wait until the queue is drained
     while not tts_manager.is_idle():
-        print("Waiting for TTS queue to finish...")
+        print("\033[36mWaiting for TTS queue to finish...\033[0m")
         asyncio.sleep(1)
 
-    print("All text has been spoken.")
+    print("\033[36mAll text has been spoken.\033[0m")
