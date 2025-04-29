@@ -16,6 +16,8 @@ from classes.whisper import WhisperTranscriber
 from classes.system_prompt import SystemPrompt
 from classes.json_wrapper import JsonWrapper
 import constants as constant
+import sys
+import subprocess
 
 
 def initialize_components():
@@ -105,14 +107,14 @@ def process_completion(completion, osc, tts):
             while len(sentence_chunks) > 1:
                 sentence = sentence_chunks.pop(0)
                 full_response += f" {sentence}"
-                print(f"AI: {sentence}")
+                print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
                 tts.add_to_queue(sentence)
 
             buffer = sentence_chunks[0]
 
     if buffer:
         full_response += f" {buffer}"
-        print(f"AI: {buffer}")
+        print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
         tts.add_to_queue(buffer)
 
     while not tts.is_idle():
@@ -171,7 +173,7 @@ def run_code():
         osc.send_message("Thinking")
         osc.set_typing_indicator(True)
 
-        print(f"HUMAN: {user_speech}")
+        print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
 
         user_speech = {"role": "user", "content": user_speech}
         history.append(new_message)
@@ -183,4 +185,9 @@ def run_code():
 
 
 if __name__ == "__main__":
+    try:
+        subprocess.Popen([sys.executable, "resource_monitor.py"], shell=False)
+    except Exception as e:
+        print(f"\033[91mError starting resource monitor: {e}\033[0m")
+
     run_code()
