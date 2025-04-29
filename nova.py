@@ -8,6 +8,7 @@ continuously process user speech input and generate AI responses.
 
 import datetime
 import re
+import time
 from openai import OpenAI
 from classes.osc import VRChatOSC
 from classes.edge_tts import TextToSpeechManager
