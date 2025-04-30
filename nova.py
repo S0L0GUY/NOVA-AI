@@ -200,9 +200,4 @@ def run_code() -> None:
 
 
 if __name__ == "__main__":
-    try:
-        subprocess.Popen([sys.executable, "resource_monitor.py"], shell=False)
-    except Exception as e:
-        print(f"\033[91mError starting resource monitor: {e}\033[0m")
-
     run_code()
