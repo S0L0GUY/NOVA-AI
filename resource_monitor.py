@@ -11,7 +11,8 @@ ctk.set_default_color_theme("dark-blue")
 
 
 class SystemMonitor(ctk.CTk):
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the System Monitor GUI."""
         super().__init__()
 
         self.title("NOVA-AI")
@@ -37,7 +38,21 @@ class SystemMonitor(ctk.CTk):
 
         self.update_stats()
 
-    def create_stat_frame(self, label_text, border_color):
+    def create_stat_frame(
+            self,
+            label_text: str,
+            border_color: str
+            ) -> "ctk.CTkLabel":
+        """
+        Creates a styled frame with a title label and a value label.
+        Args:
+            label_text (str): The text to display in the title label.
+            border_color (str): The color of the border for the frame.
+        Returns:
+            ctk.CTkLabel: The value label widget, initialized with "Loading..."
+            text.
+        """
+
         frame = ctk.CTkFrame(
             self, corner_radius=15, border_width=2, border_color=border_color
         )
@@ -54,20 +69,20 @@ class SystemMonitor(ctk.CTk):
 
         return value_label
 
-    def get_gpu_usage(self):
+    def get_gpu_usage(self) -> tuple[float, float]:
         """Fetch GPU load and memory usage."""
         gpus = GPUtil.getGPUs()
         if not gpus:
             return 0, 0
         return gpus[0].load * 100, gpus[0].memoryUtil * 100
 
-    def get_uptime(self):
+    def get_uptime(self) -> str:
         """Calculate program uptime in hours, minutes, and seconds."""
         elapsed_time = time.time() - self.start_time
         uptime = str(datetime.timedelta(seconds=int(elapsed_time)))
         return uptime
 
-    def update_stats(self):
+    def update_stats(self) -> None:
         """Fetch and update all stats every second."""
         cpu = psutil.cpu_percent()
         ram = psutil.virtual_memory().percent
@@ -90,7 +105,7 @@ class SystemMonitor(ctk.CTk):
         self.after(1000, self.update_stats)
 
 
-def run_monitor():
+def run_monitor() -> None:
     app = SystemMonitor()
     app.mainloop()
 

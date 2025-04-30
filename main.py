@@ -9,6 +9,8 @@ Functions:
 Usage:
     Run this module directly to start the Nova AI application.
 """
+import subprocess
+import sys
 import time
 import logging
 import nova
@@ -27,7 +29,7 @@ logging.basicConfig(
 )
 
 
-def main():
+def main() -> None:
     """
     Main function to start the VRChatOSC and run the Nova code.
     This function initializes the VRChatOSC with the local IP and VRC port
@@ -43,6 +45,17 @@ def main():
     while True:
         try:
             print("\033[91mProgram Starting...\033[0m")
+
+            print("\033[91mStarting resiurce mitonitor...\033[0m")
+
+            try:
+                subprocess.Popen(
+                    [sys.executable, "resource_monitor.py"],
+                    shell=False
+                    )
+            except Exception as e:
+                print(f"\033[91mError starting resource monitor: {e}\033[0m")
+
             nova.run_code()
         except (RuntimeError, ValueError) as e:
             logging.error("An error occurred: %s", e)

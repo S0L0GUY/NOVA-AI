@@ -20,26 +20,24 @@ import sys
 import subprocess
 
 
-def initialize_components():
+def initialize_components() -> tuple:
     """
-    Initializes and returns the components required for the application.
-    This function performs the following tasks:
-    - Imports necessary modules and classes.
-    - Creates an instance of VRChatOSC with local IP and VRC port from
-    constants.
-    - Creates an instance of WhisperTranscriber.
-    - Retrieves the full system prompt for the "normal" mode.
-    - Gets the current date and time.
-    - Initializes a history list with system prompts and a user greeting.
-    - Creates an instance of OpenAI client with specified base URL and API key.
+    Initializes and sets up the components required for the application.
+    This function creates and configures the following components:
+    - VRChatOSC: Handles communication with VRChat using OSC protocol.
+    - WhisperTranscriber: Manages audio transcription.
+    - System prompt and history: Prepares the initial system prompt and
+    conversation history.
+    - OpenAI client: Configures the OpenAI API client for generating responses.
+    - TextToSpeechManager: Manages text-to-speech functionality.
     Returns:
-        tuple: A tuple containing the following components:
-            - osc (VRChatOSC): An instance of the VRChatOSC class.
-            - transcriber (WhisperTranscriber): An instance of the
-            WhisperTranscriber class.
-            - history (list): A list of dictionaries representing the initial
-            conversation history.
-            - openai_client (OpenAI): An instance of the OpenAI client.
+        tuple: A tuple containing the initialized components in the following
+        order:
+            - osc (VRChatOSC): The OSC communication handler.
+            - transcriber (WhisperTranscriber): The audio transcriber.
+            - history (list): The initial conversation history.
+            - openai_client (OpenAI): The OpenAI API client.
+            - tts (TextToSpeechManager): The text-to-speech manager.
     """
 
     osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
@@ -48,6 +46,7 @@ def initialize_components():
     osc.set_typing_indicator(True)
 
     transcriber = WhisperTranscriber()
+
     system_prompt = SystemPrompt.get_full_prompt()
     now = datetime.datetime.now()
     history = [
@@ -55,6 +54,7 @@ def initialize_components():
         {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
         {"role": "user", "content": "hi"},
     ]
+
     openai_client = OpenAI(
         base_url="http://localhost:1234/v1",
         api_key="lm-studio"
@@ -63,13 +63,13 @@ def initialize_components():
     tts = TextToSpeechManager(
         voice=constant.Voice.VOICE_NAME,
         device_index=constant.Audio.AUDIO_OUTPUT_INDEX,
-        VRChatOSC=osc
+        VRChatOSC=osc,
     )
     tts.initialize_tts_engine()
     return osc, transcriber, history, openai_client, tts
 
 
-def chunk_text(text):
+def chunk_text(text: str) -> list:
     """
     Args:
         text (string): The text to break down.
@@ -79,20 +79,25 @@ def chunk_text(text):
 
     Split the text by sentence-ending punctuation
     """
-    chunks = re.split(r'(?<=[.!?]) +', text)
+    chunks = re.split(r"(?<=[.!?]) +", text)
     return chunks
 
 
-def process_completion(completion, osc, tts):
+def process_completion(completion: iter, osc: object, tts: object) -> str:
     """
-    Processes the completion chunks from an AI model and sends the processed
-    sentences to an output system controller (OSC).
+    Processes a streaming completion response, extracts text chunks, and
+    handles output and text-to-speech (TTS) functionality.
     Args:
-        completion (iterable): An iterable of completion chunks from the AI
-        model. osc (object): An output system controller that handles sending
-        messages, setting typing indicators, and playing text-to-speech (TTS).
+        completion (iter): An iterable object containing streaming completion
+                            data. Each chunk is expected to have a `choices`
+                            attribute with a `delta.content` field containing
+                            the text.
+        osc (object): An object responsible for managing the typing indicator.
+                      It should have a `set_typing_indicator` method.
+        tts (object): An object responsible for text-to-speech functionality.
+                      It should have `add_to_queue` and `is_idle` methods.
     Returns:
-        str: The full response generated from the completion chunks.
+        str: The full response text generated from the completion.
     """
 
     buffer = ""
@@ -122,29 +127,39 @@ def process_completion(completion, osc, tts):
     return full_response
 
 
-def run_code():
+def run_code() -> None:
     """
-    Initializes and runs the main loop for the system.
-    This function performs the following steps:
-    1. Imports necessary constants and classes.
-    2. Initializes components such as OSC, transcriber, history, and OpenAI
+    Runs the main loop of the application, handling communication between
+    components and processing user input and assistant responses.
+    This function initializes the necessary components, manages the interaction
+    between the user and the assistant, and updates the conversation history.
+    It continuously listens for user speech input, processes it, generates a
+    response using the OpenAI client, and sends the response back to the user.
+    Steps:
+    1. Initializes components such as OSC, transcriber, history manager,
+    OpenAI client, and TTS.
+    2. Sends a "Thinking" message to VRChat and sets the typing indicator.
+    3. Creates model parameters and generates a response using the OpenAI
     client.
-    3. Sends a message to VRChat indicating that the system is starting and
-    sets the typing indicator.
-    4. Enters an infinite loop where it:
-        a. Creates model parameters for the OpenAI client.
-        b. Sends a "Thinking" message to VRChat and sets the typing indicator.
-        c. Processes the completion response from the OpenAI client.
-        d. Writes the assistant's response to the history JSON file.
-        e. Continuously listens for user speech input.
-        f. Prints the user's speech input and writes it to the history JSON
-        file.
+    4. Processes the response and updates the conversation history.
+    5. Listens for user speech input and appends it to the conversation
+    history.
+    6. Writes the updated history to a JSON file and reloads it for the next
+    iteration.
+    Note:
+    - This function runs indefinitely in a while loop.
+    - It interacts with external components such as OSC, OpenAI API, and a
+    transcriber.
+    Raises:
+    - Any exceptions raised by the components or APIs used within the function.
+    Returns:
+        None
     """
 
     osc, transcriber, history, openai_client, tts = initialize_components()
 
     # Send message to VRChat to indicate that the system is starting
-    JsonWrapper.whipe_json(constant.FilePaths.HISTORY_PATH)
+    JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
     while True:
         osc.send_message("Thinking")
@@ -185,9 +200,4 @@ def run_code():
 
 
 if __name__ == "__main__":
-    try:
-        subprocess.Popen([sys.executable, "resource_monitor.py"], shell=False)
-    except Exception as e:
-        print(f"\033[91mError starting resource monitor: {e}\033[0m")
-
     run_code()

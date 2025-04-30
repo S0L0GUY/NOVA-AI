@@ -1,39 +1,10 @@
-"""
-A class that handles system prompts for an AI assistant.
-This class provides static methods to manage and retrieve prompts from
-a 'prompts' directory. It can combine mood-specific prompts with additional
-prompt content to create comprehensive system instructions.
-The class assumes a specific directory structure where prompt files are
-stored in a 'prompts' directory, with filenames that begin with a mood
-identifier followed by underscores.
-Example:
-    full_prompt = SystemPrompt.get_full_prompt('happy')
-Attributes:
-    None
-Methods:
-    get_prompt_directory(): Returns a dictionary of prompt files.
-    get_full_prompt(mood): Returns combined prompt content for a specific mood.
-"""
 import os
 import constants as constant
 
 
 class SystemPrompt:
-    """
-    A class that handles system prompts for an AI assistant.
-
-    This class provides static methods to manage and retrieve prompts from
-    a 'prompts' directory. It combines mood-specific prompts with additional
-    prompt content to create comprehensive system instructions.
-
-    Methods:
-        get_prompt_directory(): Returns a dictionary of prompt files.
-        get_full_prompt(mood): Returns combined prompt content for a specific
-        mood.
-    """
-
     @staticmethod
-    def get_prompt_directory():
+    def get_prompt_directory() -> dict:
         """
         Retrieves a dictionary of prompt files from the 'prompts' directory.
         This function scans the 'prompts' directory for files, extracts the
@@ -59,18 +30,20 @@ class SystemPrompt:
         return prompt_dict
 
     @staticmethod
-    def get_full_prompt():
+    def get_full_prompt() -> str:
         """
-        Combines the prompt file content based on the given mood with the
-        'additional' prompt.
-
-        Args:
-            mood (str): The mood to retrieve the prompt for.
-
+        Reads and combines the contents of two prompt files: the normal system
+        prompt and the additional prompt. The combined prompt is returned as a
+        single string.
         Returns:
-            str: The combined content of the mood-specific prompt and the
-            'additional' prompt.
+            str: A string containing the concatenated contents of the
+            additional prompt file followed by the normal system prompt file,
+            separated by a newline.
+        Raises:
+            FileNotFoundError: If either of the prompt files cannot be found.
+            IOError: If there is an error reading the files.
         """
+
         with open(
             constant.FilePaths.NORMAL_SYSTEM_PROMPT_PATH, 'r', encoding='utf-8'
         ) as mood_file:
