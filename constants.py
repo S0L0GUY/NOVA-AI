@@ -1,3 +1,6 @@
+import socket
+
+
 class Network:
     """
     Class representing network configuration parameters.
@@ -7,7 +10,7 @@ class Network:
         VRC_PORT (int): The port number used for VRChat communication. Default
         is 9000.
     """
-    LOCAL_IP = "192.168.0.199"
+    LOCAL_IP = socket.gethostbyname(socket.gethostname())
     VRC_PORT = 9000
 
 
