@@ -17,7 +17,6 @@ from classes.system_prompt import SystemPrompt
 from classes.json_wrapper import JsonWrapper
 import constants as constant
 import sys
-import subprocess
 
 
 def initialize_components() -> tuple:
@@ -161,13 +160,36 @@ def run_code() -> None:
     # Send message to VRChat to indicate that the system is starting
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
+    available_models = openai_client.models.list()
+    model_list = [model.id for model in available_models]
+
+    if constant.LanguageModel.MODEL_ID not in model_list:
+        print(
+            f"\033[91mModel \033[33m{constant.LanguageModel.MODEL_ID}"
+            f"\033[91m not found.\033[0m"
+        )
+
+        if model_list:
+            current_model = model_list[0]
+            print(
+                (
+                    f"\033[91mAuto Switching LM to: \033[33m{current_model}"
+                    f"\033[91m\033[0m"
+                )
+            )
+        else:
+            print("\033[91mNo models available.\033[0m")
+            sys.exit(1)
+    else:
+        current_model = constant.LanguageModel.MODEL_ID
+
     while True:
         osc.send_message("Thinking")
         osc.set_typing_indicator(True)
 
         # Creates model parameters
         completion = openai_client.chat.completions.create(
-            model=constant.LanguageModel.MODEL_ID,
+            model=current_model,
             messages=history,
             temperature=constant.LanguageModel.LM_TEMPERATURE,
             stream=True,
