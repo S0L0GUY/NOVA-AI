@@ -25,7 +25,7 @@ class Audio:
         AUDIO_INPUT_INDEX (int): The device index for audio input,
             configured for VB-Audio Cable A Output
     """
-    AUDIO_OUTPUT_INDEX = 16
+    AUDIO_OUTPUT_INDEX = 7
     AUDIO_INPUT_INDEX = 2  # 12 25 36
 
 
@@ -66,4 +66,3 @@ class FilePaths:
     HISTORY_PATH = "json_files/history.json"
 
     NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
-    ADDITIONAL_PROMPT_PATH = "prompts/additional_system_prompt.txt"

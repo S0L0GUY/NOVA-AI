@@ -40,7 +40,7 @@ class WhisperTranscriber:
         except Exception as e:
             print(f"\033[38;5;55mFailed to load Whisper model: {e}\033[0m")
             raise
-        self.vad = webrtcvad.Vad(2)  # Aggressiveness from 0 to 3
+        self.vad = webrtcvad.Vad(0)  # Aggressiveness from 0 to 3
         self.stream = None
 
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
@@ -123,7 +123,7 @@ class WhisperTranscriber:
                         if num_unvoiced > threshold * num_padding_frames:
                             break  # End of speech
                     if (
-                        len(voiced_frames) > sample_rate * 10
+                        len(voiced_frames) > sample_rate * 30
                     ):  # Limit recording to 10 seconds
                         print(
                             (

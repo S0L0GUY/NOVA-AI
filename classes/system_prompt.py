@@ -49,8 +49,4 @@ class SystemPrompt:
         ) as mood_file:
             normal_prompt = mood_file.read()
 
-        with open(constant.FilePaths.ADDITIONAL_PROMPT_PATH, 'r',
-                  encoding='utf-8') as additional_file:
-            additional_prompt = additional_file.read()
-
-        return additional_prompt + "\n" + normal_prompt
+        return normal_prompt
