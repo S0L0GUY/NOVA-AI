@@ -6,6 +6,7 @@ NOVA AI is an intelligent VRChat assistant that brings conversational AI directl
 ## Table of Contents
 - [What is NOVA AI?](#what-is-nova-ai)
 - [Features](#features)
+- [Configuration System](#configuration-system)
 - [Prerequisites](#prerequisites)
 - [Installation Guide](#installation-guide)
 - [Setup Instructions](#setup-instructions)
@@ -35,6 +36,68 @@ Perfect for content creators, VRChat enthusiasts, or anyone who wants an intelli
 - ⚙️ **Customizable**: Configurable system prompts, voices, and behavior
 - 📊 **Resource Monitoring**: Built-in performance monitoring
 - 🔧 **Modular Design**: Easy to extend and customize
+- ⚙️ **Centralized Configuration**: All tunable settings in one location (`constants.py`)
+- 🎯 **Easy Tuning**: Comprehensive configuration system for all aspects of NOVA
+
+## Configuration System
+
+NOVA AI features a revolutionary **centralized configuration system** that makes customization and tuning incredibly simple. Instead of hunting through multiple files to change settings, everything is organized in one place: `constants.py`.
+
+### 🎯 **Why This Matters**
+
+Before the constants system, changing NOVA's behavior meant:
+- ❌ Searching through multiple Python files
+- ❌ Finding hardcoded values scattered everywhere  
+- ❌ Risk of breaking the code with incorrect edits
+- ❌ No clear documentation of what each value does
+
+Now with the constants system:
+- ✅ **One file controls everything** - `constants.py`
+- ✅ **Organized by purpose** - Network, Audio, AI, Voice, etc.
+- ✅ **Clear documentation** - Every setting has explanatory comments
+- ✅ **Safe to modify** - Designed specifically for user customization
+- ✅ **Easy to backup** - Save your perfect configuration in one file
+
+### 🏗️ **How It's Organized**
+
+The `constants.py` file contains configuration classes grouped by functionality:
+
+```python
+class Network:          # All networking settings (IPs, ports)
+class Audio:           # Audio device configuration  
+class Voice:           # Text-to-speech settings
+class LanguageModel:   # AI model configuration
+class WhisperSettings: # Speech recognition tuning
+class OpenAI:          # OpenAI/LM Studio API settings
+class TTSSettings:     # Text-to-speech engine options
+class FilePaths:       # All file and folder locations
+# ... and more!
+```
+
+### 🔧 **Configuration Benefits**
+
+- **🎚️ Fine-tune Performance**: Adjust speech recognition sensitivity, AI creativity, response speed
+- **🎭 Customize Personality**: Modify system prompts and AI behavior  
+- **🔊 Perfect Audio**: Set exact audio device indices and voice preferences
+- **⚡ Optimize Speed**: Balance between accuracy and response time
+- **🌐 Network Flexibility**: Easy port and IP configuration for different setups
+- **📊 Monitor Control**: Customize the resource monitor appearance and behavior
+
+### 📖 **Simple Example**
+
+Want to make NOVA more creative? Just open `constants.py` and change:
+```python
+class LanguageModel:
+    LM_TEMPERATURE = 0.9  # Changed from 0.7 to 0.9 for more creativity
+```
+
+Want better speech recognition? Update:
+```python
+class WhisperSettings:
+    MODEL_SIZE = "small"  # Changed from "base" for better accuracy
+```
+
+That's it! The entire codebase automatically uses your new settings.
 
 ## Prerequisites
 
@@ -122,8 +185,8 @@ If PyAudio fails to install:
 2. Note the index numbers for your microphone (input) and speakers (output)
 
 3. **Edit the constants.py file:**
-   - Open `constants.py` in a text editor
-   - Update the `AUDIO_INPUT_INDEX` and `AUDIO_OUTPUT_INDEX` values:
+   - Open `constants.py` in a text editor (Notepad, VS Code, etc.)
+   - Navigate to the `Audio` class and update the device indices:
    ```python
    class Audio:
        AUDIO_OUTPUT_INDEX = 7  # Replace with your speaker index
@@ -146,7 +209,12 @@ If PyAudio fails to install:
    - Restart your computer
 
    **Method 2: Direct Configuration**
-   - Edit the constants.py file and add your API key where needed
+   - Edit the `constants.py` file and find the `OpenAI` class
+   - Update the `API_KEY` value:
+   ```python
+   class OpenAI:
+       API_KEY = "your-api-key-here"
+   ```
 
 ### Step 3: Configure VRChat OSC
 
@@ -158,7 +226,11 @@ If PyAudio fails to install:
 
 2. **Update network settings:**
    - The `constants.py` file should automatically detect your IP
-   - Verify the `VRC_PORT` matches VRChat's OSC port
+   - Verify the `VRC_PORT` in the `Network` class matches VRChat's OSC port:
+   ```python
+   class Network:
+       VRC_PORT = 9000  # Should match VRChat's OSC port
+   ```
 
 ### Step 4: Test Audio Setup
 
@@ -174,29 +246,163 @@ If PyAudio fails to install:
 
 ## Configuration
 
-### Customizing NOVA's Personality
+NOVA AI uses a centralized configuration system in `constants.py` that makes tuning and customization simple. All adjustable settings are organized into logical classes with clear documentation.
 
-Edit the system prompt files in the `prompts/` folder:
-- `normal_system_prompt.txt` - Default personality
-- `snapchat_system_prompt.txt` - Alternative personality
-- `additional_system_prompt.txt` - Extra instructions
+### 🎯 Quick Configuration Guide
 
-### Adjusting Voice Settings
+Open `constants.py` in any text editor to modify NOVA's behavior. Here are the main configuration classes:
 
-In `constants.py`, modify the `Voice` class:
+#### **🌐 Network Settings**
+Configure networking and communication:
+```python
+class Network:
+    LOCAL_IP = "127.0.0.1"        # Local IP address for OSC
+    VRC_PORT = 9000               # VRChat OSC port
+    HTTP_SERVER_PORT = 8080       # Internal HTTP server port
+```
+
+#### **🎤 Audio Configuration**
+Set up your audio devices:
+```python
+class Audio:
+    AUDIO_OUTPUT_INDEX = 7        # Speaker/headphone device index
+    AUDIO_INPUT_INDEX = 2         # Microphone device index
+```
+
+#### **🗣️ Voice & TTS Settings**
+Customize text-to-speech:
 ```python
 class Voice:
-    VOICE_NAME = "en-US-JennyNeural"  # Change to your preferred voice
+    VOICE_NAME = "en-US-JennyNeural"  # TTS voice (run list_voices.py to see options)
+
+class TTSSettings:
+    ENGINE = "edge-tts"           # TTS engine to use
 ```
 
-### Model Configuration
-
-Adjust AI model settings in the `LanguageModel` class in `constants.py`:
+#### **🤖 AI Model Configuration**
+Adjust AI behavior and performance:
 ```python
 class LanguageModel:
-    MODEL_ID = "gpt-3.5-turbo"  # or "gpt-4" for better responses
-    LM_TEMPERATURE = 0.7        # Creativity level (0.0-1.0)
+    MODEL_ID = "meta-llama-3.1-8b-instruct"  # AI model to use
+    LM_TEMPERATURE = 0.7                      # Creativity (0.0-1.0)
+
+class OpenAI:
+    BASE_URL = "http://localhost:1234/v1"     # LM Studio or OpenAI API URL
+    API_KEY = "lm-studio"                     # Your API key
+    MODEL_ID = "meta-llama-3.1-8b-instruct"  # Model identifier
+    TEMPERATURE = 0.7                         # Response randomness
 ```
+
+#### **🎧 Speech Recognition (Whisper)**
+Fine-tune voice detection:
+```python
+class WhisperSettings:
+    MODEL_SIZE = "base"           # Whisper model: tiny, base, small, medium, large
+    VAD_AGGRESSIVENESS = 0        # Voice detection sensitivity (0-3)
+    SAMPLE_RATE = 16000           # Audio sample rate
+    VOICE_THRESHOLD = 0.9         # Speech detection threshold (0.0-1.0)
+    MAX_RECORDING_DURATION = 30   # Maximum recording time in seconds
+```
+
+#### **⚡ Performance Tuning**
+Optimize responsiveness:
+```python
+class InterruptionSettings:
+    QUEUE_SLEEP_INTERVAL = 0.1    # Queue processing delay
+    SENSITIVITY = 1.0             # Interruption detection sensitivity
+
+class ErrorHandling:
+    ERROR_RETRY_DELAY = 5         # Seconds to wait after errors
+```
+
+#### **🖥️ Resource Monitor**
+Customize the performance monitor window:
+```python
+class ResourceMonitor:
+    WINDOW_TITLE = "NOVA-AI"      # Monitor window title
+    WINDOW_SIZE = "400x745"       # Window dimensions
+    UPDATE_INTERVAL = 1000        # Update frequency (milliseconds)
+```
+
+#### **🎮 VRChat Integration**
+Configure VRChat-specific features:
+```python
+class NovaPlacement:
+    DEFAULT_WORLD = "The Black Cat"       # Default VRChat world
+    DEFAULT_POSITION = "Downstairs Bar"   # Default spawn position
+    INITIAL_DELAY = 15                    # Startup delay (seconds)
+```
+
+### 📁 File Paths
+All file locations are centralized:
+```python
+class FilePaths:
+    HISTORY_PATH = "json_files/history.json"
+    NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
+    # ... and more
+```
+
+### 🎨 Customizing NOVA's Personality
+
+Edit the system prompt files in the `prompts/` folder:
+- `normal_system_prompt.txt` - Default personality and behavior
+- `snapchat_system_prompt.txt` - Alternative casual personality  
+- `additional_system_prompt.txt` - Extra instructions and context
+
+### 🎯 Common Configuration Scenarios
+
+**Making NOVA More Creative:**
+```python
+class LanguageModel:
+    LM_TEMPERATURE = 0.9  # Higher = more creative/random
+```
+
+**Improving Speech Recognition:**
+```python
+class WhisperSettings:
+    MODEL_SIZE = "small"      # Better accuracy than "base"
+    VAD_AGGRESSIVENESS = 2    # More sensitive voice detection
+    VOICE_THRESHOLD = 0.8     # Lower = more sensitive to speech
+```
+
+**Reducing Response Time:**
+```python
+class WhisperSettings:
+    MODEL_SIZE = "tiny"       # Faster but less accurate
+    
+class InterruptionSettings:
+    QUEUE_SLEEP_INTERVAL = 0.05  # Faster processing
+```
+
+**Using OpenAI Instead of Local Models:**
+```python
+class OpenAI:
+    BASE_URL = "https://api.openai.com/v1"  # Official OpenAI API
+    API_KEY = "sk-your-real-openai-key"     # Your OpenAI API key
+    MODEL_ID = "gpt-4"                      # Use GPT-4
+```
+
+### 🔧 Advanced Configuration
+
+**Custom Voice Selection:**
+1. Run `python list_voices.py` to see available voices
+2. Update the `VOICE_NAME` in constants.py with your preferred voice
+
+**Network Troubleshooting:**
+- Change `VRC_PORT` if VRChat uses a different OSC port
+- Modify `LOCAL_IP` if using VRChat on a different machine
+
+**Performance Optimization:**
+- Adjust `UPDATE_INTERVAL` in ResourceMonitor for faster/slower monitoring
+- Modify `ERROR_RETRY_DELAY` for quicker error recovery
+
+### 💡 Configuration Tips
+
+1. **Start with defaults** - The included settings work well for most users
+2. **Change one setting at a time** - This helps identify what each change does
+3. **Test thoroughly** - Restart NOVA after making changes to see effects
+4. **Keep backups** - Save a copy of working configurations
+5. **Use comments** - Add your own notes in constants.py for custom settings
 
 ## Usage
 
@@ -236,22 +442,30 @@ pip install -r requirements.txt
 
 **Audio device not found:**
 - Run `python list_audio_devices.py` to find correct device indices
-- Update `constants.py` with correct values
+- Update the `Audio` class in `constants.py` with correct `AUDIO_INPUT_INDEX` and `AUDIO_OUTPUT_INDEX` values
 
 **VRChat not receiving messages:**
 - Ensure OSC is enabled in VRChat settings
 - Check that VRChat is running and you're in a world
-- Verify the port number matches (default 9000)
+- Verify the `VRC_PORT` in the `Network` class matches VRChat's OSC port (default 9000)
 
 **OpenAI API errors:**
-- Verify your API key is set correctly
+- Verify your API key is set correctly in the `OpenAI` class in `constants.py`
 - Check your OpenAI account has available credits
-- Ensure you have access to the model you're trying to use
+- Ensure you have access to the model specified in `MODEL_ID`
+- For local LM Studio, verify the `BASE_URL` points to your local server
 
 **Microphone not working:**
 - Check Windows microphone permissions
 - Verify the microphone works in other applications
-- Try different audio device indices
+- Try different audio device indices using `python list_audio_devices.py`
+- Adjust `WhisperSettings.VAD_AGGRESSIVENESS` for better voice detection
+
+**Configuration Issues:**
+- Always restart NOVA after changing `constants.py`
+- Verify syntax is correct (proper indentation, quotes, commas)
+- Check that modified values are the right data type (numbers vs strings)
+- Use the default values as a reference if something stops working
 
 ### Getting Help
 
@@ -267,11 +481,25 @@ pip install -r requirements.txt
 For advanced audio routing:
 1. Install VB-Audio Virtual Cable
 2. Configure audio routing through virtual cables
-3. Update audio device indices in constants.py
+3. Update audio device indices in the `Audio` class in `constants.py`
 
 ### Custom System Prompts
 
 Create custom personalities by editing files in the `prompts/` directory to change how NOVA behaves and responds.
+
+### Local vs Cloud AI Models
+
+**Using Local Models (LM Studio):**
+- Keep the default `constants.py` settings
+- Ensure LM Studio is running on `http://localhost:1234`
+
+**Using OpenAI Cloud API:**
+```python
+class OpenAI:
+    BASE_URL = "https://api.openai.com/v1"
+    API_KEY = "sk-your-actual-openai-key"
+    MODEL_ID = "gpt-4"  # or "gpt-3.5-turbo"
+```
 
 
 

@@ -2,7 +2,7 @@ import time
 from pythonosc import udp_client
 import constants as constant
 
-time.sleep(15)
+time.sleep(constant.NovaPlacement.INITIAL_DELAY)
 
 # Set up OSC
 osc_client = udp_client.SimpleUDPClient(
@@ -14,8 +14,8 @@ osc_client.send_message("/chatbox/input", ["Positioning...", True])
 ##########################################################################
 # "The Black Cat" Positions: "Downstairs Bar" "Upstairs Bar" "Front Desk"
 # "Downstairs Bar Back"
-WORLD = "The Black Cat"
-POSITION = "Downstairs Bar"
+WORLD = constant.NovaPlacement.DEFAULT_WORLD
+POSITION = constant.NovaPlacement.DEFAULT_POSITION
 ##########################################################################
 
 
