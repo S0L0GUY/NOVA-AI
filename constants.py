@@ -149,7 +149,7 @@ class InterruptionSettings:
     # Final threshold multiplier for interruption trigger
     FINAL_THRESHOLD_MULTIPLIER = 3.0
     # Sleep interval for detection loop (seconds)
-    DETECTION_SLEEP_INTERVAL = 0.01
+    DETECTION_SLEEP_INTERVAL = 0.1
     # Delay before starting detection (seconds)
     STARTUP_DELAY = 0.5
 
@@ -183,9 +183,11 @@ class ResourceMonitor:
     """
     Resource monitor GUI configuration.
     """
+    WINDOW_TITLE = "Nova Resource Monitor"
     # Window geometry
     WINDOW_WIDTH = 400
     WINDOW_HEIGHT = 745
+    WINDOW_SIZE = f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}"
     # GUI update interval (milliseconds)
     UPDATE_INTERVAL = 1000
     # Window always on top
@@ -253,17 +255,17 @@ class ConsoleColors:
     PURPLE = "\033[38;5;55m"
     GRAY = "\033[38;5;92m"
     RESET = "\033[0m"
-    
+
     # AI/Human conversation colors
     AI_LABEL = "\033[93m"
     AI_TEXT = "\033[92m"
     HUMAN_LABEL = "\033[93m"
     HUMAN_TEXT = "\033[92m"
-    
+
     # TTS status colors
     TTS_INFO = "\033[93m"
     TTS_WARNING = "\033[91m"
-    
+
     # System status colors
     SYSTEM_INFO = "\033[36m"
     ERROR = "\033[91m"

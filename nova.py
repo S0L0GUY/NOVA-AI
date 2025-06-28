@@ -125,7 +125,7 @@ def process_completion(completion: iter, osc: object, tts: object) -> str:
         tts.add_to_queue(buffer)
 
     while not tts.is_idle():
-        time.sleep(constant.InterruptionSettings.QUEUE_SLEEP_INTERVAL)
+        time.sleep(constant.InterruptionSettings.DETECTION_SLEEP_INTERVAL)
     return full_response
 
 

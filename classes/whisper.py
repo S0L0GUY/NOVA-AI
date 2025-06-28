@@ -75,7 +75,7 @@ class WhisperTranscriber:
 
         print("\033[38;5;55mListening for voice input with VAD...\033[0m")
         sample_rate = constant.WhisperSettings.SAMPLE_RATE
-        frame_duration = constant.WhisperSettings.FRAME_DURATION  # ms
+        frame_duration = constant.WhisperSettings.FRAME_DURATION_MS  # ms
         num_padding_frames = constant.WhisperSettings.NUM_PADDING_FRAMES
         threshold = constant.WhisperSettings.VOICE_THRESHOLD
 
