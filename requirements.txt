@@ -7,3 +7,11 @@ soundfile
 pydub
 whisper
 flake8
+edge-tts
+numpy
+torch
+webrtcvad
+psutil
+GPUtil
+customtkinter
+requests

@@ -61,7 +61,7 @@ def main() -> None:
             logging.error("An error occurred: %s", e)
             osc.send_message(f"System Error: {e}")
             osc.set_typing_indicator(True)
-            time.sleep(5)
+            time.sleep(constant.ErrorHandling.ERROR_RETRY_DELAY)
 
 
 if __name__ == '__main__':

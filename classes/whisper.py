@@ -33,14 +33,14 @@ class WhisperTranscriber:
         try:
             # Initialize Whisper with the correct model path
             self.model = whisper.load_model(
-                "base",
+                constant.WhisperSettings.MODEL_SIZE,
                 device=self.device,
             )
             print(f"\033[35mWhisper model loaded on {self.device}.\033[0m")
         except Exception as e:
             print(f"\033[38;5;55mFailed to load Whisper model: {e}\033[0m")
             raise
-        self.vad = webrtcvad.Vad(0)  # Aggressiveness from 0 to 3
+        self.vad = webrtcvad.Vad(constant.WhisperSettings.VAD_AGGRESSIVENESS)
         self.stream = None
 
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
@@ -74,10 +74,10 @@ class WhisperTranscriber:
         """
 
         print("\033[38;5;55mListening for voice input with VAD...\033[0m")
-        sample_rate = 16000
-        frame_duration = 30  # ms
-        num_padding_frames = 10
-        threshold = 0.9  # Ratio of voiced frames needed
+        sample_rate = constant.WhisperSettings.SAMPLE_RATE
+        frame_duration = constant.WhisperSettings.FRAME_DURATION  # ms
+        num_padding_frames = constant.WhisperSettings.NUM_PADDING_FRAMES
+        threshold = constant.WhisperSettings.VOICE_THRESHOLD
 
         ring_buffer = collections.deque(maxlen=num_padding_frames)
         triggered = False
@@ -122,9 +122,9 @@ class WhisperTranscriber:
                         )
                         if num_unvoiced > threshold * num_padding_frames:
                             break  # End of speech
-                    if (
-                        len(voiced_frames) > sample_rate * 30
-                    ):  # Limit recording to 10 seconds
+                    max_dur = constant.WhisperSettings.MAX_RECORDING_DURATION
+                    max_frames = sample_rate * max_dur
+                    if len(voiced_frames) > max_frames:
                         print(
                             (
                                 "\033[38;5;55mMax recording duration reached."

@@ -51,12 +51,15 @@ def initialize_components() -> tuple:
     history = [
         {"role": "system", "content": system_prompt},
         {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
-        {"role": "user", "content": "hi"},
+        {
+            "role": "user",
+            "content": constant.SystemMessages.INITIAL_USER_MESSAGE
+        },
     ]
 
     openai_client = OpenAI(
-        base_url="http://localhost:1234/v1",
-        api_key="lm-studio"
+        base_url=constant.OpenAI.BASE_URL,
+        api_key=constant.OpenAI.API_KEY
     )
 
     tts = TextToSpeechManager(
@@ -122,7 +125,7 @@ def process_completion(completion: iter, osc: object, tts: object) -> str:
         tts.add_to_queue(buffer)
 
     while not tts.is_idle():
-        time.sleep(0.1)
+        time.sleep(constant.InterruptionSettings.QUEUE_SLEEP_INTERVAL)
     return full_response
 
 

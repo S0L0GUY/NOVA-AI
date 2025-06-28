@@ -8,7 +8,8 @@ import constants as constant
 def run_http_server() -> None:
     """
     Sets up and runs an HTTP server that handles various commands through HTTP
-    GET requests. The server runs on port 8080 and supports the following
+    GET requests. The server runs on the configured HTTP port and supports
+    the following
     commands:
     - add_message: Adds a message to the history file
     - logs: Retrieves logs from history
@@ -168,7 +169,7 @@ def run_http_server() -> None:
         """
         Starts an HTTP server using ThreadingHTTPServer and a custom request
         handler. This function initializes and starts an HTTP server on a
-        specified port (default is 8080). It uses the ThreadingHTTPServer
+        specified port (from constants). It uses the ThreadingHTTPServer
         class to handle requests in a multithreaded manner and a custom
         RequestHandler class to process incoming HTTP requests. The server
         runs indefinitely until manually stopped.
@@ -179,7 +180,7 @@ def run_http_server() -> None:
 
         server_class = ThreadingHTTPServer
         handler_class = RequestHandler
-        port = 8080
+        port = constant.Network.HTTP_SERVER_PORT
         server_address = ("", port)
         httpd = server_class(server_address, handler_class)
         print(f"Starting httpd server on port {port}...")

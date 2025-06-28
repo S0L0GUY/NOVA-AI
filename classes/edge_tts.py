@@ -11,11 +11,12 @@ import sounddevice as sd
 import soundfile as sf
 from pydub import AudioSegment
 import numpy as np
+import constants as constant
 
 
 class TextToSpeechManager:
     def __init__(self,
-                 voice_engine="edge-tts",
+                 voice_engine=constant.TTSSettings.ENGINE,
                  voice=None,
                  device_index=None,
                  VRChatOSC=None
@@ -41,7 +42,7 @@ class TextToSpeechManager:
             logging.error: If the `self.voice_engine` is not "edge-tts".
         """
 
-        if self.voice_engine == "edge-tts":
+        if self.voice_engine == constant.TTSSettings.ENGINE:
             pass
         else:
             logging.error(f"Unknown voice engine: {self.voice_engine}")

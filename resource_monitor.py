@@ -4,6 +4,7 @@ import GPUtil
 import customtkinter as ctk
 import time
 import datetime
+import constants as constant
 
 # Setup CustomTkinter
 ctk.set_appearance_mode("dark")
@@ -15,8 +16,8 @@ class SystemMonitor(ctk.CTk):
         """Initialize the System Monitor GUI."""
         super().__init__()
 
-        self.title("NOVA-AI")
-        self.geometry("400x745")
+        self.title(constant.ResourceMonitor.WINDOW_TITLE)
+        self.geometry(constant.ResourceMonitor.WINDOW_SIZE)
         self.resizable(False, False)
 
         # Make the window always stay on top
@@ -102,7 +103,7 @@ class SystemMonitor(ctk.CTk):
         self.uptime_label.configure(text=f"{uptime}")
 
         # Schedule next update
-        self.after(1000, self.update_stats)
+        self.after(constant.ResourceMonitor.UPDATE_INTERVAL, self.update_stats)
 
 
 def run_monitor() -> None:
