@@ -25,7 +25,7 @@ class Audio:
         AUDIO_INPUT_INDEX (int): The device index for audio input,
             configured for VB-Audio Cable A Output
     """
-    AUDIO_OUTPUT_INDEX = 7
+    AUDIO_OUTPUT_INDEX = 6
     AUDIO_INPUT_INDEX = 2  # 12 25 36
 
 
