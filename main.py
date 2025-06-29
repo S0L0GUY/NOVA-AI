@@ -13,6 +13,7 @@ import subprocess
 import sys
 import time
 import logging
+import json
 import nova
 import constants as constant
 from classes.osc import VRChatOSC
@@ -29,6 +30,20 @@ logging.basicConfig(
 )
 
 
+def clear_vision_history() -> None:
+    """
+    Clear the vision history log file at startup.
+    This ensures that each program run starts with a clean vision history.
+    """
+    try:
+        vision_log_path = constant.VisionSystem.LOG_FILE
+        with open(vision_log_path, 'w') as f:
+            json.dump([], f)
+        print("\033[92mVision history cleared.\033[0m")
+    except Exception as e:
+        print(f"\033[91mError clearing vision history: {e}\033[0m")
+
+
 def main() -> None:
     """
     Main function to start the VRChatOSC and run the Nova code.
@@ -41,12 +56,15 @@ def main() -> None:
         Exception: If an error occurs during the execution of nova.run_code().
     """
 
+    # Clear vision history at startup
+    clear_vision_history()
+    
     osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
     while True:
         try:
             print("\033[91mProgram Starting...\033[0m")
 
-            print("\033[91mStarting resiurce mitonitor...\033[0m")
+            print("\033[91mStarting resource monitor...\033[0m")
 
             try:
                 subprocess.Popen(
@@ -65,4 +83,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
+    clear_vision_history()
     main()

@@ -269,3 +269,33 @@ class ConsoleColors:
     # System status colors
     SYSTEM_INFO = "\033[36m"
     ERROR = "\033[91m"
+
+
+class VisionSystem:
+    """
+    Configuration settings for the VRChat vision system.
+    """
+    # Whether vision system is enabled
+    ENABLED = True
+    # How often to analyze screenshots when listening (seconds)
+    ANALYSIS_INTERVAL = 15
+    # Maximum image size for API calls (pixels)
+    MAX_IMAGE_SIZE = 1024
+    # JPEG quality for screenshots (1-100)
+    IMAGE_QUALITY = 85
+    # Vision state file path
+    STATE_FILE = "json_files/vision_state.json"
+    # Vision log file path
+    LOG_FILE = "json_files/vision_log.json"
+    # Vision prompt file path
+    VISION_PROMPT_PATH = "prompts/vision_prompt.txt"
+    # Maximum number of vision updates to keep in log
+    MAX_LOG_ENTRIES = 5
+    # VRChat window search keywords
+    WINDOW_KEYWORDS = ["VRChat", "vrchat"]
+    # Vision model to use (adjust for your local setup)
+    VISION_MODEL = "qwen/qwen2.5-vl-7b"
+    # Maximum tokens for vision API response
+    MAX_VISION_TOKENS = 150
+    # Temperature for vision analysis
+    VISION_TEMPERATURE = 0.3
