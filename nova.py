@@ -4,6 +4,9 @@ This module initializes various components such as the VRChat OSC,
 WhisperTranscriber, and OpenAI client. It sends a startup message to
 VRChat, sets up the system prompt and history, and enters a loop to
 continuously process user speech input and generate AI responses.
+
+Note: The vision system now runs asynchronously in the background and
+continuously monitors VRChat without waiting for the AI to stop thinking.
 """
 
 import datetime

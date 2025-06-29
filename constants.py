@@ -277,7 +277,7 @@ class VisionSystem:
     """
     # Whether vision system is enabled
     ENABLED = True
-    # How often to analyze screenshots when listening (seconds)
+    # How often to analyze screenshots continuously (seconds)
     ANALYSIS_INTERVAL = 15
     # Maximum image size for API calls (pixels)
     MAX_IMAGE_SIZE = 1024
