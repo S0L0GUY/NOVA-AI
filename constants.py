@@ -276,11 +276,11 @@ class VRChatAPI:
     Configuration settings for VRChat API integration.
     """
     # VRChat account credentials
-    USERNAME = "email"
-    PASSWORD = "password"
+    USERNAME = "email"  # TODO: Replace with your VRChat email
+    PASSWORD = "password"  # TODO: Replace with your VRChat password
 
     # User agent string as per VRChat Usage Policy
-    USER_AGENT = "NOVA-AI/0.0.1 email"
+    USER_AGENT = "NOVA-AI/0.0.1 email"  # TODO: Replace with your VRChat email
 
     # API check intervals (seconds)
     FRIEND_REQUEST_CHECK_INTERVAL = 40  # 40 seconds
