@@ -49,6 +49,30 @@ class VRChatAPIManager:
         self.friends_cache = set()  # Cache of current friends
         self.last_friends_update = 0
 
+    @staticmethod
+    def is_api_enabled() -> bool:
+        """
+        Check if VRChat API functionality is enabled in configuration.
+        
+        Returns:
+            bool: True if API is enabled, False otherwise.
+        """
+        return constant.VRChatAPI.USING_API
+
+    def _validate_credentials(self) -> bool:
+        """
+        Validate that required credentials are available.
+        
+        Returns:
+            bool: True if credentials are valid, False otherwise.
+        """
+        if not constant.VRChatAPI.USERNAME or not constant.VRChatAPI.PASSWORD:
+            logging.error("VRChat API credentials not found. Please set "
+                          "VRCHAT_EMAIL and VRCHAT_PASSWORD environment "
+                          "variables.")
+            return False
+        return True
+
     def initialize(self) -> bool:
         """
         Initialize the VRChat API connection and authenticate.
@@ -56,6 +80,15 @@ class VRChatAPIManager:
         Returns:
             bool: True if initialization was successful, False otherwise.
         """
+        # Check if API is enabled
+        if not self.is_api_enabled():
+            logging.info("VRChat API is disabled in configuration")
+            return False
+            
+        # Validate credentials
+        if not self._validate_credentials():
+            return False
+            
         try:
             # Create configuration
             self.configuration = vrchatapi.Configuration(

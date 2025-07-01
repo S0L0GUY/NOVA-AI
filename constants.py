@@ -280,7 +280,11 @@ class VRChatAPI:
     """
     Configuration settings for VRChat API integration.
     """
-    # VRChat account credentials
+
+    # Master switch to enable/disable all VRChat API functionality
+    USING_API = False  # Set to True to enable API usage
+
+    # VRChat account credentials (loaded from environment variables)
     USERNAME = os.getenv('VRCHAT_EMAIL')
     PASSWORD = os.getenv('VRCHAT_PASSWORD')
 
@@ -288,17 +292,27 @@ class VRChatAPI:
     USER_AGENT = f"NOVA-AI/2025.1.1 {os.getenv('VRCHAT_EMAIL')}"
 
     # API check intervals (seconds)
-    FRIEND_REQUEST_CHECK_INTERVAL = 40  # 40 seconds
+    FRIEND_REQUEST_CHECK_INTERVAL = 60  # 1 minute
     NOTIFICATION_CHECK_INTERVAL = 120    # 2 minutes
 
-    API_COOLDOWN = 10  # Seconds to wait between API calls
+    # Rate limiting and cooldown settings
+    API_COOLDOWN = 30  # Seconds to wait between API calls
 
-    # Auto-accept friend requests
+    # Feature toggles
     AUTO_ACCEPT_FRIEND_REQUESTS = True
+    ENABLE_NOTIFICATION_CHECKS = True
+    ENABLE_FRIEND_REQUEST_CHECKS = True
 
     # Connection timeout settings
     CONNECTION_TIMEOUT = 30
     REQUEST_TIMEOUT = 15
+
+    # Retry settings for failed operations
+    MAX_RETRY_ATTEMPTS = 3
+    RETRY_DELAY = 5  # Seconds between retries
+
+    # Debug settings
+    VERBOSE_LOGGING = False  # Set to True for detailed API logs
 
 
 class VisionSystem:

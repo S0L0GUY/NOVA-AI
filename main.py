@@ -63,18 +63,23 @@ def main() -> None:
     # Initialize VRChat OSC
     osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
 
-    # Initialize VRChat API
-    vrchat_api = VRChatAPIManager()
+    # Initialize VRChat API if enabled
+    vrchat_api = None
+    if VRChatAPIManager.is_api_enabled():
+        vrchat_api = VRChatAPIManager()
 
-    # Try to initialize VRChat API
-    print("\033[94mInitializing VRChat API...\033[0m")
-    if vrchat_api.initialize():
-        print("\033[92mVRChat API initialized successfully\033[0m")
-        # Start periodic checks for friend requests and notifications
-        vrchat_api.start_periodic_checks()
+        # Try to initialize VRChat API
+        print("\033[94mInitializing VRChat API...\033[0m")
+        if vrchat_api.initialize():
+            print("\033[92mVRChat API initialized successfully\033[0m")
+            # Start periodic checks for friend requests and notifications
+            vrchat_api.start_periodic_checks()
+        else:
+            print("\033[91mVRChat API initialization failed, continuing "
+                  "without API features\033[0m")
+            vrchat_api = None
     else:
-        print("\033[91mVRChat API initialization failed, continuing "
-              "without API features\033[0m")
+        print("\033[93mVRChat API disabled in configuration\033[0m")
 
     try:
         while True:
@@ -100,7 +105,7 @@ def main() -> None:
                 time.sleep(constant.ErrorHandling.ERROR_RETRY_DELAY)
     finally:
         # Clean up VRChat API on exit
-        if vrchat_api.is_authenticated:
+        if vrchat_api and vrchat_api.is_authenticated:
             print("\033[93mShutting down VRChat API...\033[0m")
             vrchat_api.disconnect()
 

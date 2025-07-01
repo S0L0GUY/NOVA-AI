@@ -349,6 +349,16 @@ If PyAudio fails to install:
 1. Download the appropriate .whl file from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio)
 2. Install it with: `pip install path\to\downloaded\file.whl`
 
+### Step 4: Prepare Configuration Files
+
+Before starting setup, NOVA AI includes example configuration files to help you get started:
+
+1. **Environment Variables**: Copy `.env.example` to `.env` for your VRChat credentials
+2. **Configuration Reference**: Review `constants.py` for all available settings
+3. **System Prompts**: Check the `prompts/` folder for personality customization options
+
+You'll configure these files in the following setup steps.
+
 ## Setup Instructions
 
 ### Step 1: Configure Audio Devices
@@ -395,23 +405,32 @@ If PyAudio fails to install:
 
 NOVA AI uses environment variables to securely store sensitive information like VRChat credentials. This keeps your login information separate from the code.
 
-1. **Create a .env file:**
-   - In the NOVA-AI folder, create a new file called `.env` (note the dot at the beginning)
-   - Add your VRChat credentials:
+1. **Create a .env file from the example:**
+   - In the NOVA-AI folder, you'll find a `.env.example` file
+   - Copy this file and rename it to `.env`:
+   ```powershell
+   copy .env.example .env
+   ```
+   - Or manually create a new file called `.env` (note the dot at the beginning)
+
+2. **Edit your .env file:**
+   - Open the `.env` file in any text editor
+   - Replace the example values with your actual VRChat credentials:
    ```properties
    # VRChat Login Credentials
-   VRCHAT_EMAIL=your-vrc-email@example.com
-   VRCHAT_PASSWORD=your-vrc-password
+   VRCHAT_EMAIL=your-actual-vrchat-email@example.com
+   VRCHAT_PASSWORD=your-actual-vrchat-password
    ```
 
-2. **Replace with your actual credentials:**
-   - Change `your-vrc-email@example.com` to your VRChat account email
-   - Change `your-vrc-password` to your VRChat account password
+3. **Replace with your actual credentials:**
+   - Change `your-actual-vrchat-email@example.com` to your VRChat account email
+   - Change `your-actual-vrchat-password` to your VRChat account password
 
-3. **Important Security Notes:**
+4. **Important Security Notes:**
    - Never share your `.env` file or commit it to version control
    - The `.env` file is automatically ignored by Git for your security
    - NOVA will automatically load these credentials when it starts
+   - The `.env.example` file shows the format but contains no real credentials
 
 ### Step 4: Configure VRChat OSC
 
