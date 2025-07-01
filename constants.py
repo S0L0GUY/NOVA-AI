@@ -271,6 +271,29 @@ class ConsoleColors:
     ERROR = "\033[91m"
 
 
+class VRChatAPI:
+    """
+    Configuration settings for VRChat API integration.
+    """
+    # VRChat account credentials
+    USERNAME = "email"
+    PASSWORD = "password"
+
+    # User agent string as per VRChat Usage Policy
+    USER_AGENT = "NOVA-AI/0.0.1 email"
+
+    # API check intervals (seconds)
+    FRIEND_REQUEST_CHECK_INTERVAL = 40  # 40 seconds
+    NOTIFICATION_CHECK_INTERVAL = 120    # 2 minutes
+
+    # Auto-accept friend requests
+    AUTO_ACCEPT_FRIEND_REQUESTS = True
+
+    # Connection timeout settings
+    CONNECTION_TIMEOUT = 30
+    REQUEST_TIMEOUT = 15
+
+
 class VisionSystem:
     """
     Configuration settings for the VRChat vision system.
