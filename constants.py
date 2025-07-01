@@ -291,6 +291,8 @@ class VRChatAPI:
     FRIEND_REQUEST_CHECK_INTERVAL = 40  # 40 seconds
     NOTIFICATION_CHECK_INTERVAL = 120    # 2 minutes
 
+    API_COOLDOWN = 10  # Seconds to wait between API calls
+
     # Auto-accept friend requests
     AUTO_ACCEPT_FRIEND_REQUESTS = True
 
