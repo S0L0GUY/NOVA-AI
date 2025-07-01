@@ -7,6 +7,7 @@ NOVA AI is an intelligent VRChat assistant that brings conversational AI directl
 - [What is NOVA AI?](#what-is-nova-ai)
 - [Features](#features)
 - [Configuration System](#configuration-system)
+- [Vision System](#vision-system)
 - [Prerequisites](#prerequisites)
 - [Installation Guide](#installation-guide)
 - [Setup Instructions](#setup-instructions)
@@ -38,6 +39,7 @@ Perfect for content creators, VRChat enthusiasts, or anyone who wants an intelli
 - 🔧 **Modular Design**: Easy to extend and customize
 - ⚙️ **Centralized Configuration**: All tunable settings in one location (`constants.py`)
 - 🎯 **Easy Tuning**: Comprehensive configuration system for all aspects of NOVA
+- 👁️ **Vision System**: Advanced computer vision capabilities for VRChat world analysis
 
 ## Configuration System
 
@@ -98,6 +100,179 @@ class WhisperSettings:
 ```
 
 That's it! The entire codebase automatically uses your new settings.
+
+## Vision System
+
+NOVA AI includes an advanced **Vision System** that brings computer vision capabilities to your VRChat experience. This powerful feature allows NOVA to "see" your VRChat world, analyze what's happening, and provide contextual responses based on visual information.
+
+### 👁️ **What is the Vision System?**
+
+The Vision System is an optional module that:
+- **📸 Captures Screenshots**: Automatically takes screenshots of your VRChat window
+- **🔍 Analyzes Content**: Uses AI vision models to understand what's in the image
+- **👥 Identifies Players**: Recognizes avatars, usernames, and player interactions
+- **🌍 Describes Environments**: Understands world themes, lighting, and atmosphere
+- **💬 Provides Context**: Gives NOVA visual context for more intelligent responses
+
+### 🎯 **Key Capabilities**
+
+#### **Player Detection & Recognition**
+- Identifies visible avatars and their appearance
+- Reads usernames when visible
+- Counts how many players are in view
+- Describes avatar styles, outfits, and accessories
+
+#### **Environment Analysis**
+- Recognizes world themes (nightclub, forest, city, etc.)
+- Describes lighting conditions and atmosphere
+- Identifies notable objects and structures
+- Understands the overall vibe of the space
+
+#### **Behavioral Context**
+- Observes player actions (dancing, sitting, emoting)
+- Detects social interactions
+- Notices movement and activities
+
+### ⚙️ **Vision System Configuration**
+
+The Vision System is controlled through the `VisionSystem` class in `constants.py`:
+
+```python
+class VisionSystem:
+    # Enable or disable the vision system
+    ENABLED = False  # Set to True to enable vision
+    
+    # How often to analyze screenshots (seconds)
+    ANALYSIS_INTERVAL = 15
+    
+    # Image processing settings
+    MAX_IMAGE_SIZE = 1024     # Max resolution for AI processing
+    IMAGE_QUALITY = 85        # JPEG quality (1-100)
+    
+    # AI model settings
+    VISION_MODEL = "qwen/qwen2.5-vl-7b"  # Vision model to use
+    MAX_VISION_TOKENS = 150   # Response length limit
+    VISION_TEMPERATURE = 0.3  # Creativity level (0.0-1.0)
+    
+    # File locations
+    STATE_FILE = "json_files/vision_state.json"
+    LOG_FILE = "json_files/vision_log.json"
+    VISION_PROMPT_PATH = "prompts/vision_prompt.txt"
+```
+
+### 🚀 **Enabling the Vision System**
+
+#### **Step 1: Enable in Configuration**
+1. Open `constants.py` in a text editor
+2. Find the `VisionSystem` class
+3. Change `ENABLED = False` to `ENABLED = True`
+
+#### **Step 2: Set Up Vision Model**
+The Vision System supports both local and cloud-based AI vision models:
+
+**Option A: Local Models (LM Studio)**
+- Keep the default `VISION_MODEL = "qwen/qwen2.5-vl-7b"`
+- Ensure your LM Studio setup supports vision models
+
+**Option B: OpenAI Vision API**
+- Change `VISION_MODEL = "gpt-4-vision-preview"`
+- Ensure your OpenAI API key has vision access
+
+#### **Step 3: Test the System**
+Run the vision system test to verify everything works:
+```powershell
+python test_vision_system.py
+```
+
+### 🎮 **How It Works in VRChat**
+
+1. **Automatic Detection**: The system automatically finds your VRChat window
+2. **Periodic Analysis**: Takes screenshots at regular intervals (configurable)
+3. **AI Processing**: Sends images to the vision model for analysis
+4. **Context Integration**: Provides visual context to NOVA for better responses
+5. **Logging**: Keeps a log of recent visual observations
+
+### 💬 **Example Vision Responses**
+
+When the Vision System is active, NOVA can make responses like:
+
+- *"I can see you're in a beautiful cyberpunk nightclub with neon lights everywhere!"*
+- *"There are 3 other players here - someone with butterfly wings is dancing near the center."*
+- *"This cozy forest world has such peaceful vibes with those cherry blossom trees."*
+- *"I notice xX_Gamer_Xx just joined in that golden armor avatar - pretty cool look!"*
+
+### 📊 **Performance & Privacy**
+
+#### **Performance Considerations**
+- Vision analysis adds processing overhead
+- Adjust `ANALYSIS_INTERVAL` to balance responsiveness vs. performance
+- Lower `MAX_IMAGE_SIZE` for faster processing
+- Use `IMAGE_QUALITY` to balance file size vs. detail
+
+#### **Privacy Features**
+- Screenshots are processed locally (unless using cloud APIs)
+- No images are permanently stored
+- Vision logs can be cleared at any time
+- System can be disabled instantly
+
+### 🔧 **Advanced Configuration**
+
+#### **Customizing Vision Behavior**
+Edit `prompts/vision_prompt.txt` to change how the AI interprets images:
+- Modify what details to focus on
+- Change the response style
+- Add specific instructions for your use case
+
+#### **Performance Tuning**
+```python
+# For better accuracy (slower)
+ANALYSIS_INTERVAL = 10      # More frequent analysis
+MAX_IMAGE_SIZE = 1920       # Higher resolution
+VISION_TEMPERATURE = 0.1    # More consistent results
+
+# For better performance (faster)
+ANALYSIS_INTERVAL = 30      # Less frequent analysis  
+MAX_IMAGE_SIZE = 512        # Lower resolution
+VISION_TEMPERATURE = 0.5    # More varied results
+```
+
+#### **Selective Analysis**
+The Vision System can be configured to only analyze when:
+- NOVA is directly spoken to
+- Specific keywords are mentioned
+- Manual triggers are activated
+
+### 🛠️ **Troubleshooting Vision System**
+
+**Vision System Not Starting:**
+- Verify `ENABLED = True` in `constants.py`
+- Check that VRChat window is visible and active
+- Run `python test_vision_system.py` for diagnostics
+
+**Poor Recognition Quality:**
+- Increase `MAX_IMAGE_SIZE` for better detail
+- Adjust `IMAGE_QUALITY` for clearer images
+- Check lighting in your VRChat world
+
+**Performance Issues:**
+- Increase `ANALYSIS_INTERVAL` for less frequent analysis
+- Decrease `MAX_IMAGE_SIZE` for faster processing
+- Consider using a faster vision model
+
+**API Errors:**
+- Verify your AI model supports vision capabilities
+- Check API key permissions for vision access
+- Ensure sufficient API credits/quota
+
+### 🎯 **Best Practices**
+
+1. **Start Conservative**: Begin with longer analysis intervals and smaller image sizes
+2. **Monitor Performance**: Watch system resources when vision is enabled
+3. **Customize Prompts**: Tailor the vision prompt for your specific VRChat activities
+4. **Test Different Models**: Try various vision models to find the best balance
+5. **Privacy Awareness**: Remember that the system can see everything in your VRChat window
+
+The Vision System transforms NOVA from a voice-only assistant into a truly aware VRChat companion that can see and understand your virtual world!
 
 ## Prerequisites
 
@@ -304,6 +479,17 @@ class WhisperSettings:
     MAX_RECORDING_DURATION = 30   # Maximum recording time in seconds
 ```
 
+#### **👁️ Vision System Configuration**
+Control computer vision capabilities:
+```python
+class VisionSystem:
+    ENABLED = False               # Enable/disable vision system
+    ANALYSIS_INTERVAL = 15        # Screenshot analysis frequency (seconds)
+    MAX_IMAGE_SIZE = 1024         # Maximum image resolution for processing
+    VISION_MODEL = "qwen/qwen2.5-vl-7b"  # AI vision model to use
+    VISION_TEMPERATURE = 0.3      # Vision analysis creativity (0.0-1.0)
+```
+
 #### **⚡ Performance Tuning**
 Optimize responsiveness:
 ```python
@@ -380,6 +566,14 @@ class OpenAI:
     BASE_URL = "https://api.openai.com/v1"  # Official OpenAI API
     API_KEY = "sk-your-real-openai-key"     # Your OpenAI API key
     MODEL_ID = "gpt-4"                      # Use GPT-4
+```
+
+**Enabling Vision Capabilities:**
+```python
+class VisionSystem:
+    ENABLED = True                # Enable vision system
+    ANALYSIS_INTERVAL = 10        # More frequent analysis
+    VISION_MODEL = "gpt-4-vision-preview"  # Use OpenAI vision model
 ```
 
 ### 🔧 Advanced Configuration
@@ -466,6 +660,13 @@ pip install -r requirements.txt
 - Verify syntax is correct (proper indentation, quotes, commas)
 - Check that modified values are the right data type (numbers vs strings)
 - Use the default values as a reference if something stops working
+
+**Vision System Issues:**
+- Run `python test_vision_system.py` to test vision components
+- Ensure VRChat window is visible and active
+- Check that `ENABLED = True` in the `VisionSystem` class
+- Verify vision model compatibility with your AI setup
+- Monitor console output for vision-specific error messages
 
 ### Getting Help
 
