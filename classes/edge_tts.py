@@ -79,7 +79,7 @@ class TextToSpeechManager:
             None
         """
 
-        while not self.tts_queue.empty():
+        while not self.tts_queue.qsize() == 0:
             # Ensure only one thread processes the queue at a time
             with self.lock:
                 text = self.tts_queue.get()
@@ -201,8 +201,8 @@ class TextToSpeechManager:
         """
 
         return (
-            self.tts_queue.empty() and
-            self.audio_queue.empty() and
+            self.tts_queue.qsize() == 0 and
+            self.audio_queue.qsize() == 0 and
             not self.is_playing
         )
 
