@@ -276,7 +276,7 @@ class VisionSystem:
     Configuration settings for the VRChat vision system.
     """
     # Whether vision system is enabled
-    ENABLED = True
+    ENABLED = False
     # How often to analyze screenshots continuously (seconds)
     ANALYSIS_INTERVAL = 15
     # Maximum image size for API calls (pixels)

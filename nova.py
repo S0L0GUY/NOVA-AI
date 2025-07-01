@@ -200,9 +200,6 @@ def run_code() -> None:
     # Send message to VRChat to indicate that the system is starting
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
-    # Clear vision history at startup
-    vision_manager.clear_vision_history()
-
     available_models = openai_client.models.list()
     model_list = [model.id for model in available_models]
 

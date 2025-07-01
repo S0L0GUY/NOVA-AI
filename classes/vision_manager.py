@@ -27,10 +27,16 @@ class VisionManager:
     def start_vision_system(self):
         """Start the vision system as a background thread."""
         if not constant.VisionSystem.ENABLED:
+            print(
+                "\033[96m[VISION]\033[0m "
+                "\033[91mVision system is disabled\033[0m"
+            )
+
             return
 
         try:
             # Create and start vision system in a separate thread
+            self.clear_vision_history()
             self.vision_system = VisionSystem()
             self.vision_thread = threading.Thread(
                 target=self.vision_system.run_vision_loop,
