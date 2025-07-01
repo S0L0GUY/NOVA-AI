@@ -224,54 +224,45 @@ def run_code() -> None:
     else:
         current_model = constant.LanguageModel.MODEL_ID
 
-    try:
-        while True:
-            osc.send_message("Thinking")
-            osc.set_typing_indicator(True)
+    while True:
+        osc.send_message("Thinking")
+        osc.set_typing_indicator(True)
 
-            # Check for vision updates before generating response
-            history = add_vision_updates_to_history(history, vision_manager)
+        # Check for vision updates before generating response
+        history = add_vision_updates_to_history(history, vision_manager)
 
-            # Creates model parameters
-            completion = openai_client.chat.completions.create(
-                model=current_model,
-                messages=history,
-                temperature=constant.LanguageModel.LM_TEMPERATURE,
-                stream=True,
-            )
+        # Creates model parameters
+        completion = openai_client.chat.completions.create(
+            model=current_model,
+            messages=history,
+            temperature=constant.LanguageModel.LM_TEMPERATURE,
+            stream=True,
+        )
 
-            new_message = {"role": "assistant", "content": ""}
+        new_message = {"role": "assistant", "content": ""}
 
-            full_response = process_completion(completion, osc, tts)
-            new_message["content"] = full_response
+        full_response = process_completion(completion, osc, tts)
+        new_message["content"] = full_response
 
-            # Get user speech input
-            user_speech = ""
-            while not user_speech:
-                osc.send_message("Listening")
-                osc.set_typing_indicator(False)
-                user_speech = transcriber.get_voice_input()
+        # Get user speech input
+        user_speech = ""
+        while not user_speech:
+            osc.send_message("Listening")
+            osc.set_typing_indicator(False)
+            user_speech = transcriber.get_voice_input()
 
-            osc.send_message("Thinking")
-            osc.set_typing_indicator(True)
+        osc.send_message("Thinking")
+        osc.set_typing_indicator(True)
 
-            print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
+        print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
 
-            user_speech = {"role": "user", "content": user_speech}
-            history.append(new_message)
-            history.append(user_speech)
+        user_speech = {"role": "user", "content": user_speech}
+        history.append(new_message)
+        history.append(user_speech)
 
-            JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
+        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
 
-            history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
-
-    except KeyboardInterrupt:
-        print("\n\033[91mShutting down vision system...\033[0m")
-        vision_manager.cleanup()
-    except Exception as e:
-        print(f"\033[91mError in main loop: {e}\033[0m")
-        vision_manager.cleanup()
-        raise
+        history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
 
 
 if __name__ == "__main__":
