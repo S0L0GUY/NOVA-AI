@@ -4,6 +4,9 @@ This module initializes various components such as the VRChat OSC,
 WhisperTranscriber, and OpenAI client. It sends a startup message to
 VRChat, sets up the system prompt and history, and enters a loop to
 continuously process user speech input and generate AI responses.
+
+Note: The vision system now runs asynchronously in the background and
+continuously monitors VRChat without waiting for the AI to stop thinking.
 """
 
 import datetime
@@ -15,6 +18,7 @@ from classes.edge_tts import TextToSpeechManager
 from classes.whisper import WhisperTranscriber
 from classes.system_prompt import SystemPrompt
 from classes.json_wrapper import JsonWrapper
+from classes.vision_manager import VisionManager
 import constants as constant
 import sys
 
@@ -37,6 +41,7 @@ def initialize_components() -> tuple:
             - history (list): The initial conversation history.
             - openai_client (OpenAI): The OpenAI API client.
             - tts (TextToSpeechManager): The text-to-speech manager.
+            - vision_manager (VisionManager): The vision system manager.
     """
 
     osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
@@ -68,7 +73,12 @@ def initialize_components() -> tuple:
         VRChatOSC=osc,
     )
     tts.initialize_tts_engine()
-    return osc, transcriber, history, openai_client, tts
+
+    # Initialize vision system
+    vision_manager = VisionManager()
+    vision_manager.start_vision_system()
+
+    return osc, transcriber, history, openai_client, tts, vision_manager
 
 
 def chunk_text(text: str) -> list:
@@ -129,6 +139,32 @@ def process_completion(completion: iter, osc: object, tts: object) -> str:
     return full_response
 
 
+def add_vision_updates_to_history(history: list,
+                                  vision_manager: object) -> list:
+    """
+    Add any new vision updates to the conversation history.
+
+    Args:
+        history (list): Current conversation history
+        vision_manager (VisionManager): The vision manager instance
+
+    Returns:
+        list: Updated history with vision updates added as system messages
+    """
+    vision_updates = vision_manager.get_new_vision_updates()
+
+    for update in vision_updates:
+        # Add vision update as a system message
+        vision_message = {
+            "role": "system",
+            "content": update
+        }
+        history.append(vision_message)
+        print(f"\033[96m[VISION]\033[0m \033[94m{update}\033[0m")
+
+    return history
+
+
 def run_code() -> None:
     """
     Runs the main loop of the application, handling communication between
@@ -158,7 +194,8 @@ def run_code() -> None:
         None
     """
 
-    osc, transcriber, history, openai_client, tts = initialize_components()
+    components = initialize_components()
+    osc, transcriber, history, openai_client, tts, vision_manager = components
 
     # Send message to VRChat to indicate that the system is starting
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
@@ -182,46 +219,59 @@ def run_code() -> None:
             )
         else:
             print("\033[91mNo models available.\033[0m")
+            vision_manager.cleanup()
             sys.exit(1)
     else:
         current_model = constant.LanguageModel.MODEL_ID
 
-    while True:
-        osc.send_message("Thinking")
-        osc.set_typing_indicator(True)
+    try:
+        while True:
+            osc.send_message("Thinking")
+            osc.set_typing_indicator(True)
 
-        # Creates model parameters
-        completion = openai_client.chat.completions.create(
-            model=current_model,
-            messages=history,
-            temperature=constant.LanguageModel.LM_TEMPERATURE,
-            stream=True,
-        )
+            # Check for vision updates before generating response
+            history = add_vision_updates_to_history(history, vision_manager)
 
-        new_message = {"role": "assistant", "content": ""}
+            # Creates model parameters
+            completion = openai_client.chat.completions.create(
+                model=current_model,
+                messages=history,
+                temperature=constant.LanguageModel.LM_TEMPERATURE,
+                stream=True,
+            )
 
-        full_response = process_completion(completion, osc, tts)
-        new_message["content"] = full_response
+            new_message = {"role": "assistant", "content": ""}
 
-        # Get user speech input
-        user_speech = ""
-        while not user_speech:
-            osc.send_message("Listening")
-            osc.set_typing_indicator(False)
-            user_speech = transcriber.get_voice_input()
+            full_response = process_completion(completion, osc, tts)
+            new_message["content"] = full_response
 
-        osc.send_message("Thinking")
-        osc.set_typing_indicator(True)
+            # Get user speech input
+            user_speech = ""
+            while not user_speech:
+                osc.send_message("Listening")
+                osc.set_typing_indicator(False)
+                user_speech = transcriber.get_voice_input()
 
-        print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
+            osc.send_message("Thinking")
+            osc.set_typing_indicator(True)
 
-        user_speech = {"role": "user", "content": user_speech}
-        history.append(new_message)
-        history.append(user_speech)
+            print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
 
-        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
+            user_speech = {"role": "user", "content": user_speech}
+            history.append(new_message)
+            history.append(user_speech)
 
-        history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
+            JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
+
+            history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
+
+    except KeyboardInterrupt:
+        print("\n\033[91mShutting down vision system...\033[0m")
+        vision_manager.cleanup()
+    except Exception as e:
+        print(f"\033[91mError in main loop: {e}\033[0m")
+        vision_manager.cleanup()
+        raise
 
 
 if __name__ == "__main__":
