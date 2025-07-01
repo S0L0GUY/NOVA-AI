@@ -391,7 +391,29 @@ If PyAudio fails to install:
        API_KEY = "your-api-key-here"
    ```
 
-### Step 3: Configure VRChat OSC
+### Step 3: Set Up Environment Variables (.env file)
+
+NOVA AI uses environment variables to securely store sensitive information like VRChat credentials. This keeps your login information separate from the code.
+
+1. **Create a .env file:**
+   - In the NOVA-AI folder, create a new file called `.env` (note the dot at the beginning)
+   - Add your VRChat credentials:
+   ```properties
+   # VRChat Login Credentials
+   VRCHAT_EMAIL=your-vrc-email@example.com
+   VRCHAT_PASSWORD=your-vrc-password
+   ```
+
+2. **Replace with your actual credentials:**
+   - Change `your-vrc-email@example.com` to your VRChat account email
+   - Change `your-vrc-password` to your VRChat account password
+
+3. **Important Security Notes:**
+   - Never share your `.env` file or commit it to version control
+   - The `.env` file is automatically ignored by Git for your security
+   - NOVA will automatically load these credentials when it starts
+
+### Step 4: Configure VRChat OSC
 
 1. **Enable OSC in VRChat:**
    - Launch VRChat
@@ -407,7 +429,7 @@ If PyAudio fails to install:
        VRC_PORT = 9000  # Should match VRChat's OSC port
    ```
 
-### Step 4: Test Audio Setup
+### Step 5: Test Audio Setup
 
 1. **Test your microphone:**
    ```powershell

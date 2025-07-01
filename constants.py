@@ -1,4 +1,9 @@
+import os
 import socket
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class Network:
@@ -276,11 +281,11 @@ class VRChatAPI:
     Configuration settings for VRChat API integration.
     """
     # VRChat account credentials
-    USERNAME = "email"  # TODO: Replace with your VRChat email
-    PASSWORD = "password"  # TODO: Replace with your VRChat password
+    USERNAME = os.getenv('VRCHAT_EMAIL')
+    PASSWORD = os.getenv('VRCHAT_PASSWORD')
 
     # User agent string as per VRChat Usage Policy
-    USER_AGENT = "NOVA-AI/0.0.1 email"  # TODO: Replace with your VRChat email
+    USER_AGENT = f"NOVA-AI/2025.1.1 {os.getenv('VRCHAT_EMAIL')}"
 
     # API check intervals (seconds)
     FRIEND_REQUEST_CHECK_INTERVAL = 40  # 40 seconds
