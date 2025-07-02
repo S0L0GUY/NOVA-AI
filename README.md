@@ -1,13 +1,14 @@
 # NOVA AI
 ### /ˈnōvə/ - Your VRChat AI Companion
 
-NOVA AI is an intelligent VRChat assistant that brings conversational AI directly into your VRChat experience. Using advanced speech recognition, natural language processing, and text-to-speech technology, NOVA can listen to your voice, understand what you're saying, and respond intelligently through VRChat's chatbox.
+NOVA AI is an intelligent VRChat assistant that brings conversational AI directly into your VRChat experience. Using advanced speech recognition, natural language processing, text-to-speech technology, computer vision, and VRChat API integration, NOVA can listen to your voice, understand what you're saying, see your VRChat world, manage social interactions, and respond intelligently through VRChat's chatbox.
 
 ## Table of Contents
 - [What is NOVA AI?](#what-is-nova-ai)
 - [Features](#features)
 - [Configuration System](#configuration-system)
 - [Vision System](#vision-system)
+- [VRChat API Integration](#vrchat-api-integration)
 - [Prerequisites](#prerequisites)
 - [Installation Guide](#installation-guide)
 - [Setup Instructions](#setup-instructions)
@@ -21,25 +22,32 @@ NOVA AI is an intelligent VRChat assistant that brings conversational AI directl
 
 NOVA AI is a sophisticated VRChat companion that:
 - **Listens** to your voice using advanced speech recognition (OpenAI Whisper)
-- **Thinks** using powerful AI language models (OpenAI GPT)
+- **Thinks** using powerful AI language models (OpenAI GPT or local models via LM Studio)
+- **Sees** your VRChat world using computer vision and screenshot analysis
 - **Responds** through VRChat's chatbox using OSC (Open Sound Control)
-- **Speaks** back to you using text-to-speech technology
+- **Speaks** back to you using text-to-speech technology (Microsoft Edge TTS)
+- **Manages** VRChat social interactions via API integration (friend requests, notifications)
+- **Monitors** system performance with a real-time resource dashboard
 
 Perfect for content creators, VRChat enthusiasts, or anyone who wants an intelligent AI companion in their virtual world!
 
 ## Features
 
-- 🎤 **Voice Recognition**: Advanced speech-to-text using OpenAI Whisper
-- 🧠 **AI Conversation**: Powered by OpenAI's language models for natural conversations
+- 🎤 **Voice Recognition**: Advanced speech-to-text using OpenAI Whisper with configurable models
+- 🧠 **AI Conversation**: Powered by OpenAI's language models or local models via LM Studio
 - 💬 **VRChat Integration**: Seamlessly displays responses in VRChat chatbox via OSC
-- 🔊 **Text-to-Speech**: Speaks responses back to you with customizable voices
-- 🎚️ **Voice Activity Detection**: Automatically detects when you start and stop speaking
-- ⚙️ **Customizable**: Configurable system prompts, voices, and behavior
-- 📊 **Resource Monitoring**: Built-in performance monitoring
-- 🔧 **Modular Design**: Easy to extend and customize
+- 🔊 **Text-to-Speech**: Speaks responses back using Microsoft Edge TTS with customizable voices
+- 🎚️ **Voice Activity Detection**: Automatically detects when you start and stop speaking with WebRTC VAD
+- ⚙️ **Customizable**: Configurable system prompts, voices, and behavior through centralized constants
+- 📊 **Resource Monitoring**: Built-in performance monitoring with customizable GUI dashboard
+- 🔧 **Modular Design**: Easy to extend and customize with class-based architecture
 - ⚙️ **Centralized Configuration**: All tunable settings in one location (`constants.py`)
 - 🎯 **Easy Tuning**: Comprehensive configuration system for all aspects of NOVA
 - 👁️ **Vision System**: Advanced computer vision capabilities for VRChat world analysis
+- 🤝 **VRChat API Integration**: Automatic friend request handling and notification management
+- 🔒 **Secure Configuration**: Environment variable system for sensitive credentials
+- 🎮 **Avatar Movement**: Automated VRChat avatar positioning and movement capabilities
+- 🌐 **Multi-Model Support**: Compatible with OpenAI API, LM Studio, and other OpenAI-compatible endpoints
 
 ## Configuration System
 
@@ -179,10 +187,11 @@ The Vision System supports both local and cloud-based AI vision models:
 - Ensure your OpenAI API key has vision access
 
 #### **Step 3: Test the System**
-Run the vision system test to verify everything works:
-```powershell
-python test_vision_system.py
-```
+Test the vision system by:
+1. Ensuring VRChat is running and visible
+2. Starting NOVA with vision enabled
+3. Monitoring console output for vision updates
+4. Checking the `json_files/vision_log.json` file for logged vision data
 
 ### 🎮 **How It Works in VRChat**
 
@@ -247,22 +256,26 @@ The Vision System can be configured to only analyze when:
 **Vision System Not Starting:**
 - Verify `ENABLED = True` in `constants.py`
 - Check that VRChat window is visible and active
-- Run `python test_vision_system.py` for diagnostics
+- Monitor console output for vision system startup messages
+- Ensure your AI model supports vision capabilities
 
 **Poor Recognition Quality:**
 - Increase `MAX_IMAGE_SIZE` for better detail
 - Adjust `IMAGE_QUALITY` for clearer images
 - Check lighting in your VRChat world
+- Try different vision models
 
 **Performance Issues:**
 - Increase `ANALYSIS_INTERVAL` for less frequent analysis
 - Decrease `MAX_IMAGE_SIZE` for faster processing
 - Consider using a faster vision model
+- Monitor system resources during operation
 
 **API Errors:**
 - Verify your AI model supports vision capabilities
 - Check API key permissions for vision access
 - Ensure sufficient API credits/quota
+- Monitor console output for specific error messages
 
 ### 🎯 **Best Practices**
 
@@ -273,6 +286,196 @@ The Vision System can be configured to only analyze when:
 5. **Privacy Awareness**: Remember that the system can see everything in your VRChat window
 
 The Vision System transforms NOVA from a voice-only assistant into a truly aware VRChat companion that can see and understand your virtual world!
+
+## VRChat API Integration
+
+NOVA AI includes comprehensive **VRChat API Integration** that enables advanced social features and automation within VRChat. This powerful system allows NOVA to interact with VRChat's official API to manage social interactions, handle notifications, and provide a more integrated VRChat experience.
+
+### 🔌 **What is VRChat API Integration?**
+
+The VRChat API Integration is an optional module that:
+- **👥 Friend Management**: Automatically accepts friend requests based on your preferences
+- **🔔 Notification Handling**: Monitors and processes VRChat notifications in real-time
+- **📊 Social Analytics**: Tracks friend interactions and social metrics
+- **🛡️ Rate Limiting**: Implements proper rate limiting to respect VRChat's API guidelines
+- **🔐 Secure Authentication**: Uses your VRChat credentials securely via environment variables
+
+### 🎯 **Key Capabilities**
+
+#### **Friend Request Management**
+- Automatically accept incoming friend requests
+- Configurable auto-accept behavior
+- Rate-limited processing to prevent API abuse
+- Retry logic for failed operations
+
+#### **Notification Monitoring**
+- Real-time notification checking
+- Processes various notification types
+- Configurable check intervals
+- Duplicate notification filtering
+
+#### **API Rate Limiting & Safety**
+- Respects VRChat's API usage policies
+- Implements exponential backoff for retries
+- Connection timeout handling
+- Comprehensive error logging
+
+### ⚙️ **VRChat API Configuration**
+
+The VRChat API system is controlled through the `VRChatAPI` class in `constants.py`:
+
+```python
+class VRChatAPI:
+    # Master switch to enable/disable all VRChat API functionality
+    USING_API = False  # Set to True to enable API usage
+    
+    # VRChat account credentials (loaded from environment variables)
+    USERNAME = os.getenv('VRCHAT_EMAIL')
+    PASSWORD = os.getenv('VRCHAT_PASSWORD')
+    
+    # User agent string as per VRChat Usage Policy
+    USER_AGENT = f"NOVA-AI/2025.1.1 {os.getenv('VRCHAT_EMAIL')}"
+    
+    # API check intervals (seconds)
+    FRIEND_REQUEST_CHECK_INTERVAL = 60  # 1 minute
+    NOTIFICATION_CHECK_INTERVAL = 120    # 2 minutes
+    
+    # Rate limiting and cooldown settings
+    API_COOLDOWN = 30  # Seconds to wait between API calls
+    
+    # Feature toggles
+    AUTO_ACCEPT_FRIEND_REQUESTS = True
+    ENABLE_NOTIFICATION_CHECKS = True
+    ENABLE_FRIEND_REQUEST_CHECKS = True
+    
+    # Connection timeout settings
+    CONNECTION_TIMEOUT = 30
+    REQUEST_TIMEOUT = 15
+    
+    # Retry settings for failed operations
+    MAX_RETRY_ATTEMPTS = 3
+    RETRY_DELAY = 5  # Seconds between retries
+    
+    # Debug settings
+    VERBOSE_LOGGING = False  # Set to True for detailed API logs
+```
+
+### 🚀 **Enabling VRChat API Integration**
+
+#### **Step 1: Enable in Configuration**
+1. Open `constants.py` in a text editor
+2. Find the `VRChatAPI` class
+3. Change `USING_API = False` to `USING_API = True`
+
+#### **Step 2: Configure Environment Variables**
+The VRChat API requires your VRChat account credentials:
+
+1. **Ensure your `.env` file exists** (copy from `.env.example` if needed)
+2. **Add your VRChat credentials**:
+   ```properties
+   # VRChat Login Credentials
+   VRCHAT_EMAIL=your-vrchat-email@example.com
+   VRCHAT_PASSWORD=your-vrchat-password
+   ```
+
+#### **Step 3: Customize API Behavior**
+Adjust the settings in `constants.py` based on your preferences:
+
+```python
+# Enable/disable specific features
+AUTO_ACCEPT_FRIEND_REQUESTS = True    # Automatically accept friend requests
+ENABLE_NOTIFICATION_CHECKS = True     # Monitor notifications
+ENABLE_FRIEND_REQUEST_CHECKS = True   # Check for new friend requests
+
+# Adjust timing
+FRIEND_REQUEST_CHECK_INTERVAL = 60    # How often to check for friend requests
+NOTIFICATION_CHECK_INTERVAL = 120     # How often to check notifications
+```
+
+### 🔐 **Security & Privacy**
+
+#### **Credential Security**
+- VRChat credentials are stored in environment variables (`.env` file)
+- Never hardcode credentials directly in the code
+- The `.env` file is automatically ignored by Git for security
+
+#### **API Compliance**
+- Follows VRChat's API Usage Policy and Terms of Service
+- Implements proper User-Agent strings as required
+- Uses appropriate rate limiting to prevent API abuse
+- Respects VRChat's API guidelines and best practices
+
+#### **Privacy Features**
+- API integration can be disabled completely
+- Verbose logging can be turned off
+- No personal data is logged or transmitted beyond VRChat's API
+
+### 🎮 **How It Works in VRChat**
+
+1. **Background Processing**: The API system runs in the background while NOVA operates
+2. **Friend Request Handling**: Automatically processes incoming friend requests
+3. **Notification Monitoring**: Checks for new notifications at regular intervals
+4. **Integration with NOVA**: Can inform NOVA about VRChat events for contextual responses
+5. **Rate Limiting**: Automatically manages API call frequency to stay within limits
+
+### 💬 **Example API Integration**
+
+When the VRChat API is active, NOVA can provide responses like:
+
+- *"I just accepted a friend request from VRChatUser123!"*
+- *"You have 3 new notifications in VRChat."*
+- *"Your friend list has been updated with 2 new friends."*
+
+### 📊 **Performance & Monitoring**
+
+#### **API Monitoring**
+- Connection status tracking
+- API call success/failure rates
+- Rate limiting status
+- Error logging and recovery
+
+#### **Performance Optimization**
+```python
+# For better responsiveness (more frequent checks)
+FRIEND_REQUEST_CHECK_INTERVAL = 30    # Check every 30 seconds
+NOTIFICATION_CHECK_INTERVAL = 60      # Check every minute
+
+# For better performance (less frequent checks)
+FRIEND_REQUEST_CHECK_INTERVAL = 300   # Check every 5 minutes
+NOTIFICATION_CHECK_INTERVAL = 600     # Check every 10 minutes
+```
+
+### 🛠️ **Troubleshooting VRChat API**
+
+**API Not Connecting:**
+- Verify `USING_API = True` in `constants.py`
+- Check VRChat credentials in `.env` file
+- Ensure VRChat account has API access enabled
+
+**Authentication Errors:**
+- Verify email and password are correct in `.env`
+- Check if two-factor authentication is enabled on your VRChat account
+- Ensure your VRChat account is in good standing
+
+**Rate Limiting Issues:**
+- Increase `API_COOLDOWN` value for longer delays between calls
+- Reduce check intervals to make fewer API requests
+- Monitor console output for rate limiting warnings
+
+**Connection Timeouts:**
+- Increase `CONNECTION_TIMEOUT` and `REQUEST_TIMEOUT` values
+- Check internet connection stability
+- Verify VRChat API status
+
+### 🎯 **Best Practices**
+
+1. **Start Conservatively**: Begin with longer check intervals and increase frequency as needed
+2. **Monitor Performance**: Watch console output for API errors or warnings
+3. **Respect Rate Limits**: Don't set intervals too aggressively
+4. **Keep Credentials Secure**: Never share your `.env` file or commit it to version control
+5. **Test Thoroughly**: Verify API functionality before relying on automated features
+
+The VRChat API Integration makes NOVA a more complete VRChat companion by bridging the gap between your AI assistant and VRChat's social features! (We are not lyable if your accounts gets suspended or banned because of VRChat API usage)
 
 ## Prerequisites
 
@@ -294,7 +497,26 @@ Before installing NOVA AI, you'll need the following on your Windows machine:
 ### 4. Audio Setup
 - A microphone for voice input
 - Audio output device (speakers/headphones)
-- **Optional**: Virtual audio cables for advanced audio routing
+- **Optional**: Virtual audio cables for advanced audio routing (VB-Audio Virtual Cable)
+
+### 5. AI Model Access
+Choose one of these options for AI processing:
+
+**Option A: Local AI Models (Recommended for Privacy)**
+- [LM Studio](https://lmstudio.ai/) - Free local AI model runner
+- At least 8GB RAM (16GB recommended for larger models)
+- Compatible with many open-source models
+
+**Option B: OpenAI API**
+- OpenAI account with API access
+- API credits for usage
+- Internet connection for API calls
+
+### 6. System Requirements
+- **RAM**: 8GB minimum (16GB recommended with vision system)
+- **Storage**: 2GB free space (more for local AI models)
+- **GPU**: Optional but recommended for better performance with local models
+- **Windows**: Windows 10 or later (for compatibility with all features)
 
 ## Installation Guide
 
@@ -341,19 +563,35 @@ pip install -r requirements.txt
 Some packages may require additional setup:
 
 **For Audio Processing:**
-```powershell
-pip install pyaudio
-```
-
-If PyAudio fails to install:
+If PyAudio installation fails:
 1. Download the appropriate .whl file from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio)
 2. Install it with: `pip install path\to\downloaded\file.whl`
 
-### Step 4: Prepare Configuration Files
+**For Windows-specific features:**
+The installation includes Windows-specific packages for:
+- System resource monitoring (`psutil`, `GPUtil`)
+- Window management (`pywin32`)
+- Custom GUI components (`customtkinter`)
+
+### Step 4: Verify Installation
+
+Test that all components are properly installed:
+
+1. **Test audio device detection:**
+   ```powershell
+   python list_audio_devices.py
+   ```
+
+2. **Verify Python packages:**
+   ```powershell
+   python -c "import openai, whisper, edge_tts, PIL, customtkinter; print('All packages installed successfully')"
+   ```
+
+### Step 5: Prepare Configuration Files
 
 Before starting setup, NOVA AI includes example configuration files to help you get started:
 
-1. **Environment Variables**: Copy `.env.example` to `.env` for your VRChat credentials
+1. **Environment Variables**: Copy `.env.example` to `.env` for your API keys and VRChat credentials
 2. **Configuration Reference**: Review `constants.py` for all available settings
 3. **System Prompts**: Check the `prompts/` folder for personality customization options
 
@@ -378,32 +616,9 @@ You'll configure these files in the following setup steps.
        AUDIO_INPUT_INDEX = 2   # Replace with your microphone index
    ```
 
-### Step 2: Set Up OpenAI API
+### Step 2: Set Up Environment Variables (.env file)
 
-1. **Get an OpenAI API key:**
-   - Go to [platform.openai.com](https://platform.openai.com)
-   - Create an account or sign in
-   - Navigate to API Keys section
-   - Create a new API key
-
-2. **Set up your API key:**
-   
-   **Method 1: Environment Variable (Recommended)**
-   - Open Command Prompt as Administrator
-   - Run: `setx OPENAI_API_KEY "your-api-key-here"`
-   - Restart your computer
-
-   **Method 2: Direct Configuration**
-   - Edit the `constants.py` file and find the `OpenAI` class
-   - Update the `API_KEY` value:
-   ```python
-   class OpenAI:
-       API_KEY = "your-api-key-here"
-   ```
-
-### Step 3: Set Up Environment Variables (.env file)
-
-NOVA AI uses environment variables to securely store sensitive information like VRChat credentials. This keeps your login information separate from the code.
+NOVA AI uses environment variables to securely store sensitive information like API keys and VRChat credentials. This keeps your login information separate from the code.
 
 1. **Create a .env file from the example:**
    - In the NOVA-AI folder, you'll find a `.env.example` file
@@ -415,22 +630,58 @@ NOVA AI uses environment variables to securely store sensitive information like 
 
 2. **Edit your .env file:**
    - Open the `.env` file in any text editor
-   - Replace the example values with your actual VRChat credentials:
+   - Replace the example values with your actual credentials:
    ```properties
-   # VRChat Login Credentials
+   # VRChat Login Credentials (required for VRChat API features)
    VRCHAT_EMAIL=your-actual-vrchat-email@example.com
    VRCHAT_PASSWORD=your-actual-vrchat-password
+   
+   # OpenAI API Key (use "lm-studio" for local models, or your actual key for OpenAI)
+   OPENAI_API_KEY=lm-studio
    ```
 
-3. **Replace with your actual credentials:**
-   - Change `your-actual-vrchat-email@example.com` to your VRChat account email
-   - Change `your-actual-vrchat-password` to your VRChat account password
+3. **Configure based on your AI setup:**
+
+   **For Local AI Models (LM Studio):**
+   ```properties
+   OPENAI_API_KEY=lm-studio
+   ```
+
+   **For OpenAI API:**
+   ```properties
+   OPENAI_API_KEY=sk-your-actual-openai-api-key-here
+   ```
 
 4. **Important Security Notes:**
    - Never share your `.env` file or commit it to version control
    - The `.env` file is automatically ignored by Git for your security
    - NOVA will automatically load these credentials when it starts
    - The `.env.example` file shows the format but contains no real credentials
+
+### Step 3: Configure AI Model Access
+
+Choose your AI backend and configure accordingly:
+
+**Option A: Local Models with LM Studio (Recommended)**
+1. Download and install [LM Studio](https://lmstudio.ai/)
+2. Download a compatible model (e.g., Llama 3.1 8B Instruct)
+3. Start the local server in LM Studio (default: `http://localhost:1234`)
+4. Keep the default settings in `constants.py`:
+   ```python
+   class OpenAI:
+       BASE_URL = "http://localhost:1234/v1"
+       API_KEY = os.getenv('OPENAI_API_KEY')  # Will use "lm-studio" from .env
+   ```
+
+**Option B: OpenAI API**
+1. Get an OpenAI API key from [platform.openai.com](https://platform.openai.com)
+2. Update your `.env` file with your real API key
+3. Optionally update `constants.py` for OpenAI:
+   ```python
+   class OpenAI:
+       BASE_URL = "https://api.openai.com/v1"  # Change to OpenAI's API
+       API_KEY = os.getenv('OPENAI_API_KEY')
+   ```
 
 ### Step 4: Configure VRChat OSC
 
@@ -445,20 +696,30 @@ NOVA AI uses environment variables to securely store sensitive information like 
    - Verify the `VRC_PORT` in the `Network` class matches VRChat's OSC port:
    ```python
    class Network:
+       LOCAL_IP = socket.gethostbyname(socket.gethostname())  # Auto-detected
        VRC_PORT = 9000  # Should match VRChat's OSC port
    ```
 
 ### Step 5: Test Audio Setup
 
-1. **Test your microphone:**
+1. **Find your audio device indices:**
    ```powershell
-   python -c "import sounddevice as sd; print('Audio devices:'); print(sd.query_devices())"
+   python list_audio_devices.py
+   ```
+   This will show all available audio devices with their index numbers.
+
+2. **Configure audio devices:**
+   - Open `constants.py` in a text editor
+   - Navigate to the `Audio` class and update the device indices:
+   ```python
+   class Audio:
+       AUDIO_OUTPUT_INDEX = 6  # Replace with your speaker/headphone index
+       AUDIO_INPUT_INDEX = 2   # Replace with your microphone index
    ```
 
-2. **Test text-to-speech:**
-   ```powershell
-   python list_voices.py
-   ```
+3. **Test audio functionality:**
+   - Test microphone recording and TTS playback by running NOVA
+   - Adjust device indices if audio doesn't work properly
 
 ## Configuration
 
@@ -472,16 +733,15 @@ Open `constants.py` in any text editor to modify NOVA's behavior. Here are the m
 Configure networking and communication:
 ```python
 class Network:
-    LOCAL_IP = "127.0.0.1"        # Local IP address for OSC
+    LOCAL_IP = socket.gethostbyname(socket.gethostname())  # Auto-detected local IP
     VRC_PORT = 9000               # VRChat OSC port
-    HTTP_SERVER_PORT = 8080       # Internal HTTP server port
 ```
 
 #### **🎤 Audio Configuration**
 Set up your audio devices:
 ```python
 class Audio:
-    AUDIO_OUTPUT_INDEX = 7        # Speaker/headphone device index
+    AUDIO_OUTPUT_INDEX = 6        # Speaker/headphone device index
     AUDIO_INPUT_INDEX = 2         # Microphone device index
 ```
 
@@ -489,10 +749,12 @@ class Audio:
 Customize text-to-speech:
 ```python
 class Voice:
-    VOICE_NAME = "en-US-JennyNeural"  # TTS voice (run list_voices.py to see options)
+    VOICE_NAME = "en-US-JennyNeural"  # Microsoft Edge TTS voice
 
 class TTSSettings:
-    ENGINE = "edge-tts"           # TTS engine to use
+    ENGINE = "edge-tts"           # TTS engine (currently only edge-tts supported)
+    AUDIO_CONVERSION_FACTOR = 2**15  # Audio processing factor
+    QUEUE_SLEEP_INTERVAL = 0.1    # Queue processing interval
 ```
 
 #### **🤖 AI Model Configuration**
@@ -504,9 +766,7 @@ class LanguageModel:
 
 class OpenAI:
     BASE_URL = "http://localhost:1234/v1"     # LM Studio or OpenAI API URL
-    API_KEY = "lm-studio"                     # Your API key
-    MODEL_ID = "meta-llama-3.1-8b-instruct"  # Model identifier
-    TEMPERATURE = 0.7                         # Response randomness
+    API_KEY = os.getenv('OPENAI_API_KEY')     # Your API key from .env file
 ```
 
 #### **🎧 Speech Recognition (Whisper)**
@@ -514,10 +774,12 @@ Fine-tune voice detection:
 ```python
 class WhisperSettings:
     MODEL_SIZE = "base"           # Whisper model: tiny, base, small, medium, large
-    VAD_AGGRESSIVENESS = 0        # Voice detection sensitivity (0-3)
     SAMPLE_RATE = 16000           # Audio sample rate
+    FRAME_DURATION_MS = 30        # Frame duration for voice detection
+    NUM_PADDING_FRAMES = 10       # Voice detection padding
     VOICE_THRESHOLD = 0.9         # Speech detection threshold (0.0-1.0)
     MAX_RECORDING_DURATION = 30   # Maximum recording time in seconds
+    VAD_AGGRESSIVENESS = 0        # Voice detection sensitivity (0-3)
 ```
 
 #### **👁️ Vision System Configuration**
@@ -535,27 +797,67 @@ class VisionSystem:
 Customize the performance monitor window:
 ```python
 class ResourceMonitor:
-    WINDOW_TITLE = "NOVA-AI"      # Monitor window title
-    WINDOW_SIZE = "400x745"       # Window dimensions
-    UPDATE_INTERVAL = 1000        # Update frequency (milliseconds)
+    WINDOW_TITLE = "Nova Resource Monitor"  # Monitor window title
+    WINDOW_WIDTH = 400                      # Window width
+    WINDOW_HEIGHT = 745                     # Window height
+    WINDOW_SIZE = f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}"  # Combined size
+    UPDATE_INTERVAL = 1000                  # Update frequency (milliseconds)
+    ALWAYS_ON_TOP = True                    # Keep window on top
+    APPEARANCE_MODE = "dark"                # GUI theme
+    COLOR_THEME = "dark-blue"               # Color scheme
+    CORNER_RADIUS = 15                      # Window corner radius
+    BORDER_WIDTH = 2                        # Border width
 ```
 
 #### **🎮 VRChat Integration**
 Configure VRChat-specific features:
 ```python
 class NovaPlacement:
-    DEFAULT_WORLD = "The Black Cat"       # Default VRChat world
-    DEFAULT_POSITION = "Downstairs Bar"   # Default spawn position
-    INITIAL_DELAY = 15                    # Startup delay (seconds)
+    STARTUP_DELAY = 15            # Initial delay before starting placement (seconds)
+    DEFAULT_SPEED = 1             # Default movement speed
+
+class VRChatAPI:
+    USING_API = False             # Enable/disable VRChat API features
+    USERNAME = os.getenv('VRCHAT_EMAIL')     # VRChat email from .env
+    PASSWORD = os.getenv('VRCHAT_PASSWORD')  # VRChat password from .env
+    AUTO_ACCEPT_FRIEND_REQUESTS = True       # Auto-accept friend requests
+    FRIEND_REQUEST_CHECK_INTERVAL = 60       # Check interval (seconds)
+    NOTIFICATION_CHECK_INTERVAL = 120        # Notification check interval
+    API_COOLDOWN = 30                        # Cooldown between API calls
+```
+
+#### **💬 System Messages**
+Configure status messages:
+```python
+class SystemMessages:
+    INITIAL_USER_MESSAGE = "Who are you?"   # First conversation starter
+    SYSTEM_STARTING = "System Starting"     # VRChat startup message
+    THINKING_MESSAGE = "Thinking"           # Processing message
+    LISTENING_MESSAGE = "Listening"         # Voice input message
+```
+
+#### **🎨 Console Colors**
+Customize console output colors:
+```python
+class ConsoleColors:
+    # Various ANSI color codes for different types of console output
+    AI_LABEL = "\033[93m"        # AI response label color
+    AI_TEXT = "\033[92m"         # AI response text color
+    HUMAN_LABEL = "\033[93m"     # Human input label color
+    HUMAN_TEXT = "\033[92m"      # Human input text color
+    # ... and many more color options
 ```
 
 ### 📁 File Paths
 All file locations are centralized:
 ```python
 class FilePaths:
-    HISTORY_PATH = "json_files/history.json"
-    NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
-    # ... and more
+    HISTORY_PATH = "json_files/history.json"                    # Conversation history
+    NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"  # Main system prompt
+    # Vision system files (in VisionSystem class):
+    # STATE_FILE = "json_files/vision_state.json"
+    # LOG_FILE = "json_files/vision_log.json"
+    # VISION_PROMPT_PATH = "prompts/vision_prompt.txt"
 ```
 
 ### 🎨 Customizing NOVA's Personality
@@ -564,6 +866,7 @@ Edit the system prompt files in the `prompts/` folder:
 - `normal_system_prompt.txt` - Default personality and behavior
 - `snapchat_system_prompt.txt` - Alternative casual personality  
 - `additional_system_prompt.txt` - Extra instructions and context
+- `vision_prompt.txt` - Instructions for the vision system AI model
 
 ### 🎯 Common Configuration Scenarios
 
@@ -576,23 +879,34 @@ class LanguageModel:
 **Improving Speech Recognition:**
 ```python
 class WhisperSettings:
-    MODEL_SIZE = "small"      # Better accuracy than "base"
-    VAD_AGGRESSIVENESS = 2    # More sensitive voice detection
-    VOICE_THRESHOLD = 0.8     # Lower = more sensitive to speech
+    MODEL_SIZE = "small"          # Better accuracy than "base"
+    VAD_AGGRESSIVENESS = 2        # More sensitive voice detection
+    VOICE_THRESHOLD = 0.8         # Lower = more sensitive to speech
+    NUM_PADDING_FRAMES = 15       # More padding for better detection
 ```
 
 **Reducing Response Time:**
 ```python
 class WhisperSettings:
-    MODEL_SIZE = "tiny"       # Faster but less accurate
+    MODEL_SIZE = "tiny"           # Faster but less accurate
+
+class ResourceMonitor:
+    UPDATE_INTERVAL = 2000        # Less frequent GUI updates
 ```
 
 **Using OpenAI Instead of Local Models:**
 ```python
 class OpenAI:
     BASE_URL = "https://api.openai.com/v1"  # Official OpenAI API
-    API_KEY = "sk-your-real-openai-key"     # Your OpenAI API key
-    MODEL_ID = "gpt-4"                      # Use GPT-4
+    # API_KEY will be loaded from .env file (set it to your real OpenAI key)
+```
+
+**Enabling VRChat API Features:**
+```python
+class VRChatAPI:
+    USING_API = True              # Enable VRChat API integration
+    AUTO_ACCEPT_FRIEND_REQUESTS = True  # Automatically accept friend requests
+    FRIEND_REQUEST_CHECK_INTERVAL = 30  # Check more frequently
 ```
 
 **Enabling Vision Capabilities:**
@@ -606,16 +920,28 @@ class VisionSystem:
 ### 🔧 Advanced Configuration
 
 **Custom Voice Selection:**
-1. Run `python list_voices.py` to see available voices
-2. Update the `VOICE_NAME` in constants.py with your preferred voice
+- NOVA uses Microsoft Edge TTS voices (no separate script needed)
+- Update the `VOICE_NAME` in constants.py with your preferred voice
+- Common voices: "en-US-JennyNeural", "en-US-GuyNeural", "en-US-AriaNeural"
+
+**VRChat API Configuration:**
+- Set up `.env` file with VRChat credentials for API features
+- Enable `USING_API = True` in the `VRChatAPI` class
+- Customize friend request and notification handling intervals
+
+**Vision System Setup:**
+- Enable `ENABLED = True` in the `VisionSystem` class
+- Adjust `ANALYSIS_INTERVAL` for screenshot frequency
+- Configure `VISION_MODEL` for your preferred AI vision model
 
 **Network Troubleshooting:**
-- Change `VRC_PORT` if VRChat uses a different OSC port
-- Modify `LOCAL_IP` if using VRChat on a different machine
+- `VRC_PORT` is auto-detected but can be manually set if needed
+- `LOCAL_IP` is automatically determined using system network configuration
 
 **Performance Optimization:**
-- Adjust `UPDATE_INTERVAL` in ResourceMonitor for faster/slower monitoring
-- Modify `ERROR_RETRY_DELAY` for quicker error recovery
+- Adjust `UPDATE_INTERVAL` in ResourceMonitor for monitoring frequency
+- Modify Whisper settings for balance between accuracy and speed
+- Configure vision system intervals based on your hardware capabilities
 
 ### 💡 Configuration Tips
 
@@ -670,64 +996,104 @@ pip install -r requirements.txt
 - Check that VRChat is running and you're in a world
 - Verify the `VRC_PORT` in the `Network` class matches VRChat's OSC port (default 9000)
 
-**OpenAI API errors:**
-- Verify your API key is set correctly in the `OpenAI` class in `constants.py`
-- Check your OpenAI account has available credits
-- Ensure you have access to the model specified in `MODEL_ID`
-- For local LM Studio, verify the `BASE_URL` points to your local server
+**OpenAI/LM Studio API errors:**
+- Verify your API key is set correctly in the `.env` file
+- For OpenAI API: Check your account has available credits and model access
+- For LM Studio: Ensure LM Studio is running and the server is accessible at `http://localhost:1234`
+- Verify the `BASE_URL` in the `OpenAI` class matches your setup
+- Check console output for specific error messages
 
 **Microphone not working:**
 - Check Windows microphone permissions
 - Verify the microphone works in other applications
-- Try different audio device indices using `python list_audio_devices.py`
+- Run `python list_audio_devices.py` and update indices in the `Audio` class
 - Adjust `WhisperSettings.VAD_AGGRESSIVENESS` for better voice detection
+- Try different `VOICE_THRESHOLD` values (lower = more sensitive)
 
-**Configuration Issues:**
-- Always restart NOVA after changing `constants.py`
-- Verify syntax is correct (proper indentation, quotes, commas)
-- Check that modified values are the right data type (numbers vs strings)
-- Use the default values as a reference if something stops working
+**VRChat API Issues:**
+- Ensure `USING_API = True` in the `VRChatAPI` class if you want API features
+- Verify VRChat credentials are correct in the `.env` file
+- Check if your VRChat account has two-factor authentication enabled
+- Monitor console output for API-specific error messages
+- Disable API features by setting `USING_API = False` if not needed
 
 **Vision System Issues:**
-- Run `python test_vision_system.py` to test vision components
-- Ensure VRChat window is visible and active
-- Check that `ENABLED = True` in the `VisionSystem` class
-- Verify vision model compatibility with your AI setup
+- Ensure `ENABLED = True` in the `VisionSystem` class to use vision features
+- Verify VRChat window is visible and active during operation
+- Check that your AI model supports vision capabilities
 - Monitor console output for vision-specific error messages
+- Test with different `ANALYSIS_INTERVAL` values for your hardware
+
+**Resource Monitor Issues:**
+- The resource monitor runs as a separate process
+- If it fails to start, check console output for error messages
+- Verify `customtkinter` and related GUI packages are installed
+- The monitor window should appear automatically on startup
 
 ### Getting Help
 
-1. Check the console output for error messages
-2. Verify all dependencies are installed correctly
-3. Ensure your OpenAI API key is valid and has credits
-4. Test each component individually using the provided test scripts
+1. Check the console output for error messages - NOVA provides detailed colored output
+2. Verify all dependencies are installed correctly using `pip list`
+3. Ensure your `.env` file is properly configured with valid credentials
+4. Test each component individually:
+   - Audio devices: `python list_audio_devices.py`
+   - Basic functionality: Start with minimal configuration
+5. Check that your AI backend (LM Studio or OpenAI) is accessible
+6. Review the configuration in `constants.py` for any syntax errors
 
 ## Advanced Setup
 
 ### Virtual Audio Cables (Optional)
 
-For advanced audio routing:
+For advanced audio routing and streaming setups:
 1. Install VB-Audio Virtual Cable
-2. Configure audio routing through virtual cables
+2. Configure audio routing through virtual cables  
 3. Update audio device indices in the `Audio` class in `constants.py`
+4. This allows you to separate NOVA's audio from your main audio streams
 
 ### Custom System Prompts
 
-Create custom personalities by editing files in the `prompts/` directory to change how NOVA behaves and responds.
+Create custom personalities by editing files in the `prompts/` directory:
+- **normal_system_prompt.txt**: Main personality and behavior instructions
+- **snapchat_system_prompt.txt**: Alternative casual personality mode
+- **additional_system_prompt.txt**: Extra context and instructions  
+- **vision_prompt.txt**: Instructions for the vision AI model
 
 ### Local vs Cloud AI Models
 
-**Using Local Models (LM Studio):**
-- Keep the default `constants.py` settings
-- Ensure LM Studio is running on `http://localhost:1234`
+**Using Local Models (LM Studio - Recommended):**
+- Download and install [LM Studio](https://lmstudio.ai/)
+- Download compatible models (Llama, Mistral, etc.)
+- Start the local server (default: `http://localhost:1234`)
+- Keep default `constants.py` settings
+- Set `OPENAI_API_KEY=lm-studio` in your `.env` file
 
 **Using OpenAI Cloud API:**
-```python
-class OpenAI:
-    BASE_URL = "https://api.openai.com/v1"
-    API_KEY = "sk-your-actual-openai-key"
-    MODEL_ID = "gpt-4"  # or "gpt-3.5-turbo"
-```
+- Set up OpenAI account and API key
+- Update `.env` file with your real API key
+- Optionally change `BASE_URL` to `https://api.openai.com/v1`
+- Consider cost implications for usage
+
+**Using Other Compatible APIs:**
+- Any OpenAI-compatible API can be used
+- Update `BASE_URL` in the `OpenAI` class
+- Ensure the API supports streaming responses
+
+### Multi-Instance Setup
+
+Running multiple NOVA instances:
+1. Create separate project folders
+2. Use different OSC ports for each instance
+3. Configure different audio devices if needed
+4. Modify `VRC_PORT` in `constants.py` for each instance
+
+### Development Environment
+
+For developers wanting to extend NOVA:
+1. Install development dependencies: `pip install flake8`
+2. Follow Python PEP 8 style guidelines  
+3. Use the modular class structure in the `classes/` folder
+4. Test changes thoroughly before deployment
 
 
 
@@ -792,5 +1158,3 @@ If you find NOVA AI helpful, consider:
 - 🤝 Contributing to the codebase
 
 For support, questions, or feature requests, please open an issue on GitHub.
-
-**Enjoy your AI-powered VRChat experience with NOVA AI!** 🚀
