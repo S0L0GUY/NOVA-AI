@@ -2,11 +2,6 @@ from pythonosc import udp_client
 
 
 class VRChatOSC:
-    """
-    A class for managing OSC communications with VRChat chatbox.
-    Provides methods for sending messages and controlling typing indicators
-    through OSC protocol.
-    """
     def __init__(self, ip: str, port: int):
         """
         Initializes the OSC client with the specified IP address and port.

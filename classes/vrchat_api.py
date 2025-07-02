@@ -1,8 +1,3 @@
-"""
-VRChat API integration for NOVA-AI.
-This module handles VRChat API authentication, friend request management,
-and periodic API checks.
-"""
 import threading
 import time
 import logging
@@ -18,11 +13,6 @@ import constants as constant
 
 
 class VRChatAPIManager:
-    """
-    Manages VRChat API interactions including authentication and friend
-    requests.
-    """
-
     def __init__(self):
         self.configuration = None
         self.api_client = None
@@ -38,13 +28,11 @@ class VRChatAPIManager:
         self.last_friend_request_time = 0
         self.friend_request_retry_count = 0
         self.max_friend_request_retries = 5
-        self.base_retry_delay = 60  # Base delay of 1 minute
-        self.max_retry_delay = 600  # Max delay of 10 minutes
+        self.base_retry_delay = 60
+        self.max_retry_delay = 600
 
-        # General API cooldown tracking
         self.last_api_call_time = 0
-        
-        # Track processed notifications to prevent duplicates
+
         self.processed_notifications = set()
         self.friends_cache = set()  # Cache of current friends
         self.last_friends_update = 0
@@ -96,7 +84,7 @@ class VRChatAPIManager:
     def _validate_credentials(self) -> bool:
         """
         Validate that required credentials are available.
-        
+
         Returns:
             bool: True if credentials are valid, False otherwise.
         """
@@ -104,7 +92,9 @@ class VRChatAPIManager:
             logging.error("VRChat API credentials not found. Please set "
                           "VRCHAT_EMAIL and VRCHAT_PASSWORD environment "
                           "variables.")
+
             return False
+
         return True
 
     def initialize(self) -> bool:
@@ -117,12 +107,13 @@ class VRChatAPIManager:
         # Check if API is enabled
         if not self.is_api_enabled():
             logging.info("VRChat API is disabled in configuration")
+
             return False
-            
+
         # Validate credentials
         if not self._validate_credentials():
             return False
-            
+
         try:
             # Create configuration
             self.configuration = vrchatapi.Configuration(
@@ -143,7 +134,6 @@ class VRChatAPIManager:
                 self.api_client
             )
 
-            # Authenticate
             return self._authenticate()
 
         except Exception as e:
@@ -163,10 +153,10 @@ class VRChatAPIManager:
             self.is_authenticated = True
             name = self.current_user.display_name
             print(f"\033[92mVRChat API: Logged in as {name}\033[0m")
-            
+
             # Initialize friends cache after successful authentication
             self._update_friends_cache()
-            
+
             return True
 
         except UnauthorizedException as e:
@@ -190,21 +180,24 @@ class VRChatAPIManager:
                     self.is_authenticated = True
                     name = self.current_user.display_name
                     print(f"\033[92mVRChat API: Logged in as {name}\033[0m")
-                    
+
                     # Initialize friends cache after successful authentication
                     self._update_friends_cache()
-                    
+
                     return True
 
                 except Exception as auth_error:
                     logging.error(f"2FA authentication failed: {auth_error}")
+
                     return False
             else:
                 logging.error(f"Authentication failed: {e}")
+
                 return False
 
         except Exception as e:
             logging.error(f"Authentication error: {e}")
+
             return False
 
     def start_periodic_checks(self) -> None:
@@ -214,10 +207,12 @@ class VRChatAPIManager:
         """
         if not self.is_authenticated:
             logging.warning("Cannot start checks: not authenticated")
+
             return
 
         if self.check_thread is not None and self.check_thread.is_alive():
             logging.warning("Periodic checks already running")
+
             return
 
         self.stop_checking = False
@@ -428,7 +423,7 @@ class VRChatAPIManager:
         except ApiException as e:
             # Mark as processed to avoid retrying indefinitely
             self.processed_notifications.add(notification.id)
-            
+
             if e.status == 400 and "already friends" in str(e.body).lower():
                 # Users are already friends - this is expected, just log it
                 print(f"\033[93mVRChat API: {username} is already a friend, "
@@ -469,7 +464,7 @@ class VRChatAPIManager:
         except Exception as e:
             # Mark as processed to avoid retrying indefinitely
             self.processed_notifications.add(notification.id)
-            
+
             # Check if this is a specific API client deserialization error
             if "Invalid value for `created_at`" in str(e):
                 print(f"\033[93mVRChat API: API client deserialization error "
@@ -555,7 +550,7 @@ class VRChatAPIManager:
 
         self.is_authenticated = False
         self.current_user = None
-        
+
         # Clear caches
         self.processed_notifications.clear()
         self.friends_cache.clear()
@@ -564,14 +559,14 @@ class VRChatAPIManager:
     def get_rate_limit_status(self) -> dict:
         """
         Get the current rate limiting status for debugging.
-        
+
         Returns:
             dict: Current rate limiting information
         """
         current_time = time.time()
         time_since_last = current_time - self.last_friend_request_time
         time_since_last_api = current_time - self.last_api_call_time
-        
+
         if self.friend_request_retry_count > 0:
             delay = min(
                 self.base_retry_delay *
@@ -605,13 +600,13 @@ class VRChatAPIManager:
         current_time = time.time()
         time_since_last_call = current_time - self.last_api_call_time
         cooldown_period = constant.VRChatAPI.API_COOLDOWN
-        
+
         if time_since_last_call < cooldown_period:
             wait_time = cooldown_period - time_since_last_call
             print(f"\033[96mVRChat API: Waiting {wait_time:.1f}s "
                   f"for cooldown\033[0m")
             time.sleep(wait_time)
-        
+
         # Update the last API call time
         self.last_api_call_time = time.time()
 

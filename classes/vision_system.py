@@ -1,14 +1,3 @@
-"""
-VRChat Vision System for Nova AI.
-
-This module provides computer vision capabilities to Nova AI, allowing it to
-take screenshots of the VRChat window, analyze them using OpenAI's vision API,
-and identify player names and environmental details.
-
-The vision system runs as a separate process and communicates with the main
-Nova process through shared state files and JSON messaging.
-"""
-
 import time
 import json
 import os
@@ -22,8 +11,6 @@ import constants as constant
 
 
 class VisionState:
-    """Manages vision system state and communication with main process."""
-
     def __init__(self):
         self.state_file = constant.VisionSystem.STATE_FILE
         self.vision_log_file = constant.VisionSystem.LOG_FILE
@@ -78,6 +65,7 @@ class VisionState:
             # Write back to file
             with open(self.vision_log_file, 'w') as f:
                 json.dump(log, f)
+
         except Exception as e:
             print(f"\033[91m[VISION ERROR]\033[0m "
                   f"Error logging vision update: {e}")
@@ -92,16 +80,17 @@ class VisionState:
                 entry["update"] for entry in log
                 if entry["timestamp"] > last_read_time
             ]
+
             return new_updates
+
         except Exception as e:
             print(f"\033[91m[VISION ERROR]\033[0m "
                   f"Error getting vision updates: {e}")
+
             return []
 
 
 class VRChatWindowCapture:
-    """Handles capturing screenshots of the VRChat window."""
-
     def __init__(self):
         self.window_title_keywords = constant.VisionSystem.WINDOW_KEYWORDS
 
@@ -122,7 +111,6 @@ class VRChatWindowCapture:
     def capture_window(self, hwnd: int) -> Optional[Image.Image]:
         """Capture a screenshot of the specified window."""
         try:
-            # Get window rectangle
             rect = win32gui.GetWindowRect(hwnd)
             left, top, right, bottom = rect
 
@@ -144,8 +132,6 @@ class VRChatWindowCapture:
 
 
 class VisionAnalyzer:
-    """Analyzes screenshots using OpenAI's vision capabilities."""
-
     def __init__(self):
         self.client = OpenAI(
             base_url=constant.OpenAI.BASE_URL,
@@ -216,14 +202,13 @@ class VisionAnalyzer:
         except Exception as e:
             print(f"\033[91m[VISION ERROR]\033[0m "
                   f"Error reading vision prompt: {e}")
+
             # Fallback prompt if file can't be read
             return ("You are Nova's vision system. Look at this VRChat "
                     "screenshot and report what you see concisely.")
 
 
 class VisionSystem:
-    """Main vision system coordinator."""
-
     def __init__(self):
         self.state = VisionState()
         self.capture = VRChatWindowCapture()
@@ -294,7 +279,3 @@ def run_vision_subprocess():
         vision_system.run_vision_loop()
     except KeyboardInterrupt:
         vision_system.stop()
-
-
-if __name__ == "__main__":
-    run_vision_subprocess()
