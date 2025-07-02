@@ -1,5 +1,43 @@
 # Commit History
 
+- **Commit:** [e358828](https://github.com/S0L0GUY/NOVA-AI/commit/e35882891f774b6eaa070235c69af12a89f95a6f)
+  **Author:** Evan Grinnell
+  **Message:** Update constants.py
+
+- **Commit:** [34269b6](https://github.com/S0L0GUY/NOVA-AI/commit/34269b663dae1fbe3f0d9a6d1db44d4d19149b59)
+  **Author:** Evan Grinnell
+  **Message:** 46 update all comments and logic (#48)
+
+* Updated 'main.py' for better readabulity
+
+* Refactor nova.py main loop and model selection
+
+Refactored nova.py by splitting the main loop and model selection logic into separate functions for improved clarity and maintainability. Updated main.py to call nova.main() instead of nova.run_code(). Minor formatting and docstring improvements were also made.
+
+* Refactor config and prompts; update .env.example
+
+Removed unused InterruptionSettings and ErrorHandling classes from constants.py, updated OpenAI API key handling to use environment variables, and clarified documentation. Adjusted system prompts for consistency, and updated .env.example to include OPENAI_API_KEY. Minor sleep interval and initial message changes for improved clarity and maintainability.
+
+* Remove unused scripts and refactor resource monitor
+
+Deleted http_server.py, list_voices.py, and test_vision_system.py as they are no longer needed. Refactored resource_monitor.py to use ResourceMonitor constants directly and improved color and configuration handling. Cleaned up constants.py by removing unused NovaPlacement movement sequence timings.
+
+* Remove redundant comments and docstrings from classes
+
+Cleaned up code by removing unnecessary comments and module-level docstrings from edge_tts.py, osc.py, vision_manager.py, vision_system.py, vrchat_api.py, and whisper.py. This improves code readability and reduces clutter without affecting functionality.
+
+* Expand README with VRChat API and setup improvements
+
+Added detailed documentation for VRChat API integration, including configuration, security, and troubleshooting. Enhanced setup instructions for local and cloud AI models, clarified environment variable usage, and updated feature lists to reflect new capabilities such as computer vision, resource monitoring, and modular architecture. Improved troubleshooting, configuration, and advanced usage sections for better developer onboarding.
+
+* Update main.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
 - **Commit:** [dfa0e8c](https://github.com/S0L0GUY/NOVA-AI/commit/dfa0e8c2b25caa873d4e0cf857720e720b6182a9)
   **Author:** Evan Grinnell
   **Message:** VRChat API (#47)
@@ -300,54 +338,4 @@ pylint makes me so sad
 ---------
 
 Co-authored-by: DuckSong510 <179771719+DuckSong510@users.noreply.github.com>
-
-- **Commit:** [a8352d2](https://github.com/S0L0GUY/NOVA-AI/commit/a8352d264ccab37d5c2ba4eac26de714ba547013)
-  **Author:** Evan Grinnell
-  **Message:** 12 add linting on code pushpr (#13)
-
-* Added CL Linting
-
-* Updated YML file
-
-* Added 'requirememts.txt'
-
-* Removed Unneeded Requirement
-
-* Added Needed Dependency
-
-* Added espeak to requirements
-
-* Update requirements.txt
-
-* Update python-lint.yml
-
-* Removed unused Import
-
-* Update nova_placement.py
-
-* Deleted unneeded files
-
-* Update http_server.py
-
-* Update python-lint.yml
-
-* Update python-lint.yml
-
-* flake8
-
-* Flake 8 Formatting
-
-* Flake 8 Formatting
-
-* Flake 8 Formatting
-
-* Update http_server.py
-
-* Skip 'http_server.py'
-
-* Update python-lint.yml
-
-- **Commit:** [7c582c9](https://github.com/S0L0GUY/NOVA-AI/commit/7c582c90da9a54ab133dc11df02b6e0e506a3818)
-  **Author:** Evan Grinnell
-  **Message:** Added Duck Song to 'README.md' (#10)
 
