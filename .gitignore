@@ -9,3 +9,4 @@ temp.wav
 /text_files
 json_files/gmail_api.json
 **.wav
+.env

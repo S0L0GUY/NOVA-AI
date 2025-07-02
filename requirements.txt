@@ -18,3 +18,5 @@ requests
 pillow
 pywin32
 numba
+vrchatapi
+python-dotenv
