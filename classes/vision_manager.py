@@ -36,7 +36,7 @@ class VisionManager:
 
         try:
             # Create and start vision system in a separate thread
-            self.clear_vision_history()
+            VisionManager.clear_vision_history()
             self.vision_system = VisionSystem()
             self.vision_thread = threading.Thread(
                 target=self.vision_system.run_vision_loop,
@@ -92,8 +92,10 @@ class VisionManager:
                   f"Error getting vision updates: {e}")
             return []
 
-    def clear_vision_history(self):
+    @staticmethod
+    def clear_vision_history():
         """Clear vision history and state files at startup."""
+
         try:
             # Clear vision log (history)
             JsonWrapper.write(constant.VisionSystem.LOG_FILE, [])
@@ -103,9 +105,6 @@ class VisionManager:
                 "should_look": False,
                 "last_update": 0
             })
-
-            # Reset the update check time
-            self.last_update_check = time.time()
 
             print("\033[96m[VISION]\033[0m \033[94mVision history "
                   "cleared\033[0m")

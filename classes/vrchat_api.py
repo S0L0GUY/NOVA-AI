@@ -49,11 +49,45 @@ class VRChatAPIManager:
         self.friends_cache = set()  # Cache of current friends
         self.last_friends_update = 0
 
+    def create_vrchat_api_manager() -> "VRChatAPIManager":
+        """
+        Initializes the VRChat API if enabled in the configuration.
+        This function checks whether the VRChat API is enabled using the
+        `VRChatAPIManager.is_api_enabled()` method. If enabled, it attempts to
+        initialize the API and starts periodic checks for friend requests and
+        notifications. Appropriate status messages are printed to the console
+        indicating the success or failure of the initialization. If the API is
+        not enabled or initialization fails, the function returns None.
+        Returns:
+            VRChatAPIManager or None: An initialized VRChatAPIManager instance
+            if successful, otherwise None.
+        """
+
+        vrchat_api = None
+
+        if VRChatAPIManager.is_api_enabled():
+            vrchat_api = VRChatAPIManager()
+            print("\033[94mInitializing VRChat API...\033[0m")
+
+            if vrchat_api.initialize():
+                print("\033[92mVRChat API initialized successfully\033[0m")
+
+                vrchat_api.start_periodic_checks()
+            else:
+                print("\033[91mVRChat API initialization failed, continuing "
+                      "without API features\033[0m")
+
+                vrchat_api = None
+        else:
+            print("\033[93mVRChat API disabled in configuration\033[0m")
+
+        return vrchat_api
+
     @staticmethod
     def is_api_enabled() -> bool:
         """
         Check if VRChat API functionality is enabled in configuration.
-        
+
         Returns:
             bool: True if API is enabled, False otherwise.
         """
