@@ -175,20 +175,6 @@ class NovaPlacement:
     STARTUP_DELAY = 15
     # Default movement speed
     DEFAULT_SPEED = 1
-    # Movement sequence timings (seconds)
-    MOVE_FORWARD_1 = 3
-    LOOK_RIGHT_1 = 0.4
-    MOVE_FORWARD_2 = 5.5
-    LOOK_LEFT_1 = 0.4
-    MOVE_FORWARD_3 = 4.5
-    LOOK_LEFT_2 = 0.3
-    MOVE_FORWARD_4 = 2.9
-    LOOK_RIGHT_2 = 0.2
-    MOVE_FORWARD_5 = 0.5
-    LOOK_RIGHT_3 = 0.3
-    MOVE_FORWARD_6 = 1.2
-    LOOK_RIGHT_4 = 0.33
-    MOVE_FORWARD_7 = 0.3
 
 
 class ConsoleColors:
