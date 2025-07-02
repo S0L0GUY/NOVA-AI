@@ -1,5 +1,3 @@
-# edge_tts.py
-
 import logging
 import asyncio
 import edge_tts
@@ -24,13 +22,13 @@ class TextToSpeechManager:
 
         self.voice_engine = voice_engine
         self.voice = voice
-        self.tts_queue = queue.Queue()  # Queue for text to generate audio
-        self.audio_queue = queue.Queue()  # Queue for generated audio files
+        self.tts_queue = queue.Queue()
+        self.audio_queue = queue.Queue()
         self.is_playing = False
         self.device_index = device_index
         self.initialize_tts_engine()
         self.osc = VRChatOSC
-        self.lock = threading.Lock()  # Lock to ensure sequential processing
+        self.lock = threading.Lock()
 
     def initialize_tts_engine(self) -> None:
         """
@@ -80,7 +78,6 @@ class TextToSpeechManager:
         """
 
         while not self.tts_queue.empty():
-            # Ensure only one thread processes the queue at a time
             with self.lock:
                 text = self.tts_queue.get()
                 self.generate_audio(text)
@@ -112,7 +109,7 @@ class TextToSpeechManager:
         ) as tmp_file:
             output_file = tmp_file.name
 
-        # Filter out emojis from the text
+        # Filter out non-printable characters and emojis
         text = ''.join(
             char for char in text
             if char.isprintable() and not (0x1F600 <= ord(char) <= 0x1F64F)
@@ -156,7 +153,6 @@ class TextToSpeechManager:
                 except Exception as e:
                     logging.error(f"Error during playback: {e}")
         finally:
-            # Ensure `self.is_playing` is set to False when playback ends
             self.is_playing = False
 
     def play_audio_file(self, filepath: str) -> None:
@@ -205,21 +201,3 @@ class TextToSpeechManager:
             self.audio_queue.empty() and
             not self.is_playing
         )
-
-
-# Usage Examples
-if __name__ == "__main__":
-    # Initialize the TTS manager
-    tts_manager = TextToSpeechManager(voice="en-US-AriaNeural")
-
-    # Add text to the queue
-    tts_manager.add_to_queue("Hello, this is the first sentence.")
-    tts_manager.add_to_queue("This is the second sentence.")
-    tts_manager.add_to_queue("And here is the third sentence.")
-
-    # Wait until the queue is drained
-    while not tts_manager.is_idle():
-        print("\033[36mWaiting for TTS queue to finish...\033[0m")
-        asyncio.sleep(1)
-
-    print("\033[36mAll text has been spoken.\033[0m")

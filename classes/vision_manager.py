@@ -1,11 +1,3 @@
-"""
-Vision Manager for Nova AI.
-
-This module provides the interface between the main Nova system and the
-vision system. It handles starting/stopping the vision system and
-retrieving vision updates to add to the conversation history.
-"""
-
 import threading
 import time
 from typing import List
@@ -15,8 +7,6 @@ import constants as constant
 
 
 class VisionManager:
-    """Manages the vision system using threading for async operation."""
-
     def __init__(self):
         self.vision_state = VisionState()
         self.vision_system = None
@@ -35,8 +25,7 @@ class VisionManager:
             return
 
         try:
-            # Create and start vision system in a separate thread
-            self.clear_vision_history()
+            VisionManager.clear_vision_history()
             self.vision_system = VisionSystem()
             self.vision_thread = threading.Thread(
                 target=self.vision_system.run_vision_loop,
@@ -69,13 +58,6 @@ class VisionManager:
                 self.vision_system = None
                 self.vision_thread = None
 
-    def set_listening_state(self, is_listening: bool):
-        """
-        Legacy method - no longer needed since vision runs continuously.
-        Kept for backward compatibility.
-        """
-        pass  # Vision now runs continuously, so this is no longer needed
-
     def get_new_vision_updates(self) -> List[str]:
         """Get any new vision updates since last check."""
         if not constant.VisionSystem.ENABLED:
@@ -92,8 +74,10 @@ class VisionManager:
                   f"Error getting vision updates: {e}")
             return []
 
-    def clear_vision_history(self):
+    @staticmethod
+    def clear_vision_history():
         """Clear vision history and state files at startup."""
+
         try:
             # Clear vision log (history)
             JsonWrapper.write(constant.VisionSystem.LOG_FILE, [])
@@ -103,9 +87,6 @@ class VisionManager:
                 "should_look": False,
                 "last_update": 0
             })
-
-            # Reset the update check time
-            self.last_update_check = time.time()
 
             print("\033[96m[VISION]\033[0m \033[94mVision history "
                   "cleared\033[0m")

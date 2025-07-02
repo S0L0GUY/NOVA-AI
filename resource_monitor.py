@@ -4,11 +4,11 @@ import GPUtil
 import customtkinter as ctk
 import time
 import datetime
-import constants as constant
+from constants import ResourceMonitor
 
 # Setup CustomTkinter
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("dark-blue")
+ctk.set_appearance_mode(ResourceMonitor.APPEARANCE_MODE)
+ctk.set_default_color_theme(ResourceMonitor.COLOR_THEME)
 
 
 class SystemMonitor(ctk.CTk):
@@ -16,8 +16,8 @@ class SystemMonitor(ctk.CTk):
         """Initialize the System Monitor GUI."""
         super().__init__()
 
-        self.title(constant.ResourceMonitor.WINDOW_TITLE)
-        self.geometry(constant.ResourceMonitor.WINDOW_SIZE)
+        self.title(ResourceMonitor.WINDOW_TITLE)
+        self.geometry(ResourceMonitor.WINDOW_SIZE)
         self.resizable(False, False)
 
         # Make the window always stay on top
@@ -27,15 +27,34 @@ class SystemMonitor(ctk.CTk):
         self.start_time = time.time()
 
         # Frames for each stat
-        self.cpu_label = self.create_stat_frame("CPU Usage", "dark blue")
-        self.ram_label = self.create_stat_frame("RAM Usage", "dark violet")
-        self.disk_label = self.create_stat_frame("Disk Usage", "dark red")
-        self.gpu_label = self.create_stat_frame("GPU Load", "dark cyan")
-        self.gpu_mem_label = self.create_stat_frame("GPU Memory", "purple4")
-        self.net_label = self.create_stat_frame("Network Usage", "dark green")
+        self.cpu_label = self.create_stat_frame(
+            "CPU Usage",
+            ResourceMonitor.CPU_COLOR
+            )
+        self.ram_label = self.create_stat_frame(
+            "RAM Usage",
+            ResourceMonitor.RAM_COLOR
+            )
+        self.disk_label = self.create_stat_frame(
+            "Disk Usage",
+            ResourceMonitor.DISK_COLOR
+            )
+        self.gpu_label = self.create_stat_frame(
+            "GPU Load",
+            ResourceMonitor.GPU_COLOR
+            )
+        self.gpu_mem_label = self.create_stat_frame(
+            "GPU Memory",
+            ResourceMonitor.GPU_MEM_COLOR
+            )
+        self.net_label = self.create_stat_frame(
+            "Network Usage",
+            ResourceMonitor.NETWORK_COLOR
+            )
         self.uptime_label = self.create_stat_frame(
-            "Program Uptime", "dark gray"
-        )
+            "Program Uptime",
+            ResourceMonitor.UPTIME_COLOR
+            )
 
         self.update_stats()
 
@@ -56,16 +75,16 @@ class SystemMonitor(ctk.CTk):
 
         frame = ctk.CTkFrame(
             self, corner_radius=15, border_width=2, border_color=border_color
-        )
+            )
         frame.pack(pady=10, padx=20, fill="x")
 
         title_label = ctk.CTkLabel(
             frame, text=label_text, font=("Segoe UI", 18)
-        )
+            )
         title_label.pack(pady=(10, 5))
         value_label = ctk.CTkLabel(
             frame, text="Loading...", font=("Segoe UI", 24, "bold")
-        )
+            )
         value_label.pack(pady=(0, 10))
 
         return value_label
@@ -75,12 +94,14 @@ class SystemMonitor(ctk.CTk):
         gpus = GPUtil.getGPUs()
         if not gpus:
             return 0, 0
+
         return gpus[0].load * 100, gpus[0].memoryUtil * 100
 
     def get_uptime(self) -> str:
         """Calculate program uptime in hours, minutes, and seconds."""
         elapsed_time = time.time() - self.start_time
         uptime = str(datetime.timedelta(seconds=int(elapsed_time)))
+
         return uptime
 
     def update_stats(self) -> None:
@@ -103,7 +124,7 @@ class SystemMonitor(ctk.CTk):
         self.uptime_label.configure(text=f"{uptime}")
 
         # Schedule next update
-        self.after(constant.ResourceMonitor.UPDATE_INTERVAL, self.update_stats)
+        self.after(ResourceMonitor.UPDATE_INTERVAL, self.update_stats)
 
 
 def run_monitor() -> None:
@@ -112,8 +133,5 @@ def run_monitor() -> None:
 
 
 if __name__ == "__main__":
-    try:
-        monitor_thread = threading.Thread(target=run_monitor)
-        monitor_thread.start()
-    except KeyboardInterrupt:
-        print("\n[Exiting System Monitor]")
+    monitor_thread = threading.Thread(target=run_monitor)
+    monitor_thread.start()

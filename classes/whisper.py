@@ -156,4 +156,5 @@ class WhisperTranscriber:
             return text
         except Exception as e:
             print(f"\033[38;5;92mError during transcription: {e}\033[0m")
+
             return None
