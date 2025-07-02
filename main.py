@@ -22,7 +22,6 @@ logging.basicConfig(
 
 
 def main() -> None:
-
     print("\033[91mProgram Starting...\033[0m")
 
     # Initialize VRChat OSC object
@@ -46,7 +45,7 @@ def main() -> None:
         print(f"\033[91mError starting resource monitor: "
               f"{e}\033[0m")
 
-    nova.run_code()
+    nova.main()
 
 
 if __name__ == '__main__':

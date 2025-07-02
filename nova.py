@@ -92,13 +92,14 @@ def chunk_text(text: str) -> list:
     Split the text by sentence-ending punctuation
     """
     chunks = re.split(r"(?<=[.!?]) +", text)
+
     return chunks
 
 
 def process_completion(completion: iter, osc: object, tts: object) -> str:
     """
     Processes a streaming completion response, extracts text chunks, and
-    handles output and text-to-speech (TTS) functionality.
+    handles output and text-to-speech functionality.
     Args:
         completion (iter): An iterable object containing streaming completion
                             data. Each chunk is expected to have a `choices`
@@ -136,11 +137,14 @@ def process_completion(completion: iter, osc: object, tts: object) -> str:
 
     while not tts.is_idle():
         time.sleep(constant.InterruptionSettings.DETECTION_SLEEP_INTERVAL)
+
     return full_response
 
 
-def add_vision_updates_to_history(history: list,
-                                  vision_manager: object) -> list:
+def add_vision_updates_to_history(
+        history: list,
+        vision_manager: object
+        ) -> list:
     """
     Add any new vision updates to the conversation history.
 
@@ -154,51 +158,37 @@ def add_vision_updates_to_history(history: list,
     vision_updates = vision_manager.get_new_vision_updates()
 
     for update in vision_updates:
-        # Add vision update as a system message
         vision_message = {
             "role": "system",
             "content": update
         }
         history.append(vision_message)
+
         print(f"\033[96m[VISION]\033[0m \033[94m{update}\033[0m")
 
     return history
 
 
-def run_code() -> None:
+def get_current_model(openai_client: object, vision_manager: object) -> str:
     """
-    Runs the main loop of the application, handling communication between
-    components and processing user input and assistant responses.
-    This function initializes the necessary components, manages the interaction
-    between the user and the assistant, and updates the conversation history.
-    It continuously listens for user speech input, processes it, generates a
-    response using the OpenAI client, and sends the response back to the user.
-    Steps:
-    1. Initializes components such as OSC, transcriber, history manager,
-    OpenAI client, and TTS.
-    2. Sends a "Thinking" message to VRChat and sets the typing indicator.
-    3. Creates model parameters and generates a response using the OpenAI
-    client.
-    4. Processes the response and updates the conversation history.
-    5. Listens for user speech input and appends it to the conversation
-    history.
-    6. Writes the updated history to a JSON file and reloads it for the next
-    iteration.
-    Note:
-    - This function runs indefinitely in a while loop.
-    - It interacts with external components such as OSC, OpenAI API, and a
-    transcriber.
-    Raises:
-    - Any exceptions raised by the components or APIs used within the function.
+    Determines and returns the current language model to use from the OpenAI
+    client. Checks if the model specified by `constant.LanguageModel.MODEL_ID`
+    is available in the list of models provided by the `openai_client`. If the
+    specified model is not found, it selects the first available model, prints
+    a warning, and switches to it. If no models are available, it prints an
+    error message, performs cleanup using the `vision_manager`, and exits the
+    program.
+    Args:
+        openai_client (object): The OpenAI client instance used to list
+        available models.
+        vision_manager (object): The vision manager instance used for cleanup
+        if no models are available.
     Returns:
-        None
+        str: The ID of the selected language model.
+    Side Effects:
+        Prints messages to the console, may exit the program if no models are
+        available, and may call `vision_manager.cleanup()`.
     """
-
-    components = initialize_components()
-    osc, transcriber, history, openai_client, tts, vision_manager = components
-
-    # Send message to VRChat to indicate that the system is starting
-    JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
     available_models = openai_client.models.list()
     model_list = [model.id for model in available_models]
@@ -224,6 +214,19 @@ def run_code() -> None:
     else:
         current_model = constant.LanguageModel.MODEL_ID
 
+    return current_model
+
+
+def run_main_loop(
+        osc,
+        history,
+        vision_manager,
+        openai_client,
+        tts,
+        current_model,
+        transcriber
+        ) -> None:
+
     while True:
         osc.send_message("Thinking")
         osc.set_typing_indicator(True)
@@ -239,10 +242,11 @@ def run_code() -> None:
             stream=True,
         )
 
+        # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
-
         full_response = process_completion(completion, osc, tts)
         new_message["content"] = full_response
+        history.append(new_message)
 
         # Get user speech input
         user_speech = ""
@@ -251,19 +255,39 @@ def run_code() -> None:
             osc.set_typing_indicator(False)
             user_speech = transcriber.get_voice_input()
 
+        # Add user speech to history
+        user_speech = {"role": "user", "content": user_speech}
+        history.append(user_speech)
+        print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
+
+        # Update history
+        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
+        history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
+
         osc.send_message("Thinking")
         osc.set_typing_indicator(True)
 
-        print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
 
-        user_speech = {"role": "user", "content": user_speech}
-        history.append(new_message)
-        history.append(user_speech)
+def main() -> None:
+    # Initialise the components
+    components = initialize_components()
+    osc, transcriber, history, openai_client, tts, vision_manager = components
 
-        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
+    # Whipe the old history file
+    JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
-        history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
+    current_model = get_current_model(openai_client, vision_manager)
+
+    run_main_loop(
+        osc,
+        history,
+        vision_manager,
+        openai_client,
+        tts,
+        current_model,
+        transcriber
+    )
 
 
 if __name__ == "__main__":
-    run_code()
+    main()
