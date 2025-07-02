@@ -219,7 +219,7 @@ class VRChatAPI:
     PASSWORD = os.getenv('VRCHAT_PASSWORD')
 
     # User agent string as per VRChat Usage Policy
-    USER_AGENT = f"NOVA-AI/2025.1.1 {os.getenv('VRCHAT_EMAIL')}"
+    USER_AGENT = f"NOVA-AI/2025.7.1 {os.getenv('VRCHAT_EMAIL')}"
 
     # API check intervals (seconds)
     FRIEND_REQUEST_CHECK_INTERVAL = 60  # 1 minute
