@@ -31,16 +31,16 @@ class Audio:
             configured for VB-Audio Cable A Output
     """
     AUDIO_OUTPUT_INDEX = 6
-    AUDIO_INPUT_INDEX = 2  # 12 25 36
+    AUDIO_INPUT_INDEX = 2
 
 
 class Voice:
     """
     A class that defines constants for voice-related configurations in
-    Text-to-Speech (TTS) operations.
+    Text-to-Speech operations through edge-tts.
     Attributes:
         VOICE_NAME (str): The default voice name used for text-to-speech
-        synthesis. Currently set to "Zira".
+        synthesis.
     """
     VOICE_NAME = "en-US-JennyNeural"
 
@@ -54,8 +54,7 @@ class LanguageModel:
         MODEL_ID (str): The identifier for the specific language model being
         used. Currently set to Meta-Llama 3.1 8B Instruct GGUF model.
         LM_TEMPERATURE (float): The temperature parameter for the language
-        model's output. Controls randomness in text generation (0.0 to 1.0,
-        where higher means more random).
+        model's output.
     """
     MODEL_ID = "meta-llama-3.1-8b-instruct"
     LM_TEMPERATURE = 0.7
@@ -77,12 +76,10 @@ class OpenAI:
     """
     OpenAI API configuration settings.
     """
-    # Base URL for OpenAI API (change for local LM Studio)
+    # Base URL for OpenAI API (currently set for local use)
     BASE_URL = "http://localhost:1234/v1"
     # API key for OpenAI (use "lm-studio" for local)
-    API_KEY = "lm-studio"
-    # Whether to use streaming responses
-    STREAM_RESPONSES = True
+    API_KEY = os.getenv('OPENAI_API_KEY')
 
 
 class WhisperSettings:
@@ -109,7 +106,7 @@ class TTSSettings:
     """
     Text-to-Speech configuration settings.
     """
-    # Default TTS engine ("edge-tts")
+    # Default TTS engine (edge-tts is currently the only supported engine)
     ENGINE = "edge-tts"
     # Audio bit depth conversion factor for pydub
     AUDIO_CONVERSION_FACTOR = 2**15
@@ -117,54 +114,12 @@ class TTSSettings:
     QUEUE_SLEEP_INTERVAL = 0.1
 
 
-class InterruptionSettings:
-    """
-    Configuration settings for voice interruption detection during TTS
-    playback.
-
-    Attributes:
-        ENABLED (bool): Whether interruption detection is enabled
-        SENSITIVITY (float): Detection sensitivity (1.0 = normal,
-                           higher = more sensitive)
-        DETECTION_DELAY (float): Seconds to wait before starting detection
-        SPEECH_THRESHOLD (int): Consecutive speech frames needed to trigger
-                              interruption
-        AUDIO_LEVEL_MULTIPLIER (float): Multiplier for baseline audio level
-                                      detection
-    """
-    ENABLED = True
-    # Adjust this: 0.5 = less sensitive, 2.0 = more sensitive
-    SENSITIVITY = 1.0
-    DETECTION_DELAY = 1.0  # Wait 1 second before starting detection
-    SPEECH_THRESHOLD = 8  # Number of consecutive speech frames needed
-    # Audio must be 2.5x baseline to trigger
-    AUDIO_LEVEL_MULTIPLIER = 2.5
-    # Sample rate for interruption detection
-    SAMPLE_RATE = 16000
-    # Frame duration for interruption detection (ms)
-    FRAME_DURATION_MS = 30
-    # Frames of silence needed to reset speech counter
-    SILENCE_THRESHOLD = 5
-    # Initial calibration frames to establish baseline
-    CALIBRATION_FRAMES = 30
-    # Maximum audio level buffer size
-    MAX_AUDIO_LEVEL_BUFFER = 50
-    # Fallback audio level multiplier when VAD fails
-    FALLBACK_AUDIO_MULTIPLIER = 4.0
-    # Final threshold multiplier for interruption trigger
-    FINAL_THRESHOLD_MULTIPLIER = 3.0
-    # Sleep interval for detection loop (seconds)
-    DETECTION_SLEEP_INTERVAL = 0.1
-    # Delay before starting detection (seconds)
-    STARTUP_DELAY = 0.5
-
-
 class SystemMessages:
     """
     System status messages and startup text.
     """
     # Initial conversation starter
-    INITIAL_USER_MESSAGE = "hi"
+    INITIAL_USER_MESSAGE = "Who are you?"
     # VRChat status messages
     SYSTEM_STARTING = "System Starting"
     THINKING_MESSAGE = "Thinking"
@@ -172,16 +127,6 @@ class SystemMessages:
     # Console status messages
     PROGRAM_STARTING = "Program Starting..."
     RESOURCE_MONITOR_STARTING = "Starting resource monitor..."
-
-
-class ErrorHandling:
-    """
-    Error handling and recovery settings.
-    """
-    # Sleep time after error before retry (seconds)
-    ERROR_RETRY_DELAY = 5
-    # Exit code when no models are available
-    NO_MODELS_EXIT_CODE = 1
 
 
 class ResourceMonitor:
@@ -280,7 +225,6 @@ class VRChatAPI:
     """
     Configuration settings for VRChat API integration.
     """
-
     # Master switch to enable/disable all VRChat API functionality
     USING_API = False  # Set to True to enable API usage
 

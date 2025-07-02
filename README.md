@@ -531,17 +531,6 @@ class VisionSystem:
     VISION_TEMPERATURE = 0.3      # Vision analysis creativity (0.0-1.0)
 ```
 
-#### **⚡ Performance Tuning**
-Optimize responsiveness:
-```python
-class InterruptionSettings:
-    QUEUE_SLEEP_INTERVAL = 0.1    # Queue processing delay
-    SENSITIVITY = 1.0             # Interruption detection sensitivity
-
-class ErrorHandling:
-    ERROR_RETRY_DELAY = 5         # Seconds to wait after errors
-```
-
 #### **🖥️ Resource Monitor**
 Customize the performance monitor window:
 ```python
@@ -596,9 +585,6 @@ class WhisperSettings:
 ```python
 class WhisperSettings:
     MODEL_SIZE = "tiny"       # Faster but less accurate
-    
-class InterruptionSettings:
-    QUEUE_SLEEP_INTERVAL = 0.05  # Faster processing
 ```
 
 **Using OpenAI Instead of Local Models:**

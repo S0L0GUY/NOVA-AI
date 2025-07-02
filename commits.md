@@ -1,5 +1,101 @@
 # Commit History
 
+- **Commit:** [dfa0e8c](https://github.com/S0L0GUY/NOVA-AI/commit/dfa0e8c2b25caa873d4e0cf857720e720b6182a9)
+  **Author:** Evan Grinnell
+  **Message:** VRChat API (#47)
+
+* Add VRChat API integration and periodic friend checks
+
+Introduces a new VRChatAPIManager class for handling VRChat API authentication, friend request management, and notification checks. Adds configuration for VRChat API credentials and settings in constants.py. Updates main.py to initialize and manage the VRChat API lifecycle, including periodic background checks for friend requests and notifications. Adds 'vrchatapi' to requirements.txt.
+
+* Add TODO comments for VRChat API credentials in constants.py
+
+* Add support for environment variables and update VRChat credentials handling
+
+- Introduced .env file support for storing sensitive VRChat credentials.
+- Updated VRChatAPI class to retrieve credentials from environment variables.
+- Enhanced README with instructions for setting up the .env file.
+- Added python-dotenv to requirements.txt for environment variable management.
+- Created test_vrchat_notification_fix.py for future tests.
+
+* Removed unneded file
+
+* Add rate limiting and cooldowns to VRChat API manager
+
+This still does not work perfectly do DO NOT MERGE until this code is proven to work smoothly
+
+* Add .env.example and improve VRChat API config handling
+
+Introduced a .env.example file for easier environment variable setup and updated the README with clearer configuration instructions. Enhanced VRChat API integration by adding a master enable/disable switch, improved credential validation, and made API initialization conditional based on configuration. Updated constants.py with more granular settings and improved main.py to respect the new API enable flag.
+
+* Update classes/vrchat_api.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+- **Commit:** [f5c4e88](https://github.com/S0L0GUY/NOVA-AI/commit/f5c4e88f2448b4fafb5998e5b589335d32336e0d)
+  **Author:** Evan Grinnell
+  **Message:** Remove exception handling from main loop in nova.py
+
+The try-except block around the main loop in run_code() was removed, so exceptions and interrupts will now propagate instead of being caught and handled locally. This change may be intended to simplify error handling or to allow for higher-level management of exceptions.
+
+- **Commit:** [484e290](https://github.com/S0L0GUY/NOVA-AI/commit/484e2902af55707c2bdb943f50b1b25c00eeb717)
+  **Author:** Evan Grinnell
+  **Message:** Vision Estimates (#44)
+
+* Add vision system integration for VRChat
+
+Introduces a vision system for Nova AI, including new classes for vision management and analysis, configuration constants, prompt files, and test scripts. The vision system captures VRChat window screenshots, analyzes them using an AI model, and injects environment/player updates into the conversation history. Updates to main.py and nova.py integrate the vision system into the main application flow.
+
+* Update vision system to run asynchronously
+
+The vision system now operates in the background and continuously monitors VRChat without waiting for the AI to finish processing. Updated documentation in nova.py and clarified a comment in constants.py. Updated vision_log.json with new entries.
+
+* Add method to clear vision history at startup
+
+Introduced clear_vision_history() in VisionManager to reset vision log and state files at startup. Updated nova.py to call this method during initialization, ensuring a clean state for each run. Updated vision_log.json and vision_state.json to reflect the cleared state.
+
+* Disable vision system by default and clear vision history at startup
+
+* Add detailed documentation for the Vision System in README.md
+
+- **Commit:** [01a6320](https://github.com/S0L0GUY/NOVA-AI/commit/01a63207e956640209090d11059ce65466f959c9)
+  **Author:** Evan Grinnell
+  **Message:** Fix AUDIO_OUTPUT_INDEX value in Audio class to match configuration
+
+- **Commit:** [b438a9d](https://github.com/S0L0GUY/NOVA-AI/commit/b438a9dba99566edb47ba58013e57e995d5e56f6)
+  **Author:** Evan Grinnell
+  **Message:** Quick tuner (#42)
+
+* Revise README.md for clarity and detail, enhancing project description, features, prerequisites, installation, and setup instructions.
+
+* Enhance configuration management by centralizing settings in constants.py, refactor related classes, and update usage across the codebase for improved maintainability and customization.
+
+* Refactor constants for improved clarity and consistency, updating frame duration and sleep intervals in Whisper and Interruption settings.
+
+- **Commit:** [0145cfc](https://github.com/S0L0GUY/NOVA-AI/commit/0145cfc6ce110ddbd1cd2d8eb4d7766c35ed812f)
+  **Author:** Evan Grinnell
+  **Message:** Revise README.md for clarity and detail, enhancing project description, features, prerequisites, installation, and setup instructions.
+
+- **Commit:** [86af28c](https://github.com/S0L0GUY/NOVA-AI/commit/86af28cd1a49b71df238c834ce4b345609e5eb12)
+  **Author:** Evan Grinnell
+  **Message:** Refactor system prompt handling and update identity rules in prompts
+
+- **Commit:** [7dd4050](https://github.com/S0L0GUY/NOVA-AI/commit/7dd40507b93e35e35feeff077da27ba6f5396997)
+  **Author:** Evan Grinnell
+  **Message:** Local IP and Model ID (#40)
+
+- **Commit:** [e7e2667](https://github.com/S0L0GUY/NOVA-AI/commit/e7e266799158a21ff97c97a475bf4190c57f4c8b)
+  **Author:** Evan Grinnell
+  **Message:** Updated Documentation (#38)
+
+* Updated Documentation
+
+* Add resource monitor startup in main and remove from run_code
+
 - **Commit:** [187a5a9](https://github.com/S0L0GUY/NOVA-AI/commit/187a5a97360b361755a6f3150348d9a64fd8235b)
   **Author:** Evan Grinnell
   **Message:** Enhance console output with color coding for better visibility and add system monitor functionality (#37)
@@ -254,50 +350,4 @@ Co-authored-by: DuckSong510 <179771719+DuckSong510@users.noreply.github.com>
 - **Commit:** [7c582c9](https://github.com/S0L0GUY/NOVA-AI/commit/7c582c90da9a54ab133dc11df02b6e0e506a3818)
   **Author:** Evan Grinnell
   **Message:** Added Duck Song to 'README.md' (#10)
-
-- **Commit:** [610cc88](https://github.com/S0L0GUY/NOVA-AI/commit/610cc88718ced1ed1d484b59b86978228136ec8d)
-  **Author:** DuckSong510
-  **Message:** Updated Bad Words (#9)
-
-* Updated Bad Words
-
-* Removed Empty Line
-
-- **Commit:** [47cf480](https://github.com/S0L0GUY/NOVA-AI/commit/47cf4801459474250a8f2552f400cbb12ed22fbf)
-  **Author:** Evan Grinnell
-  **Message:** Updated issue templates
-
-- **Commit:** [5dfde79](https://github.com/S0L0GUY/NOVA-AI/commit/5dfde79461cd5bd39febe0f2485da28e8a05830f)
-  **Author:** Evan Grinnell
-  **Message:** Added Contributions to 'README.md'
-
-- **Commit:** [b624035](https://github.com/S0L0GUY/NOVA-AI/commit/b624035e0071d67468c4321c0c7a8b14e8356aa4)
-  **Author:** Evan Grinnell
-  **Message:** Merge pull request #5 from S0L0GUY/3-create-a-constants-file
-
-Added Constants File
-
-- **Commit:** [7b1b739](https://github.com/S0L0GUY/NOVA-AI/commit/7b1b7394716f1f1c28ffaa7da44055b4bcb2adec)
-  **Author:** Evan Grinnell
-  **Message:** Added Constants File
-
-- **Commit:** [0feca84](https://github.com/S0L0GUY/NOVA-AI/commit/0feca84a69237c34bf974839caa823ad5d730d13)
-  **Author:** Evan Grinnell
-  **Message:** Merge pull request #4 from S0L0GUY/Make-Auto-Placement-Better
-
-Added Functions to Make Placement More Editable
-
-- **Commit:** [3f719ef](https://github.com/S0L0GUY/NOVA-AI/commit/3f719ef3664aaec6e68d5ae1209b2cfebc1bb46e)
-  **Author:** Evan Grinnell
-  **Message:** Added Functions to Make Placement More Editable
-
-- **Commit:** [52c7f10](https://github.com/S0L0GUY/NOVA-AI/commit/52c7f10225bd3511de0181cd32c5f6e3c45b891f)
-  **Author:** Evan Grinnell
-  **Message:** Make Prompts Useable
-
-- **Commit:** [04829e4](https://github.com/S0L0GUY/NOVA-AI/commit/04829e486ecd743c0d7df6e262c599ca06d40ef5)
-  **Author:** Evan Grinnell
-  **Message:** Merge pull request #2 from S0L0GUY/1-make-nova-speak-more-like-a-human
-
-Made NOVA Cooler
 
