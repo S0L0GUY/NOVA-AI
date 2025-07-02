@@ -31,7 +31,7 @@ def main() -> None:
     osc.set_typing_indicator(True)
 
     VisionManager.clear_vision_history()
-    VRChatAPIManager.create_vrchat_api_manager()
+    vrchat_api_manager = VRChatAPIManager.create_vrchat_api_manager()
 
     print("\033[91mStarting resource monitor...\033[0m")
 
