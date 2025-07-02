@@ -563,18 +563,6 @@ class VRChatAPIManager:
             "remaining_api_cooldown": remaining_api_cooldown,
             "api_cooldown_active": remaining_api_cooldown > 0
         }
-            
-        return {
-            "retry_count": self.friend_request_retry_count,
-            "last_request_time": self.last_friend_request_time,
-            "time_since_last": time_since_last,
-            "remaining_delay": remaining_delay,
-            "is_rate_limited": remaining_delay > 0,
-            "last_api_call_time": self.last_api_call_time,
-            "time_since_last_api": time_since_last_api,
-            "remaining_api_cooldown": remaining_api_cooldown,
-            "api_cooldown_active": remaining_api_cooldown > 0
-        }
 
     def _wait_for_api_cooldown(self) -> None:
         """
