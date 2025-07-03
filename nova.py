@@ -256,9 +256,9 @@ def run_main_loop(
             user_speech = transcriber.get_voice_input()
 
         # Add user speech to history
+        print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
         user_speech = {"role": "user", "content": user_speech}
         history.append(user_speech)
-        print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
 
         # Update history
         JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
