@@ -19,6 +19,7 @@ from classes.whisper import WhisperTranscriber
 from classes.system_prompt import SystemPrompt
 from classes.json_wrapper import JsonWrapper
 from classes.vision_manager import VisionManager
+from together import Together
 import constants as constant
 import sys
 
@@ -62,10 +63,16 @@ def initialize_components() -> tuple:
         },
     ]
 
-    openai_client = OpenAI(
-        base_url=constant.OpenAI.BASE_URL,
-        api_key=constant.OpenAI.API_KEY
-    )
+    if constant.LLM_API.API_TYPE == "together":
+        client = Together(
+            base_url=constant.LLM_API.BASE_URL,
+            api_key=constant.LLM_API.API_KEY
+        )
+    else:
+        client = OpenAI(
+            base_url=constant.LLM_API.BASE_URL,
+            api_key=constant.LLM_API.API_KEY
+        )
 
     tts = TextToSpeechManager(
         voice=constant.Voice.VOICE_NAME,
@@ -78,7 +85,7 @@ def initialize_components() -> tuple:
     vision_manager = VisionManager()
     vision_manager.start_vision_system()
 
-    return osc, transcriber, history, openai_client, tts, vision_manager
+    return osc, transcriber, history, client, tts, vision_manager
 
 
 def chunk_text(text: str) -> list:
@@ -169,17 +176,17 @@ def add_vision_updates_to_history(
     return history
 
 
-def get_current_model(openai_client: object, vision_manager: object) -> str:
+def get_current_model(client: object, vision_manager: object) -> str:
     """
     Determines and returns the current language model to use from the OpenAI
     client. Checks if the model specified by `constant.LanguageModel.MODEL_ID`
-    is available in the list of models provided by the `openai_client`. If the
+    is available in the list of models provided by the `client`. If the
     specified model is not found, it selects the first available model, prints
     a warning, and switches to it. If no models are available, it prints an
     error message, performs cleanup using the `vision_manager`, and exits the
     program.
     Args:
-        openai_client (object): The OpenAI client instance used to list
+        client (object): The OpenAI client instance used to list
         available models.
         vision_manager (object): The vision manager instance used for cleanup
         if no models are available.
@@ -190,7 +197,7 @@ def get_current_model(openai_client: object, vision_manager: object) -> str:
         available, and may call `vision_manager.cleanup()`.
     """
 
-    available_models = openai_client.models.list()
+    available_models = client.models.list()
     model_list = [model.id for model in available_models]
 
     if constant.LanguageModel.MODEL_ID not in model_list:
@@ -221,7 +228,7 @@ def run_main_loop(
         osc,
         history,
         vision_manager,
-        openai_client,
+        client,
         tts,
         current_model,
         transcriber
@@ -235,7 +242,7 @@ def run_main_loop(
         history = add_vision_updates_to_history(history, vision_manager)
 
         # Creates model parameters
-        completion = openai_client.chat.completions.create(
+        completion = client.chat.completions.create(
             model=current_model,
             messages=history,
             temperature=constant.LanguageModel.LM_TEMPERATURE,
@@ -271,18 +278,18 @@ def run_main_loop(
 def main() -> None:
     # Initialise the components
     components = initialize_components()
-    osc, transcriber, history, openai_client, tts, vision_manager = components
+    osc, transcriber, history, client, tts, vision_manager = components
 
     # Whipe the old history file
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
-    current_model = get_current_model(openai_client, vision_manager)
+    current_model = get_current_model(client, vision_manager)
 
     run_main_loop(
         osc,
         history,
         vision_manager,
-        openai_client,
+        client,
         tts,
         current_model,
         transcriber

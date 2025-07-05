@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any, List
 import base64
 from io import BytesIO
 from PIL import Image, ImageGrab
+from together import Together
 import win32gui
 from openai import OpenAI
 import constants as constant
@@ -132,11 +133,8 @@ class VRChatWindowCapture:
 
 
 class VisionAnalyzer:
-    def __init__(self):
-        self.client = OpenAI(
-            base_url=constant.OpenAI.BASE_URL,
-            api_key=constant.OpenAI.API_KEY
-        )
+    def __init__(self, client):
+        self.client = client
 
     def image_to_base64(self, image: Image.Image) -> str:
         """Convert PIL Image to base64 string."""
@@ -209,10 +207,10 @@ class VisionAnalyzer:
 
 
 class VisionSystem:
-    def __init__(self):
+    def __init__(self, client):
         self.state = VisionState()
         self.capture = VRChatWindowCapture()
-        self.analyzer = VisionAnalyzer()
+        self.analyzer = VisionAnalyzer(client)
         self.last_analysis_time = 0
         self.analysis_interval = constant.VisionSystem.ANALYSIS_INTERVAL
         self.running = False
@@ -274,7 +272,19 @@ class VisionSystem:
 
 def run_vision_subprocess():
     """Entry point for running vision system as a subprocess."""
-    vision_system = VisionSystem()
+
+    if constant.Vision_API.API_TYPE == "together":
+        client = Together(
+            base_url=constant.Vision_API.BASE_URL,
+            api_key=constant.Vision_API.API_KEY
+        )
+    else:
+        client = OpenAI(
+            base_url=constant.Vision_API.BASE_URL,
+            api_key=constant.Vision_API.API_KEY
+        )
+
+    vision_system = VisionSystem(client)
     try:
         vision_system.run_vision_loop()
     except KeyboardInterrupt:

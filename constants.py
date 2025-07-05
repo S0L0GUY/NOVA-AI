@@ -6,6 +6,113 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+class LLM_API:
+    """
+    LLM API configuration settings.
+    """
+    # Currently Supported: "openai", "together"
+    API_TYPE = "together"  # Set to "openai" for LM-Studios API
+    # Base URL for LLM API (currently set for local use)
+    BASE_URL = "https://api.together.xyz/v1"
+    # API key for LLM API (use "lm-studio" for local)
+    API_KEY = os.getenv('LLM_API_KEY')
+
+
+class Vision_API:
+    """
+    Vision API configuration settings.
+    """
+    # Currently Supported: "openai", "together"
+    API_TYPE = "together"  # Set to "openai" for LM-Studios API
+    # Base URL for Vision API (currently set for local use)
+    BASE_URL = "https://api.together.xyz/v1"
+    # API key for Vision API (use "lm-studio" for local)
+    API_KEY = os.getenv('VISION_API_KEY')
+
+
+class VRChatAPI:
+    """
+    Configuration settings for VRChat API integration.
+    """
+    # Master switch to enable/disable all VRChat API functionality
+    USING_API = False  # Set to True to enable API usage
+
+    # VRChat account credentials (loaded from environment variables)
+    USERNAME = os.getenv('VRCHAT_EMAIL')
+    PASSWORD = os.getenv('VRCHAT_PASSWORD')
+
+    # User agent string as per VRChat Usage Policy
+    USER_AGENT = f"NOVA-AI/2025.7.1 {os.getenv('VRCHAT_EMAIL')}"
+
+    # API check intervals (seconds)
+    FRIEND_REQUEST_CHECK_INTERVAL = 60  # 1 minute
+    NOTIFICATION_CHECK_INTERVAL = 120    # 2 minutes
+
+    # Rate limiting and cooldown settings
+    API_COOLDOWN = 30  # Seconds to wait between API calls
+
+    # Feature toggles
+    AUTO_ACCEPT_FRIEND_REQUESTS = True
+    ENABLE_NOTIFICATION_CHECKS = True
+    ENABLE_FRIEND_REQUEST_CHECKS = True
+
+    # Connection timeout settings
+    CONNECTION_TIMEOUT = 30
+    REQUEST_TIMEOUT = 15
+
+    # Retry settings for failed operations
+    MAX_RETRY_ATTEMPTS = 3
+    RETRY_DELAY = 5  # Seconds between retries
+
+    # Debug settings
+    VERBOSE_LOGGING = False  # Set to True for detailed API logs
+
+
+class LanguageModel:
+    """
+    A class representing configuration settings for a language model.
+    This class contains constant values that define the behavior and identity
+    of the language model being used.
+    Attributes:
+        MODEL_ID (str): The identifier for the specific language model being
+        used. Currently set to Meta-Llama 3.1 8B Instruct GGUF model.
+        LM_TEMPERATURE (float): The temperature parameter for the language
+        model's output.
+    """
+    MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+    LM_TEMPERATURE = 0.7
+
+
+class VisionSystem:
+    """
+    Configuration settings for the VRChat vision system.
+    """
+    # Whether vision system is enabled
+    ENABLED = False
+    # How often to analyze screenshots continuously (seconds)
+    ANALYSIS_INTERVAL = 60
+    # Maximum image size for API calls (pixels)
+    MAX_IMAGE_SIZE = 1024
+    # JPEG quality for screenshots (1-100)
+    IMAGE_QUALITY = 85
+    # Vision state file path
+    STATE_FILE = "json_files/vision_state.json"
+    # Vision log file path
+    LOG_FILE = "json_files/vision_log.json"
+    # Vision prompt file path
+    VISION_PROMPT_PATH = "prompts/vision_prompt.txt"
+    # Maximum number of vision updates to keep in log
+    MAX_LOG_ENTRIES = 5
+    # VRChat window search keywords
+    WINDOW_KEYWORDS = ["VRChat", "vrchat"]
+    # Vision model to use (adjust for your local setup)
+    VISION_MODEL = "meta-llama/Llama-Vision-Free"
+    # Maximum tokens for vision API response
+    MAX_VISION_TOKENS = 90
+    # Temperature for vision analysis
+    VISION_TEMPERATURE = 0.3
+
+
 class Network:
     """
     Class representing network configuration parameters.
@@ -45,21 +152,6 @@ class Voice:
     VOICE_NAME = "en-US-JennyNeural"
 
 
-class LanguageModel:
-    """
-    A class representing configuration settings for a language model.
-    This class contains constant values that define the behavior and identity
-    of the language model being used.
-    Attributes:
-        MODEL_ID (str): The identifier for the specific language model being
-        used. Currently set to Meta-Llama 3.1 8B Instruct GGUF model.
-        LM_TEMPERATURE (float): The temperature parameter for the language
-        model's output.
-    """
-    MODEL_ID = "meta-llama-3.1-8b-instruct"
-    LM_TEMPERATURE = 0.7
-
-
 class FilePaths:
     """
     A class containing file path constants used in the application.
@@ -70,16 +162,6 @@ class FilePaths:
     HISTORY_PATH = "json_files/history.json"
 
     NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
-
-
-class OpenAI:
-    """
-    OpenAI API configuration settings.
-    """
-    # Base URL for OpenAI API (currently set for local use)
-    BASE_URL = "http://localhost:1234/v1"
-    # API key for OpenAI (use "lm-studio" for local)
-    API_KEY = os.getenv('OPENAI_API_KEY')
 
 
 class WhisperSettings:
@@ -99,7 +181,7 @@ class WhisperSettings:
     # Maximum recording duration in seconds
     MAX_RECORDING_DURATION = 30
     # VAD aggressiveness level (0-3, higher = more aggressive)
-    VAD_AGGRESSIVENESS = 0
+    VAD_AGGRESSIVENESS = 1
 
 
 class TTSSettings:
@@ -205,71 +287,3 @@ class ConsoleColors:
     # System status colors
     SYSTEM_INFO = "\033[36m"
     ERROR = "\033[91m"
-
-
-class VRChatAPI:
-    """
-    Configuration settings for VRChat API integration.
-    """
-    # Master switch to enable/disable all VRChat API functionality
-    USING_API = False  # Set to True to enable API usage
-
-    # VRChat account credentials (loaded from environment variables)
-    USERNAME = os.getenv('VRCHAT_EMAIL')
-    PASSWORD = os.getenv('VRCHAT_PASSWORD')
-
-    # User agent string as per VRChat Usage Policy
-    USER_AGENT = f"NOVA-AI/2025.7.1 {os.getenv('VRCHAT_EMAIL')}"
-
-    # API check intervals (seconds)
-    FRIEND_REQUEST_CHECK_INTERVAL = 60  # 1 minute
-    NOTIFICATION_CHECK_INTERVAL = 120    # 2 minutes
-
-    # Rate limiting and cooldown settings
-    API_COOLDOWN = 30  # Seconds to wait between API calls
-
-    # Feature toggles
-    AUTO_ACCEPT_FRIEND_REQUESTS = True
-    ENABLE_NOTIFICATION_CHECKS = True
-    ENABLE_FRIEND_REQUEST_CHECKS = True
-
-    # Connection timeout settings
-    CONNECTION_TIMEOUT = 30
-    REQUEST_TIMEOUT = 15
-
-    # Retry settings for failed operations
-    MAX_RETRY_ATTEMPTS = 3
-    RETRY_DELAY = 5  # Seconds between retries
-
-    # Debug settings
-    VERBOSE_LOGGING = False  # Set to True for detailed API logs
-
-
-class VisionSystem:
-    """
-    Configuration settings for the VRChat vision system.
-    """
-    # Whether vision system is enabled
-    ENABLED = False
-    # How often to analyze screenshots continuously (seconds)
-    ANALYSIS_INTERVAL = 15
-    # Maximum image size for API calls (pixels)
-    MAX_IMAGE_SIZE = 1024
-    # JPEG quality for screenshots (1-100)
-    IMAGE_QUALITY = 85
-    # Vision state file path
-    STATE_FILE = "json_files/vision_state.json"
-    # Vision log file path
-    LOG_FILE = "json_files/vision_log.json"
-    # Vision prompt file path
-    VISION_PROMPT_PATH = "prompts/vision_prompt.txt"
-    # Maximum number of vision updates to keep in log
-    MAX_LOG_ENTRIES = 5
-    # VRChat window search keywords
-    WINDOW_KEYWORDS = ["VRChat", "vrchat"]
-    # Vision model to use (adjust for your local setup)
-    VISION_MODEL = "qwen/qwen2.5-vl-7b"
-    # Maximum tokens for vision API response
-    MAX_VISION_TOKENS = 150
-    # Temperature for vision analysis
-    VISION_TEMPERATURE = 0.3
