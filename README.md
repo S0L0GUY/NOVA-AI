@@ -9,6 +9,7 @@ NOVA AI is an intelligent VRChat assistant that brings conversational AI directl
 - [Configuration System](#configuration-system)
 - [Vision System](#vision-system)
 - [VRChat API Integration](#vrchat-api-integration)
+- [Together AI Integration](#together-ai-integration)
 - [Prerequisites](#prerequisites)
 - [Installation Guide](#installation-guide)
 - [Setup Instructions](#setup-instructions)
@@ -22,7 +23,7 @@ NOVA AI is an intelligent VRChat assistant that brings conversational AI directl
 
 NOVA AI is a sophisticated VRChat companion that:
 - **Listens** to your voice using advanced speech recognition (OpenAI Whisper)
-- **Thinks** using powerful AI language models (OpenAI GPT or local models via LM Studio)
+- **Thinks** using powerful AI language models (OpenAI GPT, Together AI, or local models via LM Studio)
 - **Sees** your VRChat world using computer vision and screenshot analysis
 - **Responds** through VRChat's chatbox using OSC (Open Sound Control)
 - **Speaks** back to you using text-to-speech technology (Microsoft Edge TTS)
@@ -34,7 +35,7 @@ Perfect for content creators, VRChat enthusiasts, or anyone who wants an intelli
 ## Features
 
 - 🎤 **Voice Recognition**: Advanced speech-to-text using OpenAI Whisper with configurable models
-- 🧠 **AI Conversation**: Powered by OpenAI's language models or local models via LM Studio
+- 🧠 **AI Conversation**: Powered by OpenAI's language models, Together AI, or local models via LM Studio
 - 💬 **VRChat Integration**: Seamlessly displays responses in VRChat chatbox via OSC
 - 🔊 **Text-to-Speech**: Speaks responses back using Microsoft Edge TTS with customizable voices
 - 🎚️ **Voice Activity Detection**: Automatically detects when you start and stop speaking with WebRTC VAD
@@ -47,7 +48,7 @@ Perfect for content creators, VRChat enthusiasts, or anyone who wants an intelli
 - 🤝 **VRChat API Integration**: Automatic friend request handling and notification management
 - 🔒 **Secure Configuration**: Environment variable system for sensitive credentials
 - 🎮 **Avatar Movement**: Automated VRChat avatar positioning and movement capabilities
-- 🌐 **Multi-Model Support**: Compatible with OpenAI API, LM Studio, and other OpenAI-compatible endpoints
+- 🌐 **Multi-Model Support**: Compatible with OpenAI API, Together AI API, LM Studio, and other OpenAI-compatible endpoints
 
 ## Configuration System
 
@@ -78,7 +79,8 @@ class Audio:           # Audio device configuration
 class Voice:           # Text-to-speech settings
 class LanguageModel:   # AI model configuration
 class WhisperSettings: # Speech recognition tuning
-class OpenAI:          # OpenAI/LM Studio API settings
+class LLM_API:         # Language model API settings (OpenAI, Together AI, LM Studio)
+class Vision_API:      # Vision model API settings (OpenAI, Together AI, LM Studio)
 class TTSSettings:     # Text-to-speech engine options
 class FilePaths:       # All file and folder locations
 # ... and more!
@@ -184,7 +186,23 @@ The Vision System supports both local and cloud-based AI vision models:
 
 **Option B: OpenAI Vision API**
 - Change `VISION_MODEL = "gpt-4-vision-preview"`
+- Update `constants.py` to use OpenAI for vision:
+  ```python
+  class Vision_API:
+      API_TYPE = "openai"  # Change to "openai"
+      BASE_URL = "https://api.openai.com/v1"
+  ```
 - Ensure your OpenAI API key has vision access
+
+**Option C: Together AI Vision API (Default)**
+- Keep the default `VISION_MODEL = "meta-llama/Llama-Vision-Free"`
+- The default settings in `constants.py` are already configured for Together AI:
+  ```python
+  class Vision_API:
+      API_TYPE = "together"  # Default setting
+      BASE_URL = "https://api.together.xyz/v1"
+  ```
+- Ensure your Together AI API key is set in your `.env` file as `VISION_API_KEY`
 
 #### **Step 3: Test the System**
 Test the vision system by:
@@ -477,6 +495,70 @@ NOTIFICATION_CHECK_INTERVAL = 600     # Check every 10 minutes
 
 The VRChat API Integration makes NOVA a more complete VRChat companion by bridging the gap between your AI assistant and VRChat's social features! (We are not lyable if your accounts gets suspended or banned because of VRChat API usage)
 
+## Together AI Integration
+
+NOVA AI now includes **first-class support for Together AI**, providing access to cutting-edge open-source language models with fast inference and competitive pricing.
+
+### 🚀 **Why Together AI?**
+
+Together AI offers several advantages for NOVA users:
+
+- **🔓 Open Source Models**: Access to the latest open-source language models like Llama 3.3, Qwen, and more
+- **⚡ Fast Inference**: Optimized infrastructure for quick response times
+- **💰 Cost Effective**: Competitive pricing compared to other cloud AI providers
+- **🧠 Advanced Models**: Support for both text and vision models
+- **🔄 Easy Integration**: Drop-in replacement for OpenAI API with minimal configuration changes
+
+### 🎯 **Supported Models**
+
+Together AI provides access to a wide range of models suitable for different use cases:
+
+#### **Text Generation Models**
+- **Llama 3.3 70B Instruct Turbo** (Default): High-quality responses with good speed
+- **Qwen 2.5 72B Instruct**: Excellent for general conversation and reasoning
+- **Mixtral 8x7B**: Fast responses with good quality
+- **And many more**: Browse available models at [api.together.xyz](https://api.together.xyz)
+
+#### **Vision Models**
+- **Llama Vision Free**: Multimodal understanding for VRChat screenshot analysis
+- **Qwen VL models**: Advanced vision-language understanding
+- **Custom vision models**: Support for specialized vision tasks
+
+### ⚙️ **Configuration**
+
+Together AI is configured as the default API provider in NOVA AI. The configuration is handled through two main classes in `constants.py`:
+
+```python
+class LLM_API:
+    API_TYPE = "together"  # Uses Together AI for text generation
+    BASE_URL = "https://api.together.xyz/v1"
+    API_KEY = os.getenv('LLM_API_KEY')  # Your Together AI API key
+
+class Vision_API:
+    API_TYPE = "together"  # Uses Together AI for vision tasks
+    BASE_URL = "https://api.together.xyz/v1"
+    API_KEY = os.getenv('VISION_API_KEY')  # Your Together AI API key
+```
+
+### 🔑 **Getting Started with Together AI**
+
+1. **Create Account**: Sign up at [api.together.xyz](https://api.together.xyz)
+2. **Get API Key**: Generate your API key from the dashboard
+3. **Set Environment Variables**: Add your key to the `.env` file:
+   ```properties
+   LLM_API_KEY=your-together-ai-api-key-here
+   VISION_API_KEY=your-together-ai-api-key-here
+   ```
+4. **Choose Models**: Update model names in `constants.py` if desired
+5. **Start NOVA**: The system will automatically use Together AI for inference
+
+### 💡 **Tips for Best Results**
+
+- **Model Selection**: Choose models based on your performance vs. quality needs
+- **Temperature Settings**: Lower values (0.3-0.7) for more focused responses
+- **Token Limits**: Monitor usage to stay within your preferred budget
+- **Rate Limits**: Together AI has generous rate limits for most use cases
+
 ## Prerequisites
 
 Before installing NOVA AI, you'll need the following on your Windows machine:
@@ -676,11 +758,26 @@ Choose your AI backend and configure accordingly:
 **Option B: OpenAI API**
 1. Get an OpenAI API key from [platform.openai.com](https://platform.openai.com)
 2. Update your `.env` file with your real API key
-3. Optionally update `constants.py` for OpenAI:
+3. Update `constants.py` for OpenAI:
    ```python
-   class OpenAI:
+   class LLM_API:
+       API_TYPE = "openai"  # Change to "openai"
        BASE_URL = "https://api.openai.com/v1"  # Change to OpenAI's API
-       API_KEY = os.getenv('OPENAI_API_KEY')
+       API_KEY = os.getenv('LLM_API_KEY')
+   ```
+
+**Option C: Together AI API (Default)**
+1. Get a Together AI API key from [api.together.xyz](https://api.together.xyz)
+2. Update your `.env` file with your Together API key:
+   ```properties
+   LLM_API_KEY=your-together-api-key-here
+   ```
+3. The default settings in `constants.py` are already configured for Together AI:
+   ```python
+   class LLM_API:
+       API_TYPE = "together"  # Default setting
+       BASE_URL = "https://api.together.xyz/v1"  # Together AI API endpoint
+       API_KEY = os.getenv('LLM_API_KEY')
    ```
 
 ### Step 4: Configure VRChat OSC
@@ -761,12 +858,18 @@ class TTSSettings:
 Adjust AI behavior and performance:
 ```python
 class LanguageModel:
-    MODEL_ID = "meta-llama-3.1-8b-instruct"  # AI model to use
+    MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"  # AI model to use
     LM_TEMPERATURE = 0.7                      # Creativity (0.0-1.0)
 
-class OpenAI:
-    BASE_URL = "http://localhost:1234/v1"     # LM Studio or OpenAI API URL
-    API_KEY = os.getenv('OPENAI_API_KEY')     # Your API key from .env file
+class LLM_API:
+    API_TYPE = "together"                     # API provider: "openai", "together"
+    BASE_URL = "https://api.together.xyz/v1"  # API endpoint URL
+    API_KEY = os.getenv('LLM_API_KEY')        # Your API key from .env file
+
+class Vision_API:
+    API_TYPE = "together"                     # API provider: "openai", "together"
+    BASE_URL = "https://api.together.xyz/v1"  # API endpoint URL
+    API_KEY = os.getenv('VISION_API_KEY')     # Your vision API key from .env file
 ```
 
 #### **🎧 Speech Recognition (Whisper)**
@@ -996,12 +1099,14 @@ pip install -r requirements.txt
 - Check that VRChat is running and you're in a world
 - Verify the `VRC_PORT` in the `Network` class matches VRChat's OSC port (default 9000)
 
-**OpenAI/LM Studio API errors:**
-- Verify your API key is set correctly in the `.env` file
-- For OpenAI API: Check your account has available credits and model access
-- For LM Studio: Ensure LM Studio is running and the server is accessible at `http://localhost:1234`
-- Verify the `BASE_URL` in the `OpenAI` class matches your setup
+**API Connection errors:**
+- Verify your API keys are set correctly in the `.env` file
+- **For OpenAI API**: Check your account has available credits and model access
+- **For Together AI**: Verify your API key is valid and has sufficient credits
+- **For LM Studio**: Ensure LM Studio is running and the server is accessible at `http://localhost:1234`
+- Verify the `BASE_URL` in the `LLM_API` class matches your chosen provider
 - Check console output for specific error messages
+- Ensure your internet connection is stable for cloud API providers
 
 **Microphone not working:**
 - Check Windows microphone permissions
@@ -1061,17 +1166,34 @@ Create custom personalities by editing files in the `prompts/` directory:
 
 ### Local vs Cloud AI Models
 
-**Using Local Models (LM Studio - Recommended):**
+**Using Together AI (Default - Recommended):**
+- Sign up at [api.together.xyz](https://api.together.xyz)
+- Get your API key from the dashboard
+- Set `LLM_API_KEY=your-together-key` in your `.env` file
+- Keep default `constants.py` settings (already configured for Together AI)
+- Enjoy fast inference with competitive pricing
+
+**Using Local Models (LM Studio):**
 - Download and install [LM Studio](https://lmstudio.ai/)
 - Download compatible models (Llama, Mistral, etc.)
 - Start the local server (default: `http://localhost:1234`)
-- Keep default `constants.py` settings
-- Set `OPENAI_API_KEY=lm-studio` in your `.env` file
+- Update `constants.py` to use LM Studio:
+  ```python
+  class LLM_API:
+      API_TYPE = "openai"  # LM Studio uses OpenAI-compatible API
+      BASE_URL = "http://localhost:1234/v1"
+  ```
+- Set `LLM_API_KEY=lm-studio` in your `.env` file
 
 **Using OpenAI Cloud API:**
 - Set up OpenAI account and API key
 - Update `.env` file with your real API key
-- Optionally change `BASE_URL` to `https://api.openai.com/v1`
+- Update `constants.py` for OpenAI:
+  ```python
+  class LLM_API:
+      API_TYPE = "openai"
+      BASE_URL = "https://api.openai.com/v1"
+  ```
 - Consider cost implications for usage
 
 **Using Other Compatible APIs:**
