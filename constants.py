@@ -149,7 +149,7 @@ class Voice:
         VOICE_NAME (str): The default voice name used for text-to-speech
         synthesis.
     """
-    VOICE_NAME = "en-US-JennyNeural"
+    VOICE_NAME = "en-US-EmmaMultilingualNeural"
 
 
 class FilePaths:
@@ -181,7 +181,7 @@ class WhisperSettings:
     # Maximum recording duration in seconds
     MAX_RECORDING_DURATION = 30
     # VAD aggressiveness level (0-3, higher = more aggressive)
-    VAD_AGGRESSIVENESS = 1
+    VAD_AGGRESSIVENESS = 0
 
 
 class TTSSettings:

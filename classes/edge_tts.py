@@ -109,12 +109,6 @@ class TextToSpeechManager:
         ) as tmp_file:
             output_file = tmp_file.name
 
-        # Filter out non-printable characters and emojis
-        text = ''.join(
-            char for char in text
-            if char.isprintable() and not (0x1F600 <= ord(char) <= 0x1F64F)
-        )
-
         try:
             communicate = edge_tts.Communicate(text=text, voice=self.voice)
             asyncio.run(communicate.save(output_file))
