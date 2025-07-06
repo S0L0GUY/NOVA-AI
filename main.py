@@ -8,7 +8,7 @@ from classes.vrchat_api import VRChatAPIManager
 from classes.vision_manager import VisionManager
 import warnings
 
-# Supresses FP16 warnings on CPU
+# Suppresses FP16 warnings on CPU
 warnings.filterwarnings(
                     "ignore",
                     message="FP16 is not supported on CPU; using FP32 instead"
