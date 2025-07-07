@@ -1,7 +1,7 @@
 # NOVA AI
 ### /ˈnōvə/ - Your VRChat AI Companion
 
-NOVA AI is an intelligent VRChat assistant that brings conversational AI directly into your VRChat experience. Using advanced speech recognition, natural language processing, text-to-speech technology, computer vision, and VRChat API integration, NOVA can listen to your voice, understand what you're saying, see your VRChat world, manage social interactions, and respond intelligently through VRChat's chatbox.
+NOVA AI is an intelligent VRChat assistant that brings conversational AI directly into your VRChat experience. Using advanced speech recognition, natural language processing, text-to-speech technology, computer vision, and VRChat API integration, NOVA can listen to your voice, understand what you're saying, see your VRChat world, manage social interactions, and respond intelligently through VRChat's chatbox. With native support for 29+ languages, NOVA can communicate naturally in your preferred language with automatic language detection and multilingual voice synthesis.
 
 ## Table of Contents
 - [What is NOVA AI?](#what-is-nova-ai)
@@ -10,6 +10,7 @@ NOVA AI is an intelligent VRChat assistant that brings conversational AI directl
 - [Vision System](#vision-system)
 - [VRChat API Integration](#vrchat-api-integration)
 - [Together AI Integration](#together-ai-integration)
+- [Multilingual Support](#multilingual-support)
 - [Prerequisites](#prerequisites)
 - [Installation Guide](#installation-guide)
 - [Setup Instructions](#setup-instructions)
@@ -29,6 +30,7 @@ NOVA AI is a sophisticated VRChat companion that:
 - **Speaks** back to you using text-to-speech technology (Microsoft Edge TTS)
 - **Manages** VRChat social interactions via API integration (friend requests, notifications)
 - **Monitors** system performance with a real-time resource dashboard
+- **Communicates** in 29+ languages with automatic language detection and multilingual TTS voices
 
 Perfect for content creators, VRChat enthusiasts, or anyone who wants an intelligent AI companion in their virtual world!
 
@@ -48,7 +50,7 @@ Perfect for content creators, VRChat enthusiasts, or anyone who wants an intelli
 - 🤝 **VRChat API Integration**: Automatic friend request handling and notification management
 - 🔒 **Secure Configuration**: Environment variable system for sensitive credentials
 - 🎮 **Avatar Movement**: Automated VRChat avatar positioning and movement capabilities
-- 🌐 **Multi-Model Support**: Compatible with OpenAI API, Together AI API, LM Studio, and other OpenAI-compatible endpoints
+- 🌐 **Multilingual Support**: Native support for 29+ languages with automatic language detection and multilingual TTS voices
 
 ## Configuration System
 
@@ -493,7 +495,7 @@ NOTIFICATION_CHECK_INTERVAL = 600     # Check every 10 minutes
 4. **Keep Credentials Secure**: Never share your `.env` file or commit it to version control
 5. **Test Thoroughly**: Verify API functionality before relying on automated features
 
-The VRChat API Integration makes NOVA a more complete VRChat companion by bridging the gap between your AI assistant and VRChat's social features! (We are not lyable if your accounts gets suspended or banned because of VRChat API usage)
+The VRChat API Integration makes NOVA a more complete VRChat companion by bridging the gap between your AI assistant and VRChat's social features! (We are not liable if your accounts gets suspended or banned because of VRChat API usage)
 
 ## Together AI Integration
 
@@ -558,6 +560,163 @@ class Vision_API:
 - **Temperature Settings**: Lower values (0.3-0.7) for more focused responses
 - **Token Limits**: Monitor usage to stay within your preferred budget
 - **Rate Limits**: Together AI has generous rate limits for most use cases
+
+## Multilingual Support
+
+NOVA AI includes **comprehensive multilingual support**, allowing you to interact with NOVA in over 29 languages with natural conversation flow and appropriate voice responses.
+
+### 🌍 **Supported Languages**
+
+NOVA can understand and respond in the following languages:
+
+**European Languages:**
+- **English** (US, UK, AU, CA) - Primary language
+- **Spanish** (ES, MX, AR, CO, and more)
+- **French** (FR, CA, BE, CH)
+- **German** (DE, AT, CH)
+- **Italian** (IT, CH)
+- **Portuguese** (PT, BR)
+- **Dutch** (NL, BE)
+- **Russian** (RU)
+- **Polish** (PL)
+- **Turkish** (TR)
+- **Swedish** (SE)
+- **Norwegian** (NO)
+- **Finnish** (FI)
+- **Ukrainian** (UA)
+- **Romanian** (RO)
+- **Hungarian** (HU)
+- **Greek** (GR)
+- **Czech** (CZ)
+- **Hebrew** (IL)
+
+**Asian Languages:**
+- **Chinese** (Mandarin - CN, TW)
+- **Japanese** (JP)
+- **Korean** (KR)
+- **Hindi** (IN)
+- **Bengali** (IN, BD)
+- **Urdu** (PK, IN)
+- **Thai** (TH)
+- **Vietnamese** (VN)
+- **Indonesian** (ID)
+
+**Middle Eastern & African:**
+- **Arabic** (Multiple dialects: SA, AE, EG, MA, TN, and more)
+
+### 🎤 **Speech Recognition**
+
+NOVA uses **OpenAI Whisper** for speech recognition, which provides:
+- **Automatic language detection** - Whisper can detect what language you're speaking
+- **High accuracy** across all supported languages
+- **Real-time processing** with configurable model sizes
+- **Robust performance** with accents and dialects
+
+### 🔊 **Text-to-Speech (TTS)**
+
+NOVA's TTS system supports **142+ languages** through Microsoft Edge TTS:
+
+#### **Multilingual Voices**
+NOVA includes access to advanced multilingual neural voices that can speak multiple languages naturally:
+- **EmmaMultilingualNeural** (Default) - English with multilingual capabilities
+- **VivienneMultilingualNeural** - French with multilingual capabilities  
+- **SeraphinaMultilingualNeural** - German with multilingual capabilities
+- **GiuseppeMultilingualNeural** - Italian with multilingual capabilities
+- **HyunsuMultilingualNeural** - Korean with multilingual capabilities
+- And many more specialized voices for each language
+
+#### **Language-Specific Features**
+- **Native character support** - Displays text in original scripts (Chinese: 你好, Arabic: مرحبا, etc.)
+- **Proper pronunciation** - Each language uses appropriate phonetic models
+- **Cultural context** - Responses adapt to cultural norms and expressions
+- **Regional variants** - Support for different regional accents and dialects
+
+### ⚙️ **Configuration**
+
+#### **Changing TTS Voice Language**
+To change NOVA's voice to another language, modify `constants.py`:
+
+```python
+class Voice:
+    # Examples of multilingual voices:
+    VOICE_NAME = "en-US-EmmaMultilingualNeural"     # English (Default)
+    # VOICE_NAME = "es-ES-ElviraNeural"             # Spanish
+    # VOICE_NAME = "fr-FR-VivienneMultilingualNeural" # French  
+    # VOICE_NAME = "de-DE-SeraphinaMultilingualNeural" # German
+    # VOICE_NAME = "ja-JP-NanamiNeural"             # Japanese
+    # VOICE_NAME = "ko-KR-HyunsuMultilingualNeural" # Korean
+    # VOICE_NAME = "zh-CN-XiaoyiNeural"             # Chinese
+```
+
+#### **Language Detection Settings**
+Whisper automatically detects languages, but you can optimize settings in `constants.py`:
+
+```python
+class WhisperSettings:
+    MODEL_SIZE = "base"  # "base" for multilingual, "small" for better accuracy
+    # Larger models (small, medium, large) provide better multilingual support
+```
+
+### 🗣️ **How Multilingual Conversation Works**
+
+1. **You speak** in any supported language
+2. **Whisper detects** your language automatically  
+3. **NOVA understands** and processes in the detected language
+4. **NOVA responds** in the same language (or English if configured)
+5. **TTS speaks** the response using the appropriate voice
+
+### 💡 **Best Practices**
+
+#### **For Optimal Multilingual Performance:**
+- **Use larger Whisper models** (`small` or `medium`) for better language detection
+- **Speak clearly** - especially important for non-native languages
+- **Choose appropriate TTS voices** - use multilingual voices for mixed-language conversations
+- **Consider context** - NOVA maintains conversation context across languages
+
+#### **Mixed Language Conversations:**
+- NOVA can handle **code-switching** (switching between languages mid-conversation)
+- **Each response** maintains the language of the input
+- **Multilingual voices** can naturally handle multiple languages in one conversation
+
+### 🎯 **Language-Specific Features**
+
+#### **Cultural Adaptation**
+- **Greetings and expressions** adapt to cultural norms
+- **Formality levels** adjust based on language conventions
+- **Regional references** include local context when appropriate
+
+#### **Script Support**
+- **Latin scripts** (English, Spanish, French, German, etc.)
+- **Cyrillic** (Russian, Ukrainian, etc.)  
+- **CJK characters** (Chinese, Japanese, Korean)
+- **Arabic script** (Arabic, Urdu, etc.)
+- **Devanagari** (Hindi, Bengali, etc.)
+
+### 🔧 **Advanced Configuration**
+
+#### **Custom Voice Selection**
+You can browse and select from 400+ voices across 142 languages. To see available voices:
+
+```python
+# Add this to a Python script to list available voices
+import edge_tts
+import asyncio
+
+async def list_voices():
+    voices = await edge_tts.list_voices()
+    for voice in voices:
+        if 'your_language_code' in voice['Locale']:
+            print(f"{voice['ShortName']} - {voice['FriendlyName']}")
+
+asyncio.run(list_voices())
+```
+
+#### **Performance Optimization**
+- **Whisper model size** affects multilingual accuracy:
+  - `tiny`: Fast but limited multilingual support
+  - `base`: Good balance for most languages  
+  - `small`: Better accuracy for non-English languages
+  - `medium/large`: Best multilingual performance
 
 ## Prerequisites
 
@@ -794,7 +953,7 @@ Choose your AI backend and configure accordingly:
    ```python
    class Network:
        LOCAL_IP = socket.gethostbyname(socket.gethostname())  # Auto-detected
-       VRC_PORT = 9000  # Should match VRChat's OSC port
+       VRC_PORT = 9000               # Should match VRChat's OSC port
    ```
 
 ### Step 5: Test Audio Setup
@@ -810,13 +969,48 @@ Choose your AI backend and configure accordingly:
    - Navigate to the `Audio` class and update the device indices:
    ```python
    class Audio:
-       AUDIO_OUTPUT_INDEX = 6  # Replace with your speaker/headphone index
-       AUDIO_INPUT_INDEX = 2   # Replace with your microphone index
+       AUDIO_OUTPUT_INDEX = 6        # Replace with your speaker/headphone index
+       AUDIO_INPUT_INDEX = 2         # Replace with your microphone index
    ```
 
 3. **Test audio functionality:**
    - Test microphone recording and TTS playback by running NOVA
    - Adjust device indices if audio doesn't work properly
+
+### Step 6: Configure Multilingual Support (Optional)
+
+NOVA AI supports 29+ languages out of the box. To optimize for your preferred language:
+
+1. **Choose a multilingual TTS voice:**
+   - Edit `constants.py` and find the `Voice` class
+   - The default voice `en-US-EmmaMultilingualNeural` already supports multiple languages
+   - For better language-specific pronunciation, choose a native voice:
+   ```python
+   class Voice:
+       # Multilingual voices (recommended):
+       VOICE_NAME = "en-US-EmmaMultilingualNeural"    # English + multilingual
+       # VOICE_NAME = "fr-FR-VivienneMultilingualNeural" # French + multilingual
+       # VOICE_NAME = "de-DE-SeraphinaMultilingualNeural" # German + multilingual
+       
+       # Native language voices:
+       # VOICE_NAME = "es-ES-ElviraNeural"           # Spanish
+       # VOICE_NAME = "ja-JP-NanamiNeural"           # Japanese
+       # VOICE_NAME = "ko-KR-HyunsuMultilingualNeural" # Korean
+       # VOICE_NAME = "zh-CN-XiaoyiNeural"           # Chinese
+   ```
+
+2. **Optimize speech recognition for your language:**
+   - For non-English languages, consider using a larger Whisper model:
+   ```python
+   class WhisperSettings:
+       MODEL_SIZE = "small"  # Better for multilingual (was "base")
+       # Options: "tiny", "base", "small", "medium", "large"
+   ```
+
+3. **Language detection is automatic:**
+   - Whisper automatically detects the language you're speaking
+   - No additional configuration needed for language detection
+   - NOVA will respond in the language you use
 
 ## Configuration
 
@@ -846,7 +1040,14 @@ class Audio:
 Customize text-to-speech:
 ```python
 class Voice:
-    VOICE_NAME = "en-US-JennyNeural"  # Microsoft Edge TTS voice
+    VOICE_NAME = "en-US-EmmaMultilingualNeural"  # Default multilingual voice
+    # Other multilingual options:
+    # VOICE_NAME = "es-ES-ElviraNeural"          # Spanish
+    # VOICE_NAME = "fr-FR-VivienneMultilingualNeural" # French
+    # VOICE_NAME = "de-DE-SeraphinaMultilingualNeural" # German
+    # VOICE_NAME = "ja-JP-NanamiNeural"          # Japanese
+    # VOICE_NAME = "ko-KR-HyunsuMultilingualNeural" # Korean
+    # VOICE_NAME = "zh-CN-XiaoyiNeural"          # Chinese
 
 class TTSSettings:
     ENGINE = "edge-tts"           # TTS engine (currently only edge-tts supported)
@@ -858,7 +1059,7 @@ class TTSSettings:
 Adjust AI behavior and performance:
 ```python
 class LanguageModel:
-    MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"  # AI model to use
+    MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct-Turbo"  # AI model to use
     LM_TEMPERATURE = 0.7                      # Creativity (0.0-1.0)
 
 class LLM_API:
@@ -967,8 +1168,8 @@ class FilePaths:
 
 Edit the system prompt files in the `prompts/` folder:
 - `normal_system_prompt.txt` - Default personality and behavior
-- `snapchat_system_prompt.txt` - Alternative casual personality  
-- `additional_system_prompt.txt` - Extra instructions and context
+- `snapchat_system_prompt.txt` - Alternative casual personality mode
+- `additional_system_prompt.txt` - Extra context and instructions  
 - `vision_prompt.txt` - Instructions for the vision system AI model
 
 ### 🎯 Common Configuration Scenarios
@@ -1116,7 +1317,7 @@ pip install -r requirements.txt
 - Try different `VOICE_THRESHOLD` values (lower = more sensitive)
 
 **VRChat API Issues:**
-- Ensure `USING_API = True` in the `VRChatAPI` class if you want API features
+- Ensure `USING_API = True` in `constants.py` if you want API features
 - Verify VRChat credentials are correct in the `.env` file
 - Check if your VRChat account has two-factor authentication enabled
 - Monitor console output for API-specific error messages
@@ -1132,8 +1333,13 @@ pip install -r requirements.txt
 **Resource Monitor Issues:**
 - The resource monitor runs as a separate process
 - If it fails to start, check console output for error messages
-- Verify `customtkinter` and related GUI packages are installed
-- The monitor window should appear automatically on startup
+
+**Multilingual Issues:**
+- **Speech not recognized in your language**: Try using a larger Whisper model (`small`, `medium`, or `large`) in `WhisperSettings.MODEL_SIZE`
+- **TTS voice not working**: Ensure the voice name is correct in `Voice.VOICE_NAME` - run the voice listing script to see available voices
+- **Wrong language detection**: Whisper may detect the wrong language if audio quality is poor - try speaking more clearly or adjusting microphone settings
+- **Mixed language responses**: For better multilingual support, use multilingual TTS voices (ones with "Multilingual" in the name)
+- **Character encoding issues**: Ensure your terminal supports UTF-8 encoding for non-Latin scripts (Chinese, Arabic, etc.)
 
 ### Getting Help
 
