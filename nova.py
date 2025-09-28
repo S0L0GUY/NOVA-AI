@@ -182,9 +182,8 @@ def get_current_model(client: object, vision_manager: object) -> str:
     client. Checks if the model specified by `constant.LanguageModel.MODEL_ID`
     is available in the list of models provided by the `client`. If the
     specified model is not found, it selects the first available model, prints
-    a warning, and switches to it. If no models are available, it prints an
-    error message, performs cleanup using the `vision_manager`, and exits the
-    program.
+    a warning, and switches to it. If no models are available or the API call
+    fails, it falls back to using the configured model directly.
     Args:
         client (object): The OpenAI client instance used to list
         available models.
@@ -197,8 +196,20 @@ def get_current_model(client: object, vision_manager: object) -> str:
         available, and may call `vision_manager.cleanup()`.
     """
 
-    available_models = client.models.list()
-    model_list = [model.id for model in available_models]
+    try:
+        available_models = client.models.list()
+        model_list = [model.id for model in available_models]
+    except Exception as e:
+        # Handle API errors gracefully
+        print(
+            f"\033[93mWarning: Unable to fetch available models from API.\033[0m"
+        )
+        print(f"\033[93mError: {str(e)}\033[0m")
+        print(
+            f"\033[93mFalling back to configured model: "
+            f"\033[33m{constant.LanguageModel.MODEL_ID}\033[0m"
+        )
+        return constant.LanguageModel.MODEL_ID
 
     if constant.LanguageModel.MODEL_ID not in model_list:
         print(
