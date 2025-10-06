@@ -6,7 +6,7 @@ pyttsx3
 sounddevice
 soundfile
 pydub
-whisper
+openai-whisper
 flake8
 edge-tts
 numpy>=2.0.0,<2.2.0

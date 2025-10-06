@@ -11,9 +11,9 @@ class LLM_API:
     LLM API configuration settings.
     """
     # Currently Supported: "openai", "together"
-    API_TYPE = "together"  # Set to "openai" for LM-Studios API
+    API_TYPE = "openai"  # Set to "openai" for LM-Studios API
     # Base URL for LLM API (currently set for local use)
-    BASE_URL = "https://api.together.xyz/v1"
+    BASE_URL = "http://127.0.0.1:1234"
     # API key for LLM API (use "lm-studio" for local)
     API_KEY = os.getenv('LLM_API_KEY')
 
@@ -79,7 +79,7 @@ class LanguageModel:
         LM_TEMPERATURE (float): The temperature parameter for the language
         model's output.
     """
-    MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+    MODEL_ID = "lmstudio-community"
     LM_TEMPERATURE = 0.7
 
 

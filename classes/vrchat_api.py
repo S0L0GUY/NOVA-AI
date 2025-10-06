@@ -37,6 +37,7 @@ class VRChatAPIManager:
         self.friends_cache = set()  # Cache of current friends
         self.last_friends_update = 0
 
+    @staticmethod
     def create_vrchat_api_manager() -> "VRChatAPIManager":
         """
         Initializes the VRChat API if enabled in the configuration.

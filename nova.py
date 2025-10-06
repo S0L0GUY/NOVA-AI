@@ -12,6 +12,7 @@ continuously monitors VRChat without waiting for the AI to stop thinking.
 import datetime
 import re
 import time
+from typing import Iterator
 from openai import OpenAI
 from classes.osc import VRChatOSC
 from classes.edge_tts import TextToSpeechManager
@@ -21,7 +22,21 @@ from classes.json_wrapper import JsonWrapper
 from classes.vision_manager import VisionManager
 from together import Together
 import constants as constant
-import sys
+
+
+def initialize_history() -> list:
+    system_prompt = SystemPrompt.get_full_prompt()
+    now = datetime.datetime.now()
+    history = [
+        {"role": "system", "content": system_prompt},
+        {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
+        {
+            "role": "user",
+            "content": constant.SystemMessages.INITIAL_USER_MESSAGE
+        },
+    ]
+
+    return history
 
 
 def initialize_components() -> tuple:
@@ -52,16 +67,7 @@ def initialize_components() -> tuple:
 
     transcriber = WhisperTranscriber()
 
-    system_prompt = SystemPrompt.get_full_prompt()
-    now = datetime.datetime.now()
-    history = [
-        {"role": "system", "content": system_prompt},
-        {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
-        {
-            "role": "user",
-            "content": constant.SystemMessages.INITIAL_USER_MESSAGE
-        },
-    ]
+    history = initialize_history()
 
     if constant.LLM_API.API_TYPE == "together":
         client = Together(
@@ -103,9 +109,14 @@ def chunk_text(text: str) -> list:
     return chunks
 
 
-def process_completion(completion: iter, osc: object, tts: object) -> str:
+def process_completion(
+    completion: Iterator,
+    osc: VRChatOSC,
+    tts: TextToSpeechManager
+) -> str:
     """
     Processes a streaming completion response, extracts text chunks, and
+    handles output and text-to-speech functionality.
     handles output and text-to-speech functionality.
     Args:
         completion (iter): An iterable object containing streaming completion
@@ -150,7 +161,7 @@ def process_completion(completion: iter, osc: object, tts: object) -> str:
 
 def add_vision_updates_to_history(
         history: list,
-        vision_manager: object
+        vision_manager: VisionManager
         ) -> list:
     """
     Add any new vision updates to the conversation history.
@@ -176,7 +187,7 @@ def add_vision_updates_to_history(
     return history
 
 
-def get_current_model(client: object, vision_manager: object) -> str:
+def get_current_model(client: object, vision_manager: VisionManager) -> str:
     """
     Determines and returns the current language model to use from the OpenAI
     client. Checks if the model specified by `constant.LanguageModel.MODEL_ID`
@@ -195,14 +206,14 @@ def get_current_model(client: object, vision_manager: object) -> str:
         Prints messages to the console, may exit the program if no models are
         available, and may call `vision_manager.cleanup()`.
     """
-
+    """
     try:
         available_models = client.models.list()
         model_list = [model.id for model in available_models]
     except Exception as e:
         # Handle API errors gracefully
         print(
-            f"\033[93mWarning: Unable to fetch available models from API.\033[0m"
+          f"\033[93mWarning: Unable to fetch available models from API.\033[0m"
         )
         print(f"\033[93mError: {str(e)}\033[0m")
         print(
@@ -231,8 +242,9 @@ def get_current_model(client: object, vision_manager: object) -> str:
             sys.exit(1)
     else:
         current_model = constant.LanguageModel.MODEL_ID
+    """
 
-    return current_model
+    return constant.LanguageModel.MODEL_ID
 
 
 def run_main_loop(
@@ -248,6 +260,9 @@ def run_main_loop(
     while True:
         osc.send_message("Thinking")
         osc.set_typing_indicator(True)
+
+        if not history:
+            history = initialize_history()
 
         # Check for vision updates before generating response
         history = add_vision_updates_to_history(history, vision_manager)
@@ -291,7 +306,7 @@ def main() -> None:
     components = initialize_components()
     osc, transcriber, history, client, tts, vision_manager = components
 
-    # Whipe the old history file
+    # Whip the old history file
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
     current_model = get_current_model(client, vision_manager)
