@@ -8,25 +8,21 @@ load_dotenv()
 
 class LLM_API:
     """
-    LLM API configuration settings.
+    LLM API configuration settings for Together AI.
     """
-    # Currently Supported: "openai", "together"
-    API_TYPE = "openai"  # Set to "openai" for LM-Studios API
-    # Base URL for LLM API (currently set for local use)
-    BASE_URL = "http://127.0.0.1:1234"
-    # API key for LLM API (use "lm-studio" for local)
+    # Base URL for Together AI API
+    BASE_URL = "https://api.together.xyz/v1"
+    # API key for Together AI
     API_KEY = os.getenv('LLM_API_KEY')
 
 
 class Vision_API:
     """
-    Vision API configuration settings.
+    Vision API configuration settings for Together AI.
     """
-    # Currently Supported: "openai", "together"
-    API_TYPE = "together"  # Set to "openai" for LM-Studios API
-    # Base URL for Vision API (currently set for local use)
+    # Base URL for Together AI Vision API
     BASE_URL = "https://api.together.xyz/v1"
-    # API key for Vision API (use "lm-studio" for local)
+    # API key for Together AI Vision
     API_KEY = os.getenv('VISION_API_KEY')
 
 
@@ -75,11 +71,11 @@ class LanguageModel:
     of the language model being used.
     Attributes:
         MODEL_ID (str): The identifier for the specific language model being
-        used. Currently set to Meta-Llama 3.1 8B Instruct GGUF model.
+        used. Default is set to Meta-Llama 3.3 70B Instruct Turbo from Together AI.
         LM_TEMPERATURE (float): The temperature parameter for the language
         model's output.
     """
-    MODEL_ID = "lmstudio-community"
+    MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     LM_TEMPERATURE = 0.7
 
 
