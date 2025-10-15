@@ -516,12 +516,10 @@ Together AI is configured as the default API provider in NOVA AI. The configurat
 
 ```python
 class LLM_API:
-    API_TYPE = "together"  # Uses Together AI for text generation
     BASE_URL = "https://api.together.xyz/v1"
     API_KEY = os.getenv('LLM_API_KEY')  # Your Together AI API key
 
 class Vision_API:
-    API_TYPE = "together"  # Uses Together AI for vision tasks
     BASE_URL = "https://api.together.xyz/v1"
     API_KEY = os.getenv('VISION_API_KEY')  # Your Together AI API key
 ```
