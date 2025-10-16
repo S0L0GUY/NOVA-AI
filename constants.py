@@ -71,7 +71,8 @@ class LanguageModel:
     of the language model being used.
     Attributes:
         MODEL_ID (str): The identifier for the specific language model being
-        used. Default is set to Meta-Llama 3.3 70B Instruct Turbo from Together AI.
+        used. Default is set to Meta-Llama 3.3 70B Instruct Turbo from
+        Together AI.
         LM_TEMPERATURE (float): The temperature parameter for the language
         model's output.
     """
@@ -133,8 +134,8 @@ class Audio:
         AUDIO_INPUT_INDEX (int): The device index for audio input,
             configured for VB-Audio Cable A Output
     """
-    AUDIO_OUTPUT_INDEX = 6
-    AUDIO_INPUT_INDEX = 2
+    AUDIO_OUTPUT_INDEX = 9
+    AUDIO_INPUT_INDEX = 4
 
 
 class Voice:
