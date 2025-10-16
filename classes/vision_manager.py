@@ -5,7 +5,6 @@ from classes.vision_system import VisionState, VisionSystem
 from classes.json_wrapper import JsonWrapper
 import constants as constant
 from together import Together
-from openai import OpenAI
 
 
 class VisionManager:
@@ -29,17 +28,11 @@ class VisionManager:
         try:
             VisionManager.clear_vision_history()
 
-            # Create the client for the vision system
-            if constant.Vision_API.API_TYPE == "together":
-                client = Together(
-                    base_url=constant.Vision_API.BASE_URL,
-                    api_key=constant.Vision_API.API_KEY
-                )
-            else:
-                client = OpenAI(
-                    base_url=constant.Vision_API.BASE_URL,
-                    api_key=constant.Vision_API.API_KEY
-                )
+            # Create the Together AI client for the vision system
+            client = Together(
+                base_url=constant.Vision_API.BASE_URL,
+                api_key=constant.Vision_API.API_KEY
+            )
 
             self.vision_system = VisionSystem(client)
             self.vision_thread = threading.Thread(

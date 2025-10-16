@@ -1,7 +1,7 @@
 """
 Main module for running the application logic.
 This module initializes various components such as the VRChat OSC,
-WhisperTranscriber, and OpenAI client. It sends a startup message to
+WhisperTranscriber, and Together AI client. It sends a startup message to
 VRChat, sets up the system prompt and history, and enters a loop to
 continuously process user speech input and generate AI responses.
 
@@ -13,14 +13,13 @@ import datetime
 import re
 import time
 from typing import Iterator
-from openai import OpenAI
+from together import Together
 from classes.osc import VRChatOSC
 from classes.edge_tts import TextToSpeechManager
 from classes.whisper import WhisperTranscriber
 from classes.system_prompt import SystemPrompt
 from classes.json_wrapper import JsonWrapper
 from classes.vision_manager import VisionManager
-from together import Together
 import constants as constant
 
 
@@ -47,7 +46,7 @@ def initialize_components() -> tuple:
     - WhisperTranscriber: Manages audio transcription.
     - System prompt and history: Prepares the initial system prompt and
     conversation history.
-    - OpenAI client: Configures the OpenAI API client for generating responses.
+    - Together AI client: Configures the Together AI API client for generating responses.
     - TextToSpeechManager: Manages text-to-speech functionality.
     Returns:
         tuple: A tuple containing the initialized components in the following
@@ -55,7 +54,7 @@ def initialize_components() -> tuple:
             - osc (VRChatOSC): The OSC communication handler.
             - transcriber (WhisperTranscriber): The audio transcriber.
             - history (list): The initial conversation history.
-            - openai_client (OpenAI): The OpenAI API client.
+            - client (Together): The Together AI API client.
             - tts (TextToSpeechManager): The text-to-speech manager.
             - vision_manager (VisionManager): The vision system manager.
     """
@@ -69,16 +68,10 @@ def initialize_components() -> tuple:
 
     history = initialize_history()
 
-    if constant.LLM_API.API_TYPE == "together":
-        client = Together(
-            base_url=constant.LLM_API.BASE_URL,
-            api_key=constant.LLM_API.API_KEY
-        )
-    else:
-        client = OpenAI(
-            base_url=constant.LLM_API.BASE_URL,
-            api_key=constant.LLM_API.API_KEY
-        )
+    client = Together(
+        base_url=constant.LLM_API.BASE_URL,
+        api_key=constant.LLM_API.API_KEY
+    )
 
     tts = TextToSpeechManager(
         voice=constant.Voice.VOICE_NAME,
@@ -189,59 +182,14 @@ def add_vision_updates_to_history(
 
 def get_current_model(client: object, vision_manager: VisionManager) -> str:
     """
-    Determines and returns the current language model to use from the OpenAI
-    client. Checks if the model specified by `constant.LanguageModel.MODEL_ID`
-    is available in the list of models provided by the `client`. If the
-    specified model is not found, it selects the first available model, prints
-    a warning, and switches to it. If no models are available or the API call
-    fails, it falls back to using the configured model directly.
+    Returns the current language model to use from the Together AI client.
+    
     Args:
-        client (object): The OpenAI client instance used to list
-        available models.
-        vision_manager (object): The vision manager instance used for cleanup
-        if no models are available.
+        client (object): The Together AI client instance.
+        vision_manager (object): The vision manager instance (for cleanup if needed).
+    
     Returns:
-        str: The ID of the selected language model.
-    Side Effects:
-        Prints messages to the console, may exit the program if no models are
-        available, and may call `vision_manager.cleanup()`.
-    """
-    """
-    try:
-        available_models = client.models.list()
-        model_list = [model.id for model in available_models]
-    except Exception as e:
-        # Handle API errors gracefully
-        print(
-          f"\033[93mWarning: Unable to fetch available models from API.\033[0m"
-        )
-        print(f"\033[93mError: {str(e)}\033[0m")
-        print(
-            f"\033[93mFalling back to configured model: "
-            f"\033[33m{constant.LanguageModel.MODEL_ID}\033[0m"
-        )
-        return constant.LanguageModel.MODEL_ID
-
-    if constant.LanguageModel.MODEL_ID not in model_list:
-        print(
-            f"\033[91mModel \033[33m{constant.LanguageModel.MODEL_ID}"
-            f"\033[91m not found.\033[0m"
-        )
-
-        if model_list:
-            current_model = model_list[0]
-            print(
-                (
-                    f"\033[91mAuto Switching LM to: \033[33m{current_model}"
-                    f"\033[91m\033[0m"
-                )
-            )
-        else:
-            print("\033[91mNo models available.\033[0m")
-            vision_manager.cleanup()
-            sys.exit(1)
-    else:
-        current_model = constant.LanguageModel.MODEL_ID
+        str: The ID of the selected language model from constants.
     """
 
     return constant.LanguageModel.MODEL_ID
