@@ -92,7 +92,7 @@ Read the error messages and fix manually. Common issues:
 - Unused imports
 - Undefined variables
 - Syntax errors
-- Lines too long (max 127 chars)
+- Lines too long (over 127 characters)
 
 ### Pylint or MyPy Issues?
 These are usually warnings and won't block your PR. Fix them if possible, but don't worry if they're too complex.
@@ -124,7 +124,7 @@ pip install flake8 pylint black isort mypy coverage pytest pip-audit pydocstyle 
 ## Bypassing Checks (Emergency Only)
 
 If you absolutely need to bypass checks temporarily (not recommended):
-- Add `[skip ci]` to your commit message to skip ALL checks
+- Add `[skip ci]`, `[ci skip]`, `[skip actions]`, or `[actions skip]` to your commit message to skip ALL checks
 - This should only be used for documentation-only changes or emergencies
 
 **Better approach**: Fix the issues or ask for help!
