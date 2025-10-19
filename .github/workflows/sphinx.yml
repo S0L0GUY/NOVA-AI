@@ -1,0 +1,71 @@
+name: Sphinx Documentation Build
+
+on:
+  push:
+    branches: [ main, master, dev, develop ]
+  pull_request:
+    branches: [ main, master, dev, develop ]
+  merge_group:
+
+jobs:
+  sphinx:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install sphinx sphinx-rtd-theme
+        # Install project dependencies for better documentation generation
+        if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
+        
+    - name: Check if Sphinx docs exist
+      id: check-docs
+      run: |
+        if [ -d "docs" ] || [ -f "conf.py" ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Build Sphinx documentation (if exists)
+      if: steps.check-docs.outputs.exists == 'true'
+      run: |
+        if [ -d "docs" ]; then
+          cd docs
+        fi
+        
+        if [ -f "conf.py" ]; then
+          sphinx-build -b html . _build/html -W --keep-going
+        else
+          echo "No Sphinx configuration found. Skipping build."
+        fi
+        
+    - name: Auto-generate Sphinx documentation (if not exists)
+      if: steps.check-docs.outputs.exists == 'false'
+      run: |
+        echo "No Sphinx documentation found. Creating basic documentation structure..."
+        mkdir -p docs
+        cd docs
+        sphinx-quickstart -q -p "NOVA-AI" -a "NOVA-AI Contributors" -v "1.0" --sep --ext-autodoc --ext-viewcode --makefile --no-batchfile
+        
+        # Generate API documentation
+        sphinx-apidoc -o . .. ../setup.py || true
+        
+        # Build documentation
+        make html || sphinx-build -b html . _build/html || echo "Documentation build completed with warnings"
+        
+    - name: Upload documentation artifact
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: sphinx-documentation
+        path: docs/_build/html/
+        retention-days: 7

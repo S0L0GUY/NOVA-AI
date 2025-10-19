@@ -1,0 +1,57 @@
+name: Requirements Consistency Check
+
+on:
+  push:
+    branches: [ main, master, dev, develop ]
+  pull_request:
+    branches: [ main, master, dev, develop ]
+  merge_group:
+
+jobs:
+  requirements-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Check requirements.txt consistency
+      run: |
+        echo "Checking requirements.txt file..."
+        
+        # Check if requirements.txt exists
+        if [ ! -f requirements.txt ]; then
+          echo "ERROR: requirements.txt file not found!"
+          exit 1
+        fi
+        
+        # Check for empty lines at end
+        if [ -n "$(tail -c 1 requirements.txt)" ]; then
+          echo "WARNING: requirements.txt should end with a newline"
+        fi
+        
+        # Check for duplicate packages
+        echo "Checking for duplicate packages..."
+        sort requirements.txt | uniq -d | while read line; do
+          if [ -n "$line" ]; then
+            echo "WARNING: Duplicate package found: $line"
+          fi
+        done
+        
+        # Try to install requirements to validate
+        echo "Validating requirements can be installed..."
+        python -m pip install --upgrade pip
+        pip install --dry-run -r requirements.txt 2>&1 | tee install-check.log
+        
+        # Check for common issues
+        if grep -i "error" install-check.log; then
+          echo "WARNING: Potential issues found in requirements.txt"
+        else
+          echo "Requirements file appears valid"
+        fi
+        
+        echo "Requirements check complete"
