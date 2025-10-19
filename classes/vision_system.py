@@ -7,7 +7,6 @@ from io import BytesIO
 from PIL import Image, ImageGrab
 from together import Together
 import win32gui
-from openai import OpenAI
 import constants as constant
 
 
@@ -273,16 +272,10 @@ class VisionSystem:
 def run_vision_subprocess():
     """Entry point for running vision system as a subprocess."""
 
-    if constant.Vision_API.API_TYPE == "together":
-        client = Together(
-            base_url=constant.Vision_API.BASE_URL,
-            api_key=constant.Vision_API.API_KEY
-        )
-    else:
-        client = OpenAI(
-            base_url=constant.Vision_API.BASE_URL,
-            api_key=constant.Vision_API.API_KEY
-        )
+    client = Together(
+        base_url=constant.Vision_API.BASE_URL,
+        api_key=constant.Vision_API.API_KEY
+    )
 
     vision_system = VisionSystem(client)
     try:
