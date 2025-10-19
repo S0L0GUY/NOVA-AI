@@ -105,17 +105,11 @@ class TextToSpeechManager:
         """
 
         logging.info(f"Generating audio for: {text}")
-        with tempfile.NamedTemporaryFile(
-            delete=False,
-            suffix=".wav"
-        ) as tmp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
             output_file = tmp_file.name
 
         try:
-            communicate = edge_tts.Communicate(
-                text=text,
-                voice=self.voice
-            )
+            communicate = edge_tts.Communicate(text=text, voice=self.voice)
             asyncio.run(communicate.save(output_file))
             self.audio_queue.put((text, output_file))
             logging.info(f"Audio generated for: {text}")
@@ -195,6 +189,4 @@ class TextToSpeechManager:
                   and no audio is currently playing. False otherwise.
         """
 
-        return (
-            self.tts_queue.empty() and self.audio_queue.empty() and not self.is_playing
-        )
+        return self.tts_queue.empty() and self.audio_queue.empty() and not self.is_playing

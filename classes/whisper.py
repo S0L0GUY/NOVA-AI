@@ -93,9 +93,7 @@ class WhisperTranscriber:
                 latency="low",
             ) as stream:
                 while True:
-                    data, overflowed = stream.read(
-                        int(sample_rate * frame_duration / 1000)
-                    )
+                    data, overflowed = stream.read(int(sample_rate * frame_duration / 1000))
                     if overflowed:
                         print("\033[38;5;55mAudio buffer overflowed\033[0m")
 
@@ -104,9 +102,7 @@ class WhisperTranscriber:
                     is_speech = self.vad.is_speech(audio_data, sample_rate)
                     if not triggered:
                         ring_buffer.append((data.tobytes(), is_speech))
-                        num_voiced = len(
-                            [frame for frame, speech in ring_buffer if speech]
-                        )
+                        num_voiced = len([frame for frame, speech in ring_buffer if speech])
 
                         if num_voiced > threshold * num_padding_frames:
                             triggered = True
@@ -115,17 +111,13 @@ class WhisperTranscriber:
                     else:
                         voiced_frames.append(data.tobytes())
                         ring_buffer.append((data.tobytes(), is_speech))
-                        num_unvoiced = len(
-                            [f for f, speech in ring_buffer if not speech]
-                        )
+                        num_unvoiced = len([f for f, speech in ring_buffer if not speech])
                         if num_unvoiced > threshold * num_padding_frames:
                             break  # End of speech
                     max_dur = constant.WhisperSettings.MAX_RECORDING_DURATION
                     max_frames = sample_rate * max_dur
-                    if len(voiced_frames) > max_frames:
-                        print(
-                            ("\033[38;5;55mMax recording duration reached." "\033[0m")
-                        )
+                        if len(voiced_frames) > max_frames:
+                        print(("\033[38;5;55mMax recording duration reached." "\033[0m"))
                         break
 
         except Exception as e:
@@ -137,9 +129,7 @@ class WhisperTranscriber:
             return None
 
         audio_data = b"".join(voiced_frames)
-        audio_array = (
-            np.frombuffer(audio_data, dtype="int16").astype(np.float32) / 32768.0
-        )
+        audio_array = np.frombuffer(audio_data, dtype="int16").astype(np.float32) / 32768.0
 
         print("\033[38;5;55mTranscribing voice input...\033[0m")
         try:

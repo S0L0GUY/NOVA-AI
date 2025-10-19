@@ -63,10 +63,7 @@ class VRChatAPIManager:
 
                 vrchat_api.start_periodic_checks()
             else:
-                print(
-                    "\033[91mVRChat API initialization failed, continuing "
-                    "without API features\033[0m"
-                )
+                print("\033[91mVRChat API initialization failed, continuing " "without API features\033[0m")
 
                 vrchat_api = None
         else:

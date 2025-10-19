@@ -32,21 +32,14 @@ class VisionManager:
             )
 
             self.vision_system = VisionSystem(client)
-            self.vision_thread = threading.Thread(
-                target=self.vision_system.run_vision_loop, daemon=True
-            )
+            self.vision_thread = threading.Thread(target=self.vision_system.run_vision_loop, daemon=True)
             self.vision_thread.start()
             self.is_running = True
 
-            print(
-                "\033[96m[VISION]\033[0m \033[94mVision system started "
-                "asynchronously\033[0m"
-            )
+            print("\033[96m[VISION]\033[0m \033[94mVision system started " "asynchronously\033[0m")
 
         except Exception as e:
-            print(
-                f"\033[91m[VISION ERROR]\033[0m " f"Error starting vision system: {e}"
-            )
+            print(f"\033[91m[VISION ERROR]\033[0m " f"Error starting vision system: {e}")
 
     def stop_vision_system(self):
         """Stop the vision system thread."""
@@ -58,10 +51,7 @@ class VisionManager:
                 self.is_running = False
                 print("\033[96m[VISION]\033[0m \033[94mVision system " "stopped\033[0m")
             except Exception as e:
-                print(
-                    f"\033[91m[VISION ERROR]\033[0m "
-                    f"Error stopping vision system: {e}"
-                )
+                print(f"\033[91m[VISION ERROR]\033[0m " f"Error stopping vision system: {e}")
             finally:
                 self.vision_system = None
                 self.vision_thread = None
@@ -76,9 +66,7 @@ class VisionManager:
             self.last_update_check = time.time()
             return updates
         except Exception as e:
-            print(
-                f"\033[91m[VISION ERROR]\033[0m " f"Error getting vision updates: {e}"
-            )
+            print(f"\033[91m[VISION ERROR]\033[0m " f"Error getting vision updates: {e}")
             return []
 
     @staticmethod
@@ -98,9 +86,7 @@ class VisionManager:
             print("\033[96m[VISION]\033[0m \033[94mVision history " "cleared\033[0m")
 
         except Exception as e:
-            print(
-                f"\033[91m[VISION ERROR]\033[0m " f"Error clearing vision history: {e}"
-            )
+            print(f"\033[91m[VISION ERROR]\033[0m " f"Error clearing vision history: {e}")
 
     def cleanup(self):
         """Clean up resources."""

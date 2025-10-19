@@ -65,9 +65,7 @@ def initialize_components() -> tuple:
 
     history = initialize_history()
 
-    client = Together(
-        base_url=constant.LLM_API.BASE_URL, api_key=constant.LLM_API.API_KEY
-    )
+    client = Together(base_url=constant.LLM_API.BASE_URL, api_key=constant.LLM_API.API_KEY)
 
     tts = TextToSpeechManager(
         voice=constant.Voice.VOICE_NAME,
@@ -98,9 +96,7 @@ def chunk_text(text: str) -> list:
     return chunks
 
 
-def process_completion(
-    completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager
-) -> str:
+def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager) -> str:
     """
     Processes a streaming completion response, extracts text chunks, and
     handles output and text-to-speech functionality.
@@ -183,9 +179,7 @@ def get_current_model(client: object, vision_manager: VisionManager) -> str:
     return constant.LanguageModel.MODEL_ID
 
 
-def run_main_loop(
-    osc, history, vision_manager, client, tts, current_model, transcriber
-) -> None:
+def run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber) -> None:
 
     while True:
         osc.send_message("Thinking")

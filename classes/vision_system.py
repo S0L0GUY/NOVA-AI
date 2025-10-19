@@ -70,9 +70,7 @@ class VisionState:
             with open(self.vision_log_file, "r") as f:
                 log = json.load(f)
 
-            new_updates = [
-                entry["update"] for entry in log if entry["timestamp"] > last_read_time
-            ]
+            new_updates = [entry["update"] for entry in log if entry["timestamp"] > last_read_time]
 
             return new_updates
 
@@ -154,13 +152,7 @@ class VisionAnalyzer:
                             "role": "user",
                             "content": [
                                 {"type": "text", "text": self._get_vision_prompt()},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:image/jpeg;base64,"
-                                        f"{base64_image}"
-                                    },
-                                },
+                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64," f"{base64_image}"}},
                             ],
                         }
                     ],
@@ -168,10 +160,7 @@ class VisionAnalyzer:
                     temperature=constant.VisionSystem.VISION_TEMPERATURE,
                 )
             except Exception as vision_error:
-                print(
-                    f"\033[91m[VISION ERROR]\033[0m "
-                    f"Vision model not available: {vision_error}"
-                )
+                print(f"\033[91m[VISION ERROR]\033[0m " f"Vision model not available: {vision_error}")
                 # Fallback to simple text-based response
                 return "Vision: Looking around the VRChat world"
 
@@ -184,18 +173,13 @@ class VisionAnalyzer:
     def _get_vision_prompt(self) -> str:
         """Get the vision analysis prompt."""
         try:
-            with open(
-                constant.VisionSystem.VISION_PROMPT_PATH, "r", encoding="utf-8"
-            ) as f:
+            with open(constant.VisionSystem.VISION_PROMPT_PATH, "r", encoding="utf-8") as f:
                 return f.read().strip()
         except Exception as e:
             print(f"\033[91m[VISION ERROR]\033[0m " f"Error reading vision prompt: {e}")
 
             # Fallback prompt if file can't be read
-            return (
-                "You are Nova's vision system. Look at this VRChat "
-                "screenshot and report what you see concisely."
-            )
+            return "You are Nova's vision system. Look at this VRChat " "screenshot and report what you see concisely."
 
 
 class VisionSystem:
@@ -238,10 +222,7 @@ class VisionSystem:
     def run_vision_loop(self):
         """Main vision system loop - runs continuously and asynchronously."""
         self.running = True
-        print(
-            "\033[96m[VISION]\033[0m \033[94mStarting continuous vision "
-            "monitoring...\033[0m"
-        )
+        print("\033[96m[VISION]\033[0m \033[94mStarting continuous vision " "monitoring...\033[0m")
 
         while self.running:
             try:
@@ -265,9 +246,7 @@ class VisionSystem:
 def run_vision_subprocess():
     """Entry point for running vision system as a subprocess."""
 
-    client = Together(
-        base_url=constant.Vision_API.BASE_URL, api_key=constant.Vision_API.API_KEY
-    )
+    client = Together(base_url=constant.Vision_API.BASE_URL, api_key=constant.Vision_API.API_KEY)
 
     vision_system = VisionSystem(client)
     try:

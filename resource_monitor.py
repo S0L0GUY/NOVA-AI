@@ -29,19 +29,11 @@ class SystemMonitor(ctk.CTk):
         # Frames for each stat
         self.cpu_label = self.create_stat_frame("CPU Usage", ResourceMonitor.CPU_COLOR)
         self.ram_label = self.create_stat_frame("RAM Usage", ResourceMonitor.RAM_COLOR)
-        self.disk_label = self.create_stat_frame(
-            "Disk Usage", ResourceMonitor.DISK_COLOR
-        )
+        self.disk_label = self.create_stat_frame("Disk Usage", ResourceMonitor.DISK_COLOR)
         self.gpu_label = self.create_stat_frame("GPU Load", ResourceMonitor.GPU_COLOR)
-        self.gpu_mem_label = self.create_stat_frame(
-            "GPU Memory", ResourceMonitor.GPU_MEM_COLOR
-        )
-        self.net_label = self.create_stat_frame(
-            "Network Usage", ResourceMonitor.NETWORK_COLOR
-        )
-        self.uptime_label = self.create_stat_frame(
-            "Program Uptime", ResourceMonitor.UPTIME_COLOR
-        )
+        self.gpu_mem_label = self.create_stat_frame("GPU Memory", ResourceMonitor.GPU_MEM_COLOR)
+        self.net_label = self.create_stat_frame("Network Usage", ResourceMonitor.NETWORK_COLOR)
+        self.uptime_label = self.create_stat_frame("Program Uptime", ResourceMonitor.UPTIME_COLOR)
 
         self.update_stats()
 
@@ -56,16 +48,12 @@ class SystemMonitor(ctk.CTk):
             text.
         """
 
-        frame = ctk.CTkFrame(
-            self, corner_radius=15, border_width=2, border_color=border_color
-        )
+        frame = ctk.CTkFrame(self, corner_radius=15, border_width=2, border_color=border_color)
         frame.pack(pady=10, padx=20, fill="x")
 
         title_label = ctk.CTkLabel(frame, text=label_text, font=("Segoe UI", 18))
         title_label.pack(pady=(10, 5))
-        value_label = ctk.CTkLabel(
-            frame, text="Loading...", font=("Segoe UI", 24, "bold")
-        )
+        value_label = ctk.CTkLabel(frame, text="Loading...", font=("Segoe UI", 24, "bold"))
         value_label.pack(pady=(0, 10))
 
         return value_label
