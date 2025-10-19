@@ -3,12 +3,13 @@ import pyaudio
 # optional color support on Windows via colorama; falls back to ANSI codes
 try:
     from colorama import init, Fore, Style
+
     init()
     HIGHLIGHT = Fore.YELLOW + Style.BRIGHT
     RESET = Style.RESET_ALL
 except Exception:
-    HIGHLIGHT = '\033[93m'  # ANSI bright yellow
-    RESET = '\033[0m'
+    HIGHLIGHT = "\033[93m"  # ANSI bright yellow
+    RESET = "\033[0m"
 
 
 def list_audio_devices() -> None:

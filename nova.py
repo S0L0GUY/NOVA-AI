@@ -29,10 +29,7 @@ def initialize_history() -> list:
     history = [
         {"role": "system", "content": system_prompt},
         {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
-        {
-            "role": "user",
-            "content": constant.SystemMessages.INITIAL_USER_MESSAGE
-        },
+        {"role": "user", "content": constant.SystemMessages.INITIAL_USER_MESSAGE},
     ]
 
     return history
@@ -69,8 +66,7 @@ def initialize_components() -> tuple:
     history = initialize_history()
 
     client = Together(
-        base_url=constant.LLM_API.BASE_URL,
-        api_key=constant.LLM_API.API_KEY
+        base_url=constant.LLM_API.BASE_URL, api_key=constant.LLM_API.API_KEY
     )
 
     tts = TextToSpeechManager(
@@ -103,9 +99,7 @@ def chunk_text(text: str) -> list:
 
 
 def process_completion(
-    completion: Iterator,
-    osc: VRChatOSC,
-    tts: TextToSpeechManager
+    completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager
 ) -> str:
     """
     Processes a streaming completion response, extracts text chunks, and
@@ -152,10 +146,7 @@ def process_completion(
     return full_response
 
 
-def add_vision_updates_to_history(
-        history: list,
-        vision_manager: VisionManager
-        ) -> list:
+def add_vision_updates_to_history(history: list, vision_manager: VisionManager) -> list:
     """
     Add any new vision updates to the conversation history.
 
@@ -169,10 +160,7 @@ def add_vision_updates_to_history(
     vision_updates = vision_manager.get_new_vision_updates()
 
     for update in vision_updates:
-        vision_message = {
-            "role": "system",
-            "content": update
-        }
+        vision_message = {"role": "system", "content": update}
         history.append(vision_message)
 
         print(f"\033[96m[VISION]\033[0m \033[94m{update}\033[0m")
@@ -183,11 +171,11 @@ def add_vision_updates_to_history(
 def get_current_model(client: object, vision_manager: VisionManager) -> str:
     """
     Returns the current language model to use from the Together AI client.
-    
+
     Args:
         client (object): The Together AI client instance.
         vision_manager (object): The vision manager instance (for cleanup if needed).
-    
+
     Returns:
         str: The ID of the selected language model from constants.
     """
@@ -196,14 +184,8 @@ def get_current_model(client: object, vision_manager: VisionManager) -> str:
 
 
 def run_main_loop(
-        osc,
-        history,
-        vision_manager,
-        client,
-        tts,
-        current_model,
-        transcriber
-        ) -> None:
+    osc, history, vision_manager, client, tts, current_model, transcriber
+) -> None:
 
     while True:
         osc.send_message("Thinking")
@@ -259,15 +241,7 @@ def main() -> None:
 
     current_model = get_current_model(client, vision_manager)
 
-    run_main_loop(
-        osc,
-        history,
-        vision_manager,
-        client,
-        tts,
-        current_model,
-        transcriber
-    )
+    run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber)
 
 
 if __name__ == "__main__":

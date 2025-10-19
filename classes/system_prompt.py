@@ -16,15 +16,19 @@ class SystemPrompt:
             file names and the values are the corresponding file paths.
         """
 
-        prompt_directory = 'prompts'
+        prompt_directory = "prompts"
         prompt_files = os.listdir(prompt_directory)
         prompt_dict = {}
 
         for file_name in prompt_files:
             if os.path.isfile(os.path.join(prompt_directory, file_name)):
-                first_word = file_name.split('_')[0]
-                prompt_path = os.path.join(prompt_directory, file_name)\
-                    .replace('\\', '/')
+                first_word = file_name.split("_")[0]
+                prompt_path = os.path.join(
+                    prompt_directory,
+                    file_name
+                ).replace(
+                    "\\", "/"
+                )
                 prompt_dict[first_word] = prompt_path
 
         return prompt_dict
@@ -45,7 +49,7 @@ class SystemPrompt:
         """
 
         with open(
-            constant.FilePaths.NORMAL_SYSTEM_PROMPT_PATH, 'r', encoding='utf-8'
+            constant.FilePaths.NORMAL_SYSTEM_PROMPT_PATH, "r", encoding="utf-8"
         ) as mood_file:
             normal_prompt = mood_file.read()
 

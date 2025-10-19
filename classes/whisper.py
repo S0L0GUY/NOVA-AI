@@ -110,9 +110,7 @@ class WhisperTranscriber:
 
                         if num_voiced > threshold * num_padding_frames:
                             triggered = True
-                            voiced_frames.extend(
-                                [frame for frame, _ in ring_buffer]
-                            )
+                            voiced_frames.extend([frame for frame, _ in ring_buffer])
                             ring_buffer.clear()
                     else:
                         voiced_frames.append(data.tobytes())
@@ -126,10 +124,7 @@ class WhisperTranscriber:
                     max_frames = sample_rate * max_dur
                     if len(voiced_frames) > max_frames:
                         print(
-                            (
-                                "\033[38;5;55mMax recording duration reached."
-                                "\033[0m"
-                            )
+                            ("\033[38;5;55mMax recording duration reached." "\033[0m")
                         )
                         break
 
@@ -143,15 +138,12 @@ class WhisperTranscriber:
 
         audio_data = b"".join(voiced_frames)
         audio_array = (
-            np.frombuffer(audio_data, dtype="int16")
-              .astype(np.float32) / 32768.0
+            np.frombuffer(audio_data, dtype="int16").astype(np.float32) / 32768.0
         )
 
         print("\033[38;5;55mTranscribing voice input...\033[0m")
         try:
-            result = self.model.transcribe(
-                audio_array, fp16=torch.cuda.is_available()
-            )
+            result = self.model.transcribe(audio_array, fp16=torch.cuda.is_available())
             text = result["text"].strip()
             return text
         except Exception as e:

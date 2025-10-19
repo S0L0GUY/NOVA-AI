@@ -6,8 +6,7 @@ time.sleep(constant.NovaPlacement.INITIAL_DELAY)
 
 # Set up OSC
 osc_client = udp_client.SimpleUDPClient(
-    constant.Network.LOCAL_IP,
-    constant.Network.VRC_PORT
+    constant.Network.LOCAL_IP, constant.Network.VRC_PORT
 )
 osc_client.send_message("/chatbox/input", ["Positioning...", True])
 

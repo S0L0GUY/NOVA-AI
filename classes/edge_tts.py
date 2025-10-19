@@ -13,12 +13,13 @@ import constants as constant
 
 
 class TextToSpeechManager:
-    def __init__(self,
-                 voice_engine=constant.TTSSettings.ENGINE,
-                 voice=None,
-                 device_index=None,
-                 VRChatOSC=None
-                 ) -> None:
+    def __init__(
+        self,
+        voice_engine=constant.TTSSettings.ENGINE,
+        voice=None,
+        device_index=None,
+        VRChatOSC=None,
+    ) -> None:
 
         self.voice_engine = voice_engine
         self.voice = voice
@@ -105,12 +106,16 @@ class TextToSpeechManager:
 
         logging.info(f"Generating audio for: {text}")
         with tempfile.NamedTemporaryFile(
-            delete=False, suffix='.wav'
+            delete=False,
+            suffix=".wav"
         ) as tmp_file:
             output_file = tmp_file.name
 
         try:
-            communicate = edge_tts.Communicate(text=text, voice=self.voice)
+            communicate = edge_tts.Communicate(
+                text=text,
+                voice=self.voice
+            )
             asyncio.run(communicate.save(output_file))
             self.audio_queue.put((text, output_file))
             logging.info(f"Audio generated for: {text}")
@@ -167,10 +172,10 @@ class TextToSpeechManager:
         """
 
         try:
-            if filepath.endswith('.wav'):
+            if filepath.endswith(".wav"):
                 data, samplerate = sf.read(filepath)
-            elif filepath.endswith('.mp3'):
-                audio = AudioSegment.from_file(filepath, format='mp3')
+            elif filepath.endswith(".mp3"):
+                audio = AudioSegment.from_file(filepath, format="mp3")
                 samples = audio.get_array_of_samples()
                 data = np.array(samples).astype(np.float32) / 2**15
                 samplerate = audio.frame_rate
@@ -191,7 +196,5 @@ class TextToSpeechManager:
         """
 
         return (
-            self.tts_queue.empty() and
-            self.audio_queue.empty() and
-            not self.is_playing
+            self.tts_queue.empty() and self.audio_queue.empty() and not self.is_playing
         )
