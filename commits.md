@@ -1,5 +1,110 @@
 # Commit History
 
+- **Commit:** [9b3ec1f](https://github.com/S0L0GUY/NOVA-AI/commit/9b3ec1f2981c1c7016894d8141770863ec9d648b)
+  **Author:** Copilot
+  **Message:** Refactor to use only Together AI, remove OpenAI and LMStudio support (#62)
+
+* Initial plan
+
+* Remove OpenAI and LMStudio references, use only Together API
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+* Update README.md to remove OpenAI and LMStudio references
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+* Remove API_TYPE references from README code examples
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+* Update .gitignore to exclude __pycache__ directories
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+* Enhance audio device listing with highlighting for VB-Audio CABLE names and update audio device indices
+
+---------
+
+Co-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+Co-authored-by: Evan Grinnell <worldevan8@gmail.com>
+
+- **Commit:** [972ac7b](https://github.com/S0L0GUY/NOVA-AI/commit/972ac7b43af12e0aaf149ec3480ee19bc182731e)
+  **Author:** Evan Grinnell
+  **Message:** Update LLM API config and add smoke test script
+
+Changed LLM API settings in constants.py to use local OpenAI API and updated model ID. Refactored nova.py for improved initialization and type hints. Added smoke_test.py for basic startup validation. Updated requirements.txt to use openai-whisper. Minor fixes in main.py and vrchat_api.py.
+
+- **Commit:** [06ecdca](https://github.com/S0L0GUY/NOVA-AI/commit/06ecdca4dba20a4374b54c65c0788fc4a021cf30)
+  **Author:** Copilot
+  **Message:** Fix Auto LLM Chooser crash on API connection failures (#60)
+
+* Initial plan
+
+* Initial analysis: Auto LLM Choser error identified
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+* Fix Auto LLM Chooser error - add graceful error handling
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+---------
+
+Co-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+- **Commit:** [7044aaa](https://github.com/S0L0GUY/NOVA-AI/commit/7044aaae2331c63857a42ab210506b743c5236fd)
+  **Author:** Evan Grinnell
+  **Message:** Enhance README with detailed multilingual support section and language options (#57)
+
+- **Commit:** [3a70bd9](https://github.com/S0L0GUY/NOVA-AI/commit/3a70bd9624055135109a70712aa898ab5c6f7745)
+  **Author:** Evan Grinnell
+  **Message:** Added Multilingual Support (#55)
+
+* Added Multilingual Support
+
+Added support for 28 different languages based on the capabilities of `Llama 3.3 70B Instruct Turbo` and `en-US-EmmaMultilingualNeural`. I then tested each language and she spoke each with minimal failure and was able to clearly speak each language.
+
+* Update prompts/normal_system_prompt.txt
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Update prompts/normal_system_prompt.txt
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Updated System Prompt
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+- **Commit:** [83716f1](https://github.com/S0L0GUY/NOVA-AI/commit/83716f1f89ae1cc9c417573d80fbe254c32891a9)
+  **Author:** Evan Grinnell
+  **Message:** Removed Unended Files and Updated System Prompt
+
+- **Commit:** [d9205b6](https://github.com/S0L0GUY/NOVA-AI/commit/d9205b61cdc5215098b6cc70bf3152eb72428058)
+  **Author:** Evan Grinnell
+  **Message:** Add Together AI integration and update documentation (#53)
+
+Introduces first-class support for Together AI as a language and vision model provider, making it the default API in the project. Updates the README with configuration instructions, usage tips, and troubleshooting for Together AI, OpenAI, and LM Studio. Adds the 'together' package to requirements.txt and refactors documentation to use generic LLM_API and Vision_API classes for easier provider switching.
+
+- **Commit:** [fe99c8c](https://github.com/S0L0GUY/NOVA-AI/commit/fe99c8c399a3fa06df62f93a94eae2e87fc387bd)
+  **Author:** Evan Grinnell
+  **Message:** Refactor API config and client selection for LLM and Vision (#51)
+
+Replaces OpenAI-specific API key and config with generalized LLM_API and Vision_API classes in constants.py, supporting both OpenAI and Together APIs. Updates .env.example to use new environment variable names. Refactors client instantiation in nova.py, vision_manager.py, and vision_system.py to dynamically select the appropriate client based on configuration. Cleans up and consolidates configuration classes in constants.py.
+
+- **Commit:** [964462e](https://github.com/S0L0GUY/NOVA-AI/commit/964462e488fbab662270d2308d328e049579475e)
+  **Author:** Evan Grinnell
+  **Message:** Fixed Terminal Human History
+
+- **Commit:** [6b3d1a6](https://github.com/S0L0GUY/NOVA-AI/commit/6b3d1a679d9c3ffcaaa6221d3a40ab3ed713b7a3)
+  **Author:** Evan Grinnell
+  **Message:** Update commits.md
+
 - **Commit:** [e358828](https://github.com/S0L0GUY/NOVA-AI/commit/e35882891f774b6eaa070235c69af12a89f95a6f)
   **Author:** Evan Grinnell
   **Message:** Update constants.py
@@ -197,145 +302,4 @@ Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
 - **Commit:** [147c79a](https://github.com/S0L0GUY/NOVA-AI/commit/147c79a92b2c30c0f6cecb14983d2f81828d6248)
   **Author:** Evan Grinnell
   **Message:** Updated TTS to EdgeTTS
-
-- **Commit:** [a787e92](https://github.com/S0L0GUY/NOVA-AI/commit/a787e9218b87f26106c4e1438518b681b1318c9d)
-  **Author:** Evan Grinnell
-  **Message:** Refactor WhisperTranscriber class; update audio input index and improve silence detection
-
-- **Commit:** [d812229](https://github.com/S0L0GUY/NOVA-AI/commit/d812229ae79940acbcd2e658371c86115c21d2fc)
-  **Author:** Evan Grinnell
-  **Message:** Refactor requirements and update network configurations; suppress warnings in main.py
-
-- **Commit:** [ce73fcd](https://github.com/S0L0GUY/NOVA-AI/commit/ce73fcddc09b8f3496df4af744dacde6f84122dc)
-  **Author:** Evan Grinnell
-  **Message:** Created a Vertual Envionment
-
-- **Commit:** [17bdb6e](https://github.com/S0L0GUY/NOVA-AI/commit/17bdb6e2cfb8c07c12b270799ec8a34f61d6c348)
-  **Author:** Evan Grinnell
-  **Message:** 29 update constants format (#30)
-
-* Refactor constants into classes for better organization and clarity
-
-* Fix method signature in JsonWrapper and update error handling in HTTP server
-
-* Refactor constants into classes for better organization and clarity
-
-* Fix method signature in JsonWrapper and update error handling in HTTP server
-
-* Enhance documentation and improve code readability across multiple modules
-
-* Remove redundant methods and comments from VRChatOSC class for improved clarity
-
-* Refactor WhisperTranscriber initialization and silence duration; update constant references in main and add static methods to configuration classes
-
-* Refactor constant references to improve code organization and readability across multiple modules
-
-- **Commit:** [ce3bde3](https://github.com/S0L0GUY/NOVA-AI/commit/ce3bde31a7a69c49f34355c960ded541d5bb4729)
-  **Author:** Evan Grinnell
-  **Message:** 31 add pylance cli check (#32)
-
-* Enhance documentation and improve code readability across multiple modules
-
-* Reorder import statements for consistency and clarity
-
-* Enhance Python linting workflow to include score evaluation and exit status based on pylint results
-
-- **Commit:** [4910f94](https://github.com/S0L0GUY/NOVA-AI/commit/4910f942b7b713bb7ccc5975befda0b70d3a99f5)
-  **Author:** Evan Grinnell
-  **Message:** Update audio settings and add voice selection in TTS function (#25)
-
-- **Commit:** [ae2d905](https://github.com/S0L0GUY/NOVA-AI/commit/ae2d9050ccad051f1a1e655a071bafbc2e10ee50)
-  **Author:** Evan Grinnell
-  **Message:** Fix Audio Playback Issues (#17)
-
-* Fix Audio Playback Issues
-
-Fixes #16
-
-Update `play_audio` function to maintain original channel configuration.
-
-* Change `play_audio` function in `nova.py` to read the audio file with `always_2d=False`.
-* Update `play_tts` function to use the updated `play_audio` function.
-
----
-
-For more details, open the [Copilot Workspace session](https://copilot-workspace.githubnext.com/S0L0GUY/NOVA-AI/issues/16?shareId=XXXX-XXXX-XXXX-XXXX).
-
-* Update audio settings and enhance device listing
-
-* Format output for audio device listing to improve readability
-
-- **Commit:** [89b773f](https://github.com/S0L0GUY/NOVA-AI/commit/89b773f71980d186a4eec93dd7bb5204ee7f08b9)
-  **Author:** Evan Grinnell
-  **Message:** Added Re-Factoring Form (#24)
-
-- **Commit:** [580db32](https://github.com/S0L0GUY/NOVA-AI/commit/580db32ef64d756a70b50786cad77206fa84dd01)
-  **Author:** Evan Grinnell
-  **Message:** Update commits.md
-
-:yippie:
-
-- **Commit:** [72f70e0](https://github.com/S0L0GUY/NOVA-AI/commit/72f70e079664b5792c6d59e3010bbe033ed00790)
-  **Author:** Evan Grinnell
-  **Message:** 11 delete and re code nova (#14)
-
-* Got Started on Re-Coding Nova
-
-* Finished Creating Basic Code (Needs to be Tested)
-
-* Imported Bad Words
-
-Co-Authored-By: DuckSong510 <179771719+DuckSong510@users.noreply.github.com>
-
-* Updated Goals
-
-* Updated README.md
-
-* Updated Constants
-
-* Fixed Issues in Code
-
-* Added Ability to Get Recent Commits
-
-* Updated TTS Command
-
-* Updated OSC and TTS
-
-TTS still does not work, but OSC does.
-
-* Made attempts toward making tts work
-
-* audio output still does not work -_-
-
-* Flake8
-
-Formatted code to flake 8 specifications.
-
-* Removed Cross Class Contamination
-
-'system_prompt.py' was trying to use 'JsonWrapper' and the program did not like that.
-
-* Added 'Start Xvfb' to 'python-lint.yml'
-
-* Update python-lint.yml
-
-* Spelling Errors.
-
-Updated a spelling error.
-
-* Update requirements.txt
-
-* Update python-lint.yml
-
-Lessoned the rules.
-
-* Update python-lint.yml
-
-* Removed 'pylint'
-
-pylint makes me so sad
-
----------
-
-Co-authored-by: DuckSong510 <179771719+DuckSong510@users.noreply.github.com>
 
