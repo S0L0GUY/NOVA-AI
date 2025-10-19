@@ -1,0 +1,59 @@
+[tool.black]
+line-length = 127
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | venv
+  | __pycache__
+  | build
+  | dist
+  | \.eggs
+  | \.tox
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 127
+skip_gitignore = true
+skip = [".venv", "venv", "__pycache__", "build", "dist"]
+
+[tool.mypy]
+python_version = "3.8"
+ignore_missing_imports = true
+no_strict_optional = true
+allow_untyped_calls = true
+allow_untyped_defs = true
+warn_return_any = false
+warn_unused_configs = true
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+[tool.pydocstyle]
+convention = "google"
+add_ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D107"]
+match = "(?!test_).*\\.py"
+match_dir = "^(?!(\\.venv|venv|build|dist|__pycache__))[^\\.].*"

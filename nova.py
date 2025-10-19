@@ -13,14 +13,16 @@ import datetime
 import re
 import time
 from typing import Iterator
+
 from together import Together
-from classes.osc import VRChatOSC
-from classes.edge_tts import TextToSpeechManager
-from classes.whisper import WhisperTranscriber
-from classes.system_prompt import SystemPrompt
-from classes.json_wrapper import JsonWrapper
-from classes.vision_manager import VisionManager
+
 import constants as constant
+from classes.edge_tts import TextToSpeechManager
+from classes.json_wrapper import JsonWrapper
+from classes.osc import VRChatOSC
+from classes.system_prompt import SystemPrompt
+from classes.vision_manager import VisionManager
+from classes.whisper import WhisperTranscriber
 
 
 def initialize_history() -> list:
@@ -29,10 +31,7 @@ def initialize_history() -> list:
     history = [
         {"role": "system", "content": system_prompt},
         {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
-        {
-            "role": "user",
-            "content": constant.SystemMessages.INITIAL_USER_MESSAGE
-        },
+        {"role": "user", "content": constant.SystemMessages.INITIAL_USER_MESSAGE},
     ]
 
     return history
@@ -68,10 +67,7 @@ def initialize_components() -> tuple:
 
     history = initialize_history()
 
-    client = Together(
-        base_url=constant.LLM_API.BASE_URL,
-        api_key=constant.LLM_API.API_KEY
-    )
+    client = Together(base_url=constant.LLM_API.BASE_URL, api_key=constant.LLM_API.API_KEY)
 
     tts = TextToSpeechManager(
         voice=constant.Voice.VOICE_NAME,
@@ -102,11 +98,7 @@ def chunk_text(text: str) -> list:
     return chunks
 
 
-def process_completion(
-    completion: Iterator,
-    osc: VRChatOSC,
-    tts: TextToSpeechManager
-) -> str:
+def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager) -> str:
     """
     Processes a streaming completion response, extracts text chunks, and
     handles output and text-to-speech functionality.
@@ -152,10 +144,7 @@ def process_completion(
     return full_response
 
 
-def add_vision_updates_to_history(
-        history: list,
-        vision_manager: VisionManager
-        ) -> list:
+def add_vision_updates_to_history(history: list, vision_manager: VisionManager) -> list:
     """
     Add any new vision updates to the conversation history.
 
@@ -169,10 +158,7 @@ def add_vision_updates_to_history(
     vision_updates = vision_manager.get_new_vision_updates()
 
     for update in vision_updates:
-        vision_message = {
-            "role": "system",
-            "content": update
-        }
+        vision_message = {"role": "system", "content": update}
         history.append(vision_message)
 
         print(f"\033[96m[VISION]\033[0m \033[94m{update}\033[0m")
@@ -183,11 +169,11 @@ def add_vision_updates_to_history(
 def get_current_model(client: object, vision_manager: VisionManager) -> str:
     """
     Returns the current language model to use from the Together AI client.
-    
+
     Args:
         client (object): The Together AI client instance.
         vision_manager (object): The vision manager instance (for cleanup if needed).
-    
+
     Returns:
         str: The ID of the selected language model from constants.
     """
@@ -195,15 +181,7 @@ def get_current_model(client: object, vision_manager: VisionManager) -> str:
     return constant.LanguageModel.MODEL_ID
 
 
-def run_main_loop(
-        osc,
-        history,
-        vision_manager,
-        client,
-        tts,
-        current_model,
-        transcriber
-        ) -> None:
+def run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber) -> None:
 
     while True:
         osc.send_message("Thinking")
@@ -259,15 +237,7 @@ def main() -> None:
 
     current_model = get_current_model(client, vision_manager)
 
-    run_main_loop(
-        osc,
-        history,
-        vision_manager,
-        client,
-        tts,
-        current_model,
-        transcriber
-    )
+    run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber)
 
 
 if __name__ == "__main__":

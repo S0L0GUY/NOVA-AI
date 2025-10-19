@@ -76,9 +76,7 @@ class JsonWrapper:
         elif isinstance(data, dict):
             empty_data = {}
         else:
-            raise ValueError(
-                "The file does not contain a JSON object or array."
-            )
+            raise ValueError("The file does not contain a JSON object or array.")
 
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(empty_data, file, indent=4)

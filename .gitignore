@@ -10,3 +10,18 @@ temp.wav
 json_files/gmail_api.json
 **.wav
 .env
+
+# Code quality check outputs
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.tox/
+*.log
+install-check.log
+
+# Documentation builds
+docs/_build/
+docs/_static/
+docs/_templates/

@@ -1,9 +1,11 @@
-import whisper
-import sounddevice as sd
+import collections
+
 import numpy as np
+import sounddevice as sd
 import torch
 import webrtcvad
-import collections
+import whisper
+
 import constants as constant
 
 
@@ -93,9 +95,7 @@ class WhisperTranscriber:
                 latency="low",
             ) as stream:
                 while True:
-                    data, overflowed = stream.read(
-                        int(sample_rate * frame_duration / 1000)
-                    )
+                    data, overflowed = stream.read(int(sample_rate * frame_duration / 1000))
                     if overflowed:
                         print("\033[38;5;55mAudio buffer overflowed\033[0m")
 
@@ -104,33 +104,22 @@ class WhisperTranscriber:
                     is_speech = self.vad.is_speech(audio_data, sample_rate)
                     if not triggered:
                         ring_buffer.append((data.tobytes(), is_speech))
-                        num_voiced = len(
-                            [frame for frame, speech in ring_buffer if speech]
-                        )
+                        num_voiced = len([frame for frame, speech in ring_buffer if speech])
 
                         if num_voiced > threshold * num_padding_frames:
                             triggered = True
-                            voiced_frames.extend(
-                                [frame for frame, _ in ring_buffer]
-                            )
+                            voiced_frames.extend([frame for frame, _ in ring_buffer])
                             ring_buffer.clear()
                     else:
                         voiced_frames.append(data.tobytes())
                         ring_buffer.append((data.tobytes(), is_speech))
-                        num_unvoiced = len(
-                            [f for f, speech in ring_buffer if not speech]
-                        )
+                        num_unvoiced = len([f for f, speech in ring_buffer if not speech])
                         if num_unvoiced > threshold * num_padding_frames:
                             break  # End of speech
                     max_dur = constant.WhisperSettings.MAX_RECORDING_DURATION
                     max_frames = sample_rate * max_dur
                     if len(voiced_frames) > max_frames:
-                        print(
-                            (
-                                "\033[38;5;55mMax recording duration reached."
-                                "\033[0m"
-                            )
-                        )
+                        print(("\033[38;5;55mMax recording duration reached." "\033[0m"))
                         break
 
         except Exception as e:
@@ -142,16 +131,11 @@ class WhisperTranscriber:
             return None
 
         audio_data = b"".join(voiced_frames)
-        audio_array = (
-            np.frombuffer(audio_data, dtype="int16")
-              .astype(np.float32) / 32768.0
-        )
+        audio_array = np.frombuffer(audio_data, dtype="int16").astype(np.float32) / 32768.0
 
         print("\033[38;5;55mTranscribing voice input...\033[0m")
         try:
-            result = self.model.transcribe(
-                audio_array, fp16=torch.cuda.is_available()
-            )
+            result = self.model.transcribe(audio_array, fp16=torch.cuda.is_available())
             text = result["text"].strip()
             return text
         except Exception as e:
