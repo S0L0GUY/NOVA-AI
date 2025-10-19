@@ -13,14 +13,16 @@ import datetime
 import re
 import time
 from typing import Iterator
+
 from together import Together
-from classes.osc import VRChatOSC
-from classes.edge_tts import TextToSpeechManager
-from classes.whisper import WhisperTranscriber
-from classes.system_prompt import SystemPrompt
-from classes.json_wrapper import JsonWrapper
-from classes.vision_manager import VisionManager
+
 import constants as constant
+from classes.edge_tts import TextToSpeechManager
+from classes.json_wrapper import JsonWrapper
+from classes.osc import VRChatOSC
+from classes.system_prompt import SystemPrompt
+from classes.vision_manager import VisionManager
+from classes.whisper import WhisperTranscriber
 
 
 def initialize_history() -> list:

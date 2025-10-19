@@ -1,14 +1,16 @@
-import logging
 import asyncio
-import edge_tts
+import logging
+import os
 import queue
 import tempfile
 import threading
-import os
+
+import edge_tts
+import numpy as np
 import sounddevice as sd
 import soundfile as sf
 from pydub import AudioSegment
-import numpy as np
+
 import constants as constant
 
 

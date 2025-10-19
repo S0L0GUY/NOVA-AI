@@ -2,7 +2,7 @@ import pyaudio
 
 # optional color support on Windows via colorama; falls back to ANSI codes
 try:
-    from colorama import init, Fore, Style
+    from colorama import Fore, Style, init
 
     init()
     HIGHLIGHT = Fore.YELLOW + Style.BRIGHT

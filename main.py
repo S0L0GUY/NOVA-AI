@@ -1,12 +1,13 @@
+import logging
 import subprocess
 import sys
-import logging
-import nova
-import constants as constant
-from classes.osc import VRChatOSC
-from classes.vrchat_api import VRChatAPIManager
-from classes.vision_manager import VisionManager
 import warnings
+
+import constants as constant
+import nova
+from classes.osc import VRChatOSC
+from classes.vision_manager import VisionManager
+from classes.vrchat_api import VRChatAPIManager
 
 # Suppresses FP16 warnings on CPU
 warnings.filterwarnings("ignore", message="FP16 is not supported on CPU; using FP32 instead")

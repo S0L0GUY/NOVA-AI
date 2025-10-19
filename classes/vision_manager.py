@@ -1,10 +1,12 @@
 import threading
 import time
 from typing import List
-from classes.vision_system import VisionState, VisionSystem
-from classes.json_wrapper import JsonWrapper
-import constants as constant
+
 from together import Together
+
+import constants as constant
+from classes.json_wrapper import JsonWrapper
+from classes.vision_system import VisionState, VisionSystem
 
 
 class VisionManager:

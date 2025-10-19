@@ -1,9 +1,11 @@
-import psutil
-import threading
-import GPUtil
-import customtkinter as ctk
-import time
 import datetime
+import threading
+import time
+
+import customtkinter as ctk
+import GPUtil
+import psutil
+
 from constants import ResourceMonitor
 
 # Setup CustomTkinter

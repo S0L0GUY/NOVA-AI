@@ -1,11 +1,11 @@
+import logging
 import threading
 import time
-import logging
-from typing import Optional, List
+from typing import List, Optional
 
 import vrchatapi
 from vrchatapi.api import authentication_api, friends_api, notifications_api
-from vrchatapi.exceptions import UnauthorizedException, ApiException
+from vrchatapi.exceptions import ApiException, UnauthorizedException
 from vrchatapi.models.two_factor_auth_code import TwoFactorAuthCode
 from vrchatapi.models.two_factor_email_code import TwoFactorEmailCode
 
@@ -90,9 +90,7 @@ class VRChatAPIManager:
         """
         if not constant.VRChatAPI.USERNAME or not constant.VRChatAPI.PASSWORD:
             logging.error(
-                "VRChat API credentials not found. Please set "
-                "VRCHAT_EMAIL and VRCHAT_PASSWORD environment "
-                "variables."
+                "VRChat API credentials not found. Please set " "VRCHAT_EMAIL and VRCHAT_PASSWORD environment " "variables."
             )
 
             return False
@@ -163,15 +161,11 @@ class VRChatAPIManager:
                     if "Email 2 Factor Authentication" in e.reason:
                         # Handle email 2FA
                         code = input("VRChat Email 2FA Code: ")
-                        self.auth_api.verify2_fa_email_code(
-                            two_factor_email_code=TwoFactorEmailCode(code)
-                        )
+                        self.auth_api.verify2_fa_email_code(two_factor_email_code=TwoFactorEmailCode(code))
                     elif "2 Factor Authentication" in e.reason:
                         # Handle TOTP 2FA
                         code = input("VRChat 2FA Code: ")
-                        self.auth_api.verify2_fa(
-                            two_factor_auth_code=TwoFactorAuthCode(code)
-                        )
+                        self.auth_api.verify2_fa(two_factor_auth_code=TwoFactorAuthCode(code))
 
                     # Try to get current user again after 2FA
                     self.current_user = self.auth_api.get_current_user()
@@ -214,9 +208,7 @@ class VRChatAPIManager:
             return
 
         self.stop_checking = False
-        self.check_thread = threading.Thread(
-            target=self._periodic_check_loop, daemon=True
-        )
+        self.check_thread = threading.Thread(target=self._periodic_check_loop, daemon=True)
         self.check_thread.start()
         print("\033[92mVRChat API: Started periodic checks\033[0m")
 
@@ -286,17 +278,11 @@ class VRChatAPIManager:
             # Filter for unprocessed friend request notifications
             friend_requests = []
             for notif in notifications:
-                if (
-                    notif.type == "friendRequest"
-                    and notif.id not in self.processed_notifications
-                ):
+                if notif.type == "friendRequest" and notif.id not in self.processed_notifications:
 
                     # Skip if we don't have a sender_user_id
                     if not hasattr(notif, "sender_user_id"):
-                        print(
-                            f"\033[93mVRChat API: Skipping notification "
-                            f"without sender_user_id: {notif.id}\033[0m"
-                        )
+                        print(f"\033[93mVRChat API: Skipping notification " f"without sender_user_id: {notif.id}\033[0m")
                         continue
 
                     # Skip if user is already our friend
@@ -326,9 +312,7 @@ class VRChatAPIManager:
                     if hasattr(notif, "details"):
                         if isinstance(notif.details, dict):
                             # Check for pending state in request details
-                            request_state = notif.details.get("request", {}).get(
-                                "state"
-                            )
+                            request_state = notif.details.get("request", {}).get("state")
                             if request_state == "pending":
                                 is_pending = True
                         elif notif.details == "request":
@@ -352,19 +336,13 @@ class VRChatAPIManager:
 
             if friend_requests:
                 count = len(friend_requests)
-                print(
-                    f"\033[93mVRChat API: Found {count} new pending"
-                    f" friend request(s)\033[0m"
-                )
+                print(f"\033[93mVRChat API: Found {count} new pending" f" friend request(s)\033[0m")
 
                 if constant.VRChatAPI.AUTO_ACCEPT_FRIEND_REQUESTS:
                     for request in friend_requests:
                         self._accept_friend_request(request)
                 else:
-                    print(
-                        f"\033[93mVRChat API: Auto-accept disabled, "
-                        f"{count} requests pending\033[0m"
-                    )
+                    print(f"\033[93mVRChat API: Auto-accept disabled, " f"{count} requests pending\033[0m")
                     # Mark as processed even if not auto-accepting
                     for request in friend_requests:
                         self.processed_notifications.add(request.id)
@@ -387,9 +365,7 @@ class VRChatAPIManager:
         try:
             # Check if notification has required attributes
             if not hasattr(notification, "sender_user_id"):
-                logging.error(
-                    f"Notification missing sender_user_id: " f"{notification}"
-                )
+                logging.error(f"Notification missing sender_user_id: " f"{notification}")
                 return
 
             user_id = notification.sender_user_id
@@ -420,10 +396,7 @@ class VRChatAPIManager:
 
             # Accept the friend request
             self.friends_api.friend(user_id=user_id)
-            print(
-                f"\033[92mVRChat API: Accepted friend request "
-                f"from {username}\033[0m"
-            )
+            print(f"\033[92mVRChat API: Accepted friend request " f"from {username}\033[0m")
 
             # Reset retry count on success
             self.friend_request_retry_count = 0
@@ -442,18 +415,12 @@ class VRChatAPIManager:
 
             if e.status == 400 and "already friends" in str(e.body).lower():
                 # Users are already friends - this is expected, just log it
-                print(
-                    f"\033[93mVRChat API: {username} is already a friend, "
-                    f"marking as processed\033[0m"
-                )
+                print(f"\033[93mVRChat API: {username} is already a friend, " f"marking as processed\033[0m")
                 # Add to friends cache and mark as seen
                 self.friends_cache.add(user_id)
                 self._mark_notification_as_seen(notification)
                 # Force refresh friends cache since it was out of date
-                print(
-                    "\033[96mVRChat API: Refreshing friends cache due to "
-                    "stale data\033[0m"
-                )
+                print("\033[96mVRChat API: Refreshing friends cache due to " "stale data\033[0m")
                 self._update_friends_cache()
             elif e.status == 429:  # Rate limited
                 self.friend_request_retry_count += 1
@@ -490,10 +457,7 @@ class VRChatAPIManager:
 
             # Check if this is a specific API client deserialization error
             if "Invalid value for `created_at`" in str(e):
-                print(
-                    f"\033[93mVRChat API: API client deserialization error "
-                    f"for {username}, marking as processed\033[0m"
-                )
+                print(f"\033[93mVRChat API: API client deserialization error " f"for {username}, marking as processed\033[0m")
                 # This is likely a VRChat API client bug, just mark as seen
                 self._mark_notification_as_seen(notification)
             else:
@@ -527,10 +491,7 @@ class VRChatAPIManager:
                     # Friend requests are handled separately
                     if notif.type not in ["friendRequest"]:
                         username = notif.sender_username or "Unknown"
-                        print(
-                            f"\033[96mVRChat API: {notif.type} "
-                            f"from {username}\033[0m"
-                        )
+                        print(f"\033[96mVRChat API: {notif.type} " f"from {username}\033[0m")
 
         except Exception as e:
             logging.error(f"Error checking notifications: {e}")
@@ -627,9 +588,7 @@ class VRChatAPIManager:
 
         if time_since_last_call < cooldown_period:
             wait_time = cooldown_period - time_since_last_call
-            print(
-                f"\033[96mVRChat API: Waiting {wait_time:.1f}s " f"for cooldown\033[0m"
-            )
+            print(f"\033[96mVRChat API: Waiting {wait_time:.1f}s " f"for cooldown\033[0m")
             time.sleep(wait_time)
 
         # Update the last API call time
@@ -648,10 +607,7 @@ class VRChatAPIManager:
             self.last_friends_update = time.time()
 
             count = len(self.friends_cache)
-            print(
-                f"\033[96mVRChat API: Updated friends cache "
-                f"({count} friends)\033[0m"
-            )
+            print(f"\033[96mVRChat API: Updated friends cache " f"({count} friends)\033[0m")
 
         except Exception as e:
             logging.error(f"Error updating friends cache: {e}")
@@ -667,9 +623,7 @@ class VRChatAPIManager:
             if hasattr(notification, "id"):
                 # Wait for API cooldown before marking as read
                 self._wait_for_api_cooldown()
-                self.notifications_api.mark_notification_as_read(
-                    notification_id=notification.id
-                )
+                self.notifications_api.mark_notification_as_read(notification_id=notification.id)
         except Exception as e:
             logging.error(f"Error marking notification as seen: {e}")
 
@@ -682,7 +636,5 @@ class VRChatAPIManager:
         # In a more sophisticated implementation, you could track timestamps
         # and only remove notifications older than a certain time
         if len(self.processed_notifications) > 1000:  # Arbitrary threshold
-            print(
-                "\033[96mVRChat API: Cleaning up old processed " "notifications\033[0m"
-            )
+            print("\033[96mVRChat API: Cleaning up old processed " "notifications\033[0m")
             self.processed_notifications.clear()

@@ -1,9 +1,11 @@
-import whisper
-import sounddevice as sd
+import collections
+
 import numpy as np
+import sounddevice as sd
 import torch
 import webrtcvad
-import collections
+import whisper
+
 import constants as constant
 
 
@@ -116,7 +118,7 @@ class WhisperTranscriber:
                             break  # End of speech
                     max_dur = constant.WhisperSettings.MAX_RECORDING_DURATION
                     max_frames = sample_rate * max_dur
-                        if len(voiced_frames) > max_frames:
+                    if len(voiced_frames) > max_frames:
                         print(("\033[38;5;55mMax recording duration reached." "\033[0m"))
                         break
 

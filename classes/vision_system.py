@@ -1,12 +1,14 @@
-import time
+import base64
 import json
 import os
-from typing import Optional, Dict, Any, List
-import base64
+import time
 from io import BytesIO
+from typing import Any, Dict, List, Optional
+
+import win32gui
 from PIL import Image, ImageGrab
 from together import Together
-import win32gui
+
 import constants as constant
 
 
@@ -75,9 +77,7 @@ class VisionState:
             return new_updates
 
         except Exception as e:
-            print(
-                f"\033[91m[VISION ERROR]\033[0m " f"Error getting vision updates: {e}"
-            )
+            print(f"\033[91m[VISION ERROR]\033[0m " f"Error getting vision updates: {e}")
 
             return []
 

@@ -1,5 +1,7 @@
 import time
+
 from pythonosc import udp_client
+
 import constants as constant
 
 time.sleep(constant.NovaPlacement.INITIAL_DELAY)
