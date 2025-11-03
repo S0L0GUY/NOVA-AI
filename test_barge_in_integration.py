@@ -19,9 +19,7 @@ def test_constants_barge_in_settings():
     assert hasattr(constants.WhisperSettings, "BARGE_IN_ENABLED"), "Should have BARGE_IN_ENABLED"
     assert hasattr(constants.WhisperSettings, "BARGE_IN_THRESHOLD"), "Should have BARGE_IN_THRESHOLD"
     assert hasattr(constants.WhisperSettings, "BARGE_IN_FRAMES"), "Should have BARGE_IN_FRAMES"
-    assert hasattr(
-        constants.WhisperSettings, "BARGE_IN_VAD_AGGRESSIVENESS"
-    ), "Should have BARGE_IN_VAD_AGGRESSIVENESS"
+    assert hasattr(constants.WhisperSettings, "BARGE_IN_VAD_AGGRESSIVENESS"), "Should have BARGE_IN_VAD_AGGRESSIVENESS"
 
     # Check types and reasonable values
     assert isinstance(constants.WhisperSettings.BARGE_IN_ENABLED, bool), "BARGE_IN_ENABLED should be bool"
@@ -86,8 +84,9 @@ def test_nova_integration():
     assert "handle_interrupt" in content, "Should have interrupt handler"
 
     # Check that run_main_loop passes transcriber to process_completion
-    assert "process_completion(completion, osc, tts, transcriber)" in content, \
-        "run_main_loop should pass transcriber to process_completion"
+    assert (
+        "process_completion(completion, osc, tts, transcriber)" in content
+    ), "run_main_loop should pass transcriber to process_completion"
 
     print("✓ nova.py integration test passed")
 

@@ -163,10 +163,7 @@ class WhisperTranscriber:
         self.barge_in_callback = callback
         self.barge_in_stop_event.clear()
         self.barge_in_active = True
-        self.barge_in_thread = threading.Thread(
-            target=self._barge_in_monitor_loop,
-            daemon=True
-        )
+        self.barge_in_thread = threading.Thread(target=self._barge_in_monitor_loop, daemon=True)
         self.barge_in_thread.start()
         print("\033[96m[BARGE-IN] Monitoring started\033[0m")
 
