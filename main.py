@@ -28,14 +28,6 @@ def main() -> None:
     VisionManager.clear_vision_history()
     VRChatAPIManager.create_vrchat_api_manager()
 
-    print("\033[91mStarting resource monitor...\033[0m")
-
-    try:
-        subprocess.Popen([sys.executable, "resource_monitor.py"], shell=False)
-
-    except Exception as e:
-        print(f"\033[91mError starting resource monitor: " f"{e}\033[0m")
-
     nova.main()
 
 

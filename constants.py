@@ -218,46 +218,6 @@ class SystemMessages:
     LISTENING_MESSAGE = "Listening"
     # Console status messages
     PROGRAM_STARTING = "Program Starting..."
-    RESOURCE_MONITOR_STARTING = "Starting resource monitor..."
-
-
-class ResourceMonitor:
-    """
-    Resource monitor GUI configuration.
-    """
-
-    WINDOW_TITLE = "Nova Resource Monitor"
-    # Window geometry
-    WINDOW_WIDTH = 400
-    WINDOW_HEIGHT = 745
-    WINDOW_SIZE = f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}"
-    # GUI update interval (milliseconds)
-    UPDATE_INTERVAL = 1000
-    # Window always on top
-    ALWAYS_ON_TOP = True
-    # GUI theme settings
-    APPEARANCE_MODE = "dark"
-    COLOR_THEME = "dark-blue"
-    # Frame styling
-    CORNER_RADIUS = 15
-    BORDER_WIDTH = 2
-    PADDING_Y = 10
-    PADDING_X = 20
-    # Font settings
-    TITLE_FONT_SIZE = 18
-    VALUE_FONT_SIZE = 24
-    FONT_FAMILY = "Segoe UI"
-    # Label padding
-    TITLE_PADDING = (10, 5)
-    VALUE_PADDING = (0, 10)
-    # Color scheme for different stats
-    CPU_COLOR = "dark blue"
-    RAM_COLOR = "dark violet"
-    DISK_COLOR = "dark red"
-    GPU_COLOR = "dark cyan"
-    GPU_MEM_COLOR = "purple4"
-    NETWORK_COLOR = "dark green"
-    UPTIME_COLOR = "dark gray"
 
 
 class NovaPlacement:
