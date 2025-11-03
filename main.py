@@ -1,6 +1,4 @@
 import logging
-import subprocess
-import sys
 import warnings
 
 import constants as constant
