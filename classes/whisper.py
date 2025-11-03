@@ -1,4 +1,5 @@
 import collections
+import threading
 
 import numpy as np
 import sounddevice as sd
@@ -43,9 +44,16 @@ class WhisperTranscriber:
             print(f"\033[38;5;55mFailed to load Whisper model: {e}\033[0m")
             raise
         self.vad = webrtcvad.Vad(constant.WhisperSettings.VAD_AGGRESSIVENESS)
+        self.barge_in_vad = webrtcvad.Vad(constant.WhisperSettings.BARGE_IN_VAD_AGGRESSIVENESS)
         self.stream = None
 
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
+
+        # Barge-in monitoring
+        self.barge_in_active = False
+        self.barge_in_callback = None
+        self.barge_in_thread = None
+        self.barge_in_stop_event = threading.Event()
 
     def get_voice_input(self) -> None:
         """
@@ -139,6 +147,85 @@ class WhisperTranscriber:
             text = result["text"].strip()
             return text
         except Exception as e:
+            print(f"\033[38;5;92mError during transcription: {e}\033[0m")
+
+            return None
+
+    def start_barge_in_monitoring(self, callback) -> None:
+        """
+        Starts monitoring for barge-in (user interruption during TTS).
+        Args:
+            callback: Function to call when barge-in is detected.
+        """
+        if not constant.WhisperSettings.BARGE_IN_ENABLED:
+            return
+
+        self.barge_in_callback = callback
+        self.barge_in_stop_event.clear()
+        self.barge_in_active = True
+        self.barge_in_thread = threading.Thread(
+            target=self._barge_in_monitor_loop,
+            daemon=True
+        )
+        self.barge_in_thread.start()
+        print("\033[96m[BARGE-IN] Monitoring started\033[0m")
+
+    def stop_barge_in_monitoring(self) -> None:
+        """
+        Stops monitoring for barge-in.
+        """
+        if not self.barge_in_active:
+            return
+
+        self.barge_in_stop_event.set()
+        self.barge_in_active = False
+        if self.barge_in_thread:
+            self.barge_in_thread.join(timeout=1.0)
+        print("\033[96m[BARGE-IN] Monitoring stopped\033[0m")
+
+    def _barge_in_monitor_loop(self) -> None:
+        """
+        Background thread that monitors microphone for speech during TTS playback.
+        Triggers callback when speech is detected above threshold.
+        """
+        sample_rate = constant.WhisperSettings.SAMPLE_RATE
+        frame_duration = constant.WhisperSettings.FRAME_DURATION_MS
+        barge_in_frames = constant.WhisperSettings.BARGE_IN_FRAMES
+        threshold = constant.WhisperSettings.BARGE_IN_THRESHOLD
+
+        ring_buffer = collections.deque(maxlen=barge_in_frames)
+
+        try:
+            with sd.InputStream(
+                samplerate=sample_rate,
+                channels=1,
+                dtype="int16",
+                device=self.audio_input_index,
+                latency="low",
+            ) as stream:
+                while not self.barge_in_stop_event.is_set():
+                    data, overflowed = stream.read(int(sample_rate * frame_duration / 1000))
+                    if overflowed:
+                        print("\033[96m[BARGE-IN] Audio buffer overflowed\033[0m")
+
+                    # Ensure audio data is in 16-bit PCM format
+                    audio_data = data.flatten().astype(np.int16).tobytes()
+                    is_speech = self.barge_in_vad.is_speech(audio_data, sample_rate)
+
+                    ring_buffer.append(is_speech)
+
+                    # Check if threshold is met
+                    if len(ring_buffer) == barge_in_frames:
+                        num_voiced = sum(ring_buffer)
+                        if num_voiced > threshold * barge_in_frames:
+                            print("\033[96m[BARGE-IN] Speech detected! Interrupting...\033[0m")
+                            if self.barge_in_callback:
+                                self.barge_in_callback()
+                            # Stop monitoring after triggering
+                            break
+
+        except Exception as e:
+            print(f"\033[96m[BARGE-IN] Error during monitoring: {e}\033[0m")
             print(f"\033[38;5;92mError during transcription: {e}\033[0m")
 
             return None

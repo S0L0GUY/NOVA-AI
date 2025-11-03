@@ -190,6 +190,14 @@ class WhisperSettings:
     MAX_RECORDING_DURATION = 30
     # VAD aggressiveness level (0-3, higher = more aggressive)
     VAD_AGGRESSIVENESS = 0
+    # Barge-in settings
+    BARGE_IN_ENABLED = True
+    # Threshold for barge-in detection (ratio of voiced frames)
+    BARGE_IN_THRESHOLD = 0.5
+    # Number of frames to check for barge-in
+    BARGE_IN_FRAMES = 5
+    # VAD aggressiveness for barge-in (0-3, higher = more aggressive)
+    BARGE_IN_VAD_AGGRESSIVENESS = 2
 
 
 class TTSSettings:

@@ -98,11 +98,12 @@ def chunk_text(text: str) -> list:
     return chunks
 
 
-def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager) -> str:
+def process_completion(
+    completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager, transcriber: WhisperTranscriber
+) -> tuple:
     """
     Processes a streaming completion response, extracts text chunks, and
-    handles output and text-to-speech functionality.
-    handles output and text-to-speech functionality.
+    handles output and text-to-speech functionality with barge-in support.
     Args:
         completion (iter): An iterable object containing streaming completion
                             data. Each chunk is expected to have a `choices`
@@ -112,36 +113,61 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
                       It should have a `set_typing_indicator` method.
         tts (object): An object responsible for text-to-speech functionality.
                       It should have `add_to_queue` and `is_idle` methods.
+        transcriber (object): The WhisperTranscriber instance for barge-in detection.
     Returns:
-        str: The full response text generated from the completion.
+        tuple: (full_response: str, was_interrupted: bool) - The full response text
+               generated from the completion and whether it was interrupted.
     """
 
     buffer = ""
     full_response = ""
     osc.set_typing_indicator(True)
+    was_interrupted = False
 
-    for chunk in completion:
-        if chunk.choices[0].delta.content:
-            buffer += chunk.choices[0].delta.content
-            sentence_chunks = chunk_text(buffer)
+    # Set up interrupt handler
+    def handle_interrupt():
+        nonlocal was_interrupted
+        was_interrupted = True
+        tts.interrupt()
+        transcriber.stop_barge_in_monitoring()
 
-            while len(sentence_chunks) > 1:
-                sentence = sentence_chunks.pop(0)
-                full_response += f" {sentence}"
-                print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
-                tts.add_to_queue(sentence)
+    # Start barge-in monitoring
+    transcriber.start_barge_in_monitoring(handle_interrupt)
 
-            buffer = sentence_chunks[0]
+    try:
+        for chunk in completion:
+            # Check if interrupted
+            if was_interrupted:
+                print("\033[91m[INTERRUPTED] Stopping response generation\033[0m")
+                break
 
-    if buffer:
-        full_response += f" {buffer}"
-        print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
-        tts.add_to_queue(buffer)
+            if chunk.choices[0].delta.content:
+                buffer += chunk.choices[0].delta.content
+                sentence_chunks = chunk_text(buffer)
 
-    while not tts.is_idle():
-        time.sleep(0.1)
+                while len(sentence_chunks) > 1:
+                    sentence = sentence_chunks.pop(0)
+                    full_response += f" {sentence}"
+                    print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
+                    tts.add_to_queue(sentence)
 
-    return full_response
+                buffer = sentence_chunks[0]
+
+        if buffer and not was_interrupted:
+            full_response += f" {buffer}"
+            print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
+            tts.add_to_queue(buffer)
+
+        # Wait for TTS to finish or be interrupted
+        while not tts.is_idle() and not was_interrupted:
+            time.sleep(0.1)
+
+    finally:
+        # Clean up
+        transcriber.stop_barge_in_monitoring()
+        tts.reset_interrupt()
+
+    return full_response, was_interrupted
 
 
 def add_vision_updates_to_history(history: list, vision_manager: VisionManager) -> list:
@@ -203,7 +229,7 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
-        full_response = process_completion(completion, osc, tts)
+        full_response, was_interrupted = process_completion(completion, osc, tts, transcriber)
         new_message["content"] = full_response
         history.append(new_message)
 

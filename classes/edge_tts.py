@@ -32,6 +32,9 @@ class TextToSpeechManager:
         self.initialize_tts_engine()
         self.osc = VRChatOSC
         self.lock = threading.Lock()
+        self.interrupt_flag = threading.Event()
+        self.interrupt_callback = None
+        self.current_stream = None
 
     def initialize_tts_engine(self) -> None:
         """
@@ -47,6 +50,49 @@ class TextToSpeechManager:
             pass
         else:
             logging.error(f"Unknown voice engine: {self.voice_engine}")
+
+    def set_interrupt_callback(self, callback) -> None:
+        """
+        Sets a callback function to be called when TTS is interrupted.
+        Args:
+            callback: Function to call when interrupt occurs.
+        """
+        self.interrupt_callback = callback
+
+    def interrupt(self) -> None:
+        """
+        Interrupts the current TTS playback and clears all queues.
+        This method stops any ongoing audio playback, clears both the TTS
+        and audio queues, and sets the interrupt flag to signal all playback
+        threads to stop.
+        """
+        logging.info("TTS interrupt requested")
+        self.interrupt_flag.set()
+        # Stop current audio playback
+        if self.current_stream is not None:
+            sd.stop()
+        # Clear all queues
+        while not self.tts_queue.empty():
+            try:
+                self.tts_queue.get_nowait()
+            except queue.Empty:
+                break
+        while not self.audio_queue.empty():
+            try:
+                text, filepath = self.audio_queue.get_nowait()
+                # Clean up the temporary file
+                try:
+                    os.remove(filepath)
+                except Exception:
+                    pass
+            except queue.Empty:
+                break
+
+    def reset_interrupt(self) -> None:
+        """
+        Resets the interrupt flag to allow new TTS playback.
+        """
+        self.interrupt_flag.clear()
 
     def add_to_queue(self, text: str) -> None:
         """
@@ -122,9 +168,10 @@ class TextToSpeechManager:
         """
         Handles the playback loop for audio files in the queue.
         This method continuously processes audio and text from the
-        `audio_queue` and `tts_queue` until both are empty. It sets the typing
-        indicator, sends messages, plays audio files, and removes the files
-        after playback. If an error occurs during playback, it logs the error.
+        `audio_queue` and `tts_queue` until both are empty or interrupted.
+        It sets the typing indicator, sends messages, plays audio files,
+        and removes the files after playback. If an error occurs during
+        playback, it logs the error.
         Attributes:
             self.is_playing (bool): Indicates whether playback is currently
             active.
@@ -138,13 +185,21 @@ class TextToSpeechManager:
         self.is_playing = True
         try:
             while not self.audio_queue.empty() or not self.tts_queue.empty():
+                # Check for interrupt
+                if self.interrupt_flag.is_set():
+                    logging.info("Playback interrupted")
+                    if self.interrupt_callback:
+                        self.interrupt_callback()
+                    break
                 self.osc.set_typing_indicator(True)
                 try:
-                    text, filepath = self.audio_queue.get()
+                    text, filepath = self.audio_queue.get(timeout=0.1)
                     self.osc.send_message(text)
                     self.osc.set_typing_indicator(True)
                     self.play_audio_file(filepath)
                     os.remove(filepath)
+                except queue.Empty:
+                    continue
                 except Exception as e:
                     logging.error(f"Error during playback: {e}")
         finally:
@@ -153,6 +208,7 @@ class TextToSpeechManager:
     def play_audio_file(self, filepath: str) -> None:
         """
         Plays an audio file using the specified audio device.
+        Checks for interrupts during playback.
         Args:
             filepath (str): The path to the audio file to be played. Supported
             formats are '.wav' and '.mp3'.
@@ -165,6 +221,7 @@ class TextToSpeechManager:
             converted to a NumPy array.
             - Unsupported audio formats will log an error and the function
             will return without playing audio.
+            - Playback can be interrupted by setting the interrupt flag.
         """
 
         try:
@@ -178,8 +235,19 @@ class TextToSpeechManager:
             else:
                 logging.error(f"Unsupported audio format: {filepath}")
                 return
-            sd.play(data, samplerate, device=self.device_index)
-            sd.wait()
+
+            # Check for interrupt before starting playback
+            if self.interrupt_flag.is_set():
+                return
+
+            self.current_stream = sd.play(data, samplerate, device=self.device_index)
+            # Check for interrupt periodically during playback
+            while sd.get_stream().active:
+                if self.interrupt_flag.is_set():
+                    sd.stop()
+                    break
+                sd.wait(0.1)
+            self.current_stream = None
         except Exception as e:
             logging.error(f"Error playing audio file: {e}")
 
