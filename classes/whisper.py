@@ -45,7 +45,7 @@ class WhisperTranscriber:
 
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
 
-    def get_voice_input(self) -> None:
+    def get_voice_input(self, osc) -> None:
         """
         Captures voice input using Voice Activity Detection (VAD) and
         transcribes it into text. This method listens for voice input through
@@ -148,6 +148,8 @@ class WhisperTranscriber:
         )
 
         print("\033[38;5;55mTranscribing voice input...\033[0m")
+        osc.send_message("Thinking")
+        osc.set_typing_indicator(True)
         try:
             result = self.model.transcribe(
                 audio_array, fp16=torch.cuda.is_available()

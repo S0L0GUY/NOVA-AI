@@ -234,7 +234,7 @@ def run_main_loop(
         while not user_speech:
             osc.send_message("Listening")
             osc.set_typing_indicator(False)
-            user_speech = transcriber.get_voice_input()
+            user_speech = transcriber.get_voice_input(osc)
 
         # Add user speech to history
         print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")

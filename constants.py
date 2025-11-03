@@ -134,7 +134,8 @@ class Audio:
         AUDIO_INPUT_INDEX (int): The device index for audio input,
             configured for VB-Audio Cable A Output
     """
-    AUDIO_OUTPUT_INDEX = 9
+
+    AUDIO_OUTPUT_INDEX = 8
     AUDIO_INPUT_INDEX = 4
 
 
@@ -166,7 +167,7 @@ class WhisperSettings:
     Configuration for Whisper speech recognition.
     """
     # Whisper model size ("tiny", "base", "small", "medium", "large")
-    MODEL_SIZE = "base"
+    MODEL_SIZE = "tiny"
     # Sample rate for audio processing
     SAMPLE_RATE = 16000
     # Frame duration in milliseconds for VAD
