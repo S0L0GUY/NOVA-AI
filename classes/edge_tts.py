@@ -242,11 +242,17 @@ class TextToSpeechManager:
 
             self.current_stream = sd.play(data, samplerate, device=self.device_index)
             # Check for interrupt periodically during playback
-            while sd.get_stream().active:
-                if self.interrupt_flag.is_set():
-                    sd.stop()
-                    break
-                sd.wait(0.1)
+            try:
+                while True:
+                    stream = sd.get_stream()
+                    if stream is None or not stream.active:
+                        break
+                    if self.interrupt_flag.is_set():
+                        sd.stop()
+                        break
+                    sd.wait(0.1)
+            except Exception:
+                pass  # Stream may have been stopped already
             self.current_stream = None
         except Exception as e:
             logging.error(f"Error playing audio file: {e}")
