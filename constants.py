@@ -1,5 +1,6 @@
 import os
 import socket
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -10,39 +11,42 @@ class LLM_API:
     """
     LLM API configuration settings for Together AI.
     """
+
     # Base URL for Together AI API
     BASE_URL = "https://api.together.xyz/v1"
     # API key for Together AI
-    API_KEY = os.getenv('LLM_API_KEY')
+    API_KEY = os.getenv("LLM_API_KEY")
 
 
 class Vision_API:
     """
     Vision API configuration settings for Together AI.
     """
+
     # Base URL for Together AI Vision API
     BASE_URL = "https://api.together.xyz/v1"
     # API key for Together AI Vision
-    API_KEY = os.getenv('VISION_API_KEY')
+    API_KEY = os.getenv("VISION_API_KEY")
 
 
 class VRChatAPI:
     """
     Configuration settings for VRChat API integration.
     """
+
     # Master switch to enable/disable all VRChat API functionality
     USING_API = False  # Set to True to enable API usage
 
     # VRChat account credentials (loaded from environment variables)
-    USERNAME = os.getenv('VRCHAT_EMAIL')
-    PASSWORD = os.getenv('VRCHAT_PASSWORD')
+    USERNAME = os.getenv("VRCHAT_EMAIL")
+    PASSWORD = os.getenv("VRCHAT_PASSWORD")
 
     # User agent string as per VRChat Usage Policy
     USER_AGENT = f"NOVA-AI/2025.7.1 {os.getenv('VRCHAT_EMAIL')}"
 
     # API check intervals (seconds)
     FRIEND_REQUEST_CHECK_INTERVAL = 60  # 1 minute
-    NOTIFICATION_CHECK_INTERVAL = 120    # 2 minutes
+    NOTIFICATION_CHECK_INTERVAL = 120  # 2 minutes
 
     # Rate limiting and cooldown settings
     API_COOLDOWN = 30  # Seconds to wait between API calls
@@ -76,6 +80,7 @@ class LanguageModel:
         LM_TEMPERATURE (float): The temperature parameter for the language
         model's output.
     """
+
     MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     LM_TEMPERATURE = 0.7
 
@@ -84,6 +89,7 @@ class VisionSystem:
     """
     Configuration settings for the VRChat vision system.
     """
+
     # Whether vision system is enabled
     ENABLED = False
     # How often to analyze screenshots continuously (seconds)
@@ -119,6 +125,7 @@ class Network:
         VRC_PORT (int): The port number used for VRChat communication. Default
         is 9000.
     """
+
     LOCAL_IP = socket.gethostbyname(socket.gethostname())
     VRC_PORT = 9000
 
@@ -147,6 +154,7 @@ class Voice:
         VOICE_NAME (str): The default voice name used for text-to-speech
         synthesis.
     """
+
     VOICE_NAME = "en-US-EmmaMultilingualNeural"
 
 
@@ -157,6 +165,7 @@ class FilePaths:
         HISTORY_PATH (str): The path to the JSON file storing history data.
                            Default is "json_files/history.json"
     """
+
     HISTORY_PATH = "json_files/history.json"
 
     NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
@@ -166,6 +175,7 @@ class WhisperSettings:
     """
     Configuration for Whisper speech recognition.
     """
+
     # Whisper model size ("tiny", "base", "small", "medium", "large")
     MODEL_SIZE = "tiny"
     # Sample rate for audio processing
@@ -186,6 +196,7 @@ class TTSSettings:
     """
     Text-to-Speech configuration settings.
     """
+
     # Default TTS engine (edge-tts is currently the only supported engine)
     ENGINE = "edge-tts"
     # Audio bit depth conversion factor for pydub
@@ -198,6 +209,7 @@ class SystemMessages:
     """
     System status messages and startup text.
     """
+
     # Initial conversation starter
     INITIAL_USER_MESSAGE = "Who are you?"
     # VRChat status messages
@@ -213,6 +225,7 @@ class ResourceMonitor:
     """
     Resource monitor GUI configuration.
     """
+
     WINDOW_TITLE = "Nova Resource Monitor"
     # Window geometry
     WINDOW_WIDTH = 400
@@ -251,6 +264,7 @@ class NovaPlacement:
     """
     VRChat avatar movement and placement configuration.
     """
+
     # Initial delay before starting placement (seconds)
     STARTUP_DELAY = 15
     # Default movement speed
@@ -261,6 +275,7 @@ class ConsoleColors:
     """
     ANSI color codes for console output.
     """
+
     # Text colors
     RED = "\033[91m"
     GREEN = "\033[92m"

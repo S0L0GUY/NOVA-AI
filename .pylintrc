@@ -1,0 +1,27 @@
+[MASTER]
+ignore=.git,__pycache__,.venv,venv,build,dist
+jobs=1
+
+[MESSAGES CONTROL]
+disable=
+    C0103,  # invalid-name
+    C0111,  # missing-docstring
+    C0114,  # missing-module-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    R0903,  # too-few-public-methods
+    R0913,  # too-many-arguments
+    W0212,  # protected-access
+    W0511,  # fixme
+    W0703,  # broad-except
+
+[FORMAT]
+max-line-length=127
+indent-string='    '
+
+[DESIGN]
+max-args=10
+max-locals=20
+max-returns=6
+max-branches=15
+max-statements=50

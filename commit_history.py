@@ -16,9 +16,7 @@ def fetch_commits(repo_owner: str, repo_name: str) -> list:
         encounters an error.
     """
 
-    commits_url = (
-        f"https://api.github.com/repos/{repo_owner}/{repo_name}/commits"
-    )
+    commits_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/commits"
     response = requests.get(commits_url, timeout=10)
     response.raise_for_status()
 
@@ -46,13 +44,13 @@ def write_commits_to_file(commits: list, file_path: str) -> None:
     - The commit message.
     """
 
-    with open(file_path, 'w', encoding='utf-8') as file:
+    with open(file_path, "w", encoding="utf-8") as file:
         file.write("# Commit History\n\n")
         for commit in commits:
-            sha = commit['sha']
-            message = commit['commit']['message']
-            author = commit['commit']['author']['name']
-            url = commit['html_url']
+            sha = commit["sha"]
+            message = commit["commit"]["message"]
+            author = commit["commit"]["author"]["name"]
+            url = commit["html_url"]
             file.write(f"- **Commit:** [{sha[:7]}]({url})\n")
             file.write(f"  **Author:** {author}\n")
             file.write(f"  **Message:** {message}\n\n")

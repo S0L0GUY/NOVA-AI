@@ -1,24 +1,27 @@
-import logging
 import asyncio
-import edge_tts
+import logging
+import os
 import queue
 import tempfile
 import threading
-import os
+
+import edge_tts
+import numpy as np
 import sounddevice as sd
 import soundfile as sf
 from pydub import AudioSegment
-import numpy as np
+
 import constants as constant
 
 
 class TextToSpeechManager:
-    def __init__(self,
-                 voice_engine=constant.TTSSettings.ENGINE,
-                 voice=None,
-                 device_index=None,
-                 VRChatOSC=None
-                 ) -> None:
+    def __init__(
+        self,
+        voice_engine=constant.TTSSettings.ENGINE,
+        voice=None,
+        device_index=None,
+        VRChatOSC=None,
+    ) -> None:
 
         self.voice_engine = voice_engine
         self.voice = voice
@@ -104,9 +107,7 @@ class TextToSpeechManager:
         """
 
         logging.info(f"Generating audio for: {text}")
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix='.wav'
-        ) as tmp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
             output_file = tmp_file.name
 
         try:
@@ -167,10 +168,10 @@ class TextToSpeechManager:
         """
 
         try:
-            if filepath.endswith('.wav'):
+            if filepath.endswith(".wav"):
                 data, samplerate = sf.read(filepath)
-            elif filepath.endswith('.mp3'):
-                audio = AudioSegment.from_file(filepath, format='mp3')
+            elif filepath.endswith(".mp3"):
+                audio = AudioSegment.from_file(filepath, format="mp3")
                 samples = audio.get_array_of_samples()
                 data = np.array(samples).astype(np.float32) / 2**15
                 samplerate = audio.frame_rate
@@ -190,8 +191,4 @@ class TextToSpeechManager:
                   and no audio is currently playing. False otherwise.
         """
 
-        return (
-            self.tts_queue.empty() and
-            self.audio_queue.empty() and
-            not self.is_playing
-        )
+        return self.tts_queue.empty() and self.audio_queue.empty() and not self.is_playing
