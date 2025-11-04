@@ -143,7 +143,7 @@ class WhisperTranscriber:
             result = self.model.transcribe(
                 audio_array,
                 fp16=torch.cuda.is_available(),
-                language="en",  # Skip language detection for faster processing
+                language=constant.WhisperSettings.LANGUAGE,  # Use configurable language
                 beam_size=1,  # Use greedy decoding for speed
                 best_of=1,  # Single pass for speed
                 temperature=0.0  # Deterministic output

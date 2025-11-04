@@ -67,11 +67,15 @@ class TextToSpeechManager:
 
         self.tts_queue.put(text)
 
-        # Only start processing thread if not already processing
+        # Only start processing thread if not already processing (thread-safe)
+        should_start_processing = False
         with self.processing_lock:
             if not self.processing:
                 self.processing = True
-                threading.Thread(target=self.process_queue, daemon=True).start()
+                should_start_processing = True
+
+        if should_start_processing:
+            threading.Thread(target=self.process_queue, daemon=True).start()
 
         if not self.is_playing:
             threading.Thread(target=self.playback_loop, daemon=True).start()
@@ -79,18 +83,21 @@ class TextToSpeechManager:
     def process_queue(self) -> None:
         """
         Processes the text-to-speech (TTS) queue by generating audio for each
-        text item in the queue. This method ensures that only one thread
-        processes the queue at a time by using a lock. It retrieves text items
-        from the queue and calls the `generate_audio` method to generate the
-        corresponding audio.
+        text item in the queue. This method uses a timeout-based approach for
+        reliable queue processing in a multithreaded environment.
         Returns:
             None
         """
 
         try:
-            while not self.tts_queue.empty():
-                text = self.tts_queue.get()
-                self.generate_audio(text)
+            while True:
+                try:
+                    # Use timeout to handle empty queue reliably
+                    text = self.tts_queue.get(timeout=0.1)
+                    self.generate_audio(text)
+                except queue.Empty:
+                    # Queue is empty, exit the processing loop
+                    break
         finally:
             with self.processing_lock:
                 self.processing = False

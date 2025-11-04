@@ -180,6 +180,10 @@ class WhisperSettings:
     # Note: "tiny" or "base" are recommended for fastest response time
     # "tiny" is 4x faster than "base" but slightly less accurate
     MODEL_SIZE = "tiny"
+    # Language code for transcription (set to None for auto-detection)
+    # Setting a specific language (e.g., "en") skips detection and saves ~200ms
+    # Set to None for multilingual support (slower)
+    LANGUAGE = "en"
     # Sample rate for audio processing
     SAMPLE_RATE = 16000
     # Frame duration in milliseconds for VAD
