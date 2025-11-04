@@ -112,6 +112,9 @@ NOVA's response time has been optimized for minimal latency. Key settings in `co
 * **`MODEL_SIZE`**: Use `"tiny"` for fastest response (default), or `"base"` for better accuracy
   * `"tiny"` is 4x faster than `"base"` but slightly less accurate
   * Consider `"small"` or `"medium"` only if accuracy is critical
+* **`LANGUAGE`**: Set to `"en"` for English (saves ~200ms), or `None` for auto-detection
+  * Auto-detection is slower but supports multiple languages
+  * Use specific language codes ("es", "fr", "de", etc.) for non-English
 * **`VAD_AGGRESSIVENESS`**: Higher values (1-3) detect speech faster but may cut off beginnings
 
 ### TTS Settings (Text-to-Speech)
