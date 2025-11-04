@@ -4,8 +4,7 @@ import numpy as np
 import sounddevice as sd
 import torch
 import webrtcvad
-import whisper
-
+from faster_whisper import WhisperModel
 import constants as constant
 
 
@@ -30,17 +29,19 @@ class WhisperTranscriber:
             raised with the error details.
         """
 
-        print("\033[95mLoading Whisper model...\033[0m")
+        print("\033[95mLoading Whisper model (faster-whisper)...\033[0m")
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         try:
-            # Initialize Whisper with the correct model path
-            self.model = whisper.load_model(
+            # Initialize faster-whisper WhisperModel
+            compute_type = "float16" if self.device == "cuda" else "float32"
+            self.model = WhisperModel(
                 constant.WhisperSettings.MODEL_SIZE,
                 device=self.device,
+                compute_type=compute_type,
             )
-            print(f"\033[35mWhisper model loaded on {self.device}.\033[0m")
+            print(f"\033[35mFaster-Whisper model loaded on {self.device} (compute_type={compute_type}).\033[0m")
         except Exception as e:
-            print(f"\033[38;5;55mFailed to load Whisper model: {e}\033[0m")
+            print(f"\033[38;5;55mFailed to load Faster-Whisper model: {e}\033[0m")
             raise
         self.vad = webrtcvad.Vad(constant.WhisperSettings.VAD_AGGRESSIVENESS)
         self.stream = None
@@ -133,14 +134,18 @@ class WhisperTranscriber:
         audio_data = b"".join(voiced_frames)
         audio_array = np.frombuffer(audio_data, dtype="int16").astype(np.float32) / 32768.0
 
-        print("\033[38;5;55mTranscribing voice input...\033[0m")
+        print("\033[38;5;55mTranscribing voice input with faster-whisper...\033[0m")
         osc.send_message("Thinking")
         osc.set_typing_indicator(True)
         try:
-            result = self.model.transcribe(audio_array, fp16=torch.cuda.is_available())
-            text = result["text"].strip()
+            # faster-whisper returns (segments, info). segments is an iterator of Segment
+            segments, info = self.model.transcribe(audio_array, beam_size=5)
+            # Join all segment texts to form the final transcript
+            if segments is None:
+                return None
+            text_parts = [segment.text for segment in segments]
+            text = "".join(text_parts).strip()
             return text
         except Exception as e:
             print(f"\033[38;5;92mError during transcription: {e}\033[0m")
-
             return None
