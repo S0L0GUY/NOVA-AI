@@ -16,6 +16,7 @@ NOVA is a lightweight VRChat assistant that:
 * [Quick Start](#quick-start-windows--powershell)
 * [Configuration](#configuration)
 * [Common Issues & Quick Fixes](#common-issues--quick-fixes)
+* [Performance Optimization](#performance-optimization)
 * [Advanced Usage](#advanced-usage)
 * [Troubleshooting Tips](#troubleshooting-tips)
 * [Contributing](#contributing)
@@ -99,6 +100,35 @@ pip install -r requirements.txt
 * **TTS / language issues:** verify voice name, terminal UTF-8 encoding, try larger Whisper model, or tweak VAD/threshold
 
 * **Vision features not working:** ensure `VisionSystem.ENABLED = True` and Together AI key is valid
+
+---
+
+## Performance Optimization
+
+NOVA's response time has been optimized for minimal latency. Key settings in `constants.py`:
+
+### Whisper Settings (Speech Recognition)
+
+* **`MODEL_SIZE`**: Use `"tiny"` for fastest response (default), or `"base"` for better accuracy
+  * `"tiny"` is 4x faster than `"base"` but slightly less accurate
+  * Consider `"small"` or `"medium"` only if accuracy is critical
+* **`VAD_AGGRESSIVENESS`**: Higher values (1-3) detect speech faster but may cut off beginnings
+
+### TTS Settings (Text-to-Speech)
+
+* **`QUEUE_SLEEP_INTERVAL`**: Set to `0.05` for faster processing (default optimized)
+
+### Response Time Breakdown
+
+Typical response times with optimized settings:
+
+1. **Voice detection & recording**: 1-3 seconds (depends on speech length)
+2. **Whisper transcription** (tiny model): 0.3-0.8 seconds
+3. **LLM processing**: 1-3 seconds (depends on response length & API latency)
+4. **TTS generation**: Parallel with LLM streaming
+5. **Audio playback**: Real-time as sentences are generated
+
+**Total typical response**: 3-7 seconds from speech end to audio start
 
 ---
 
