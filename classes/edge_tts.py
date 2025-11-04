@@ -31,7 +31,6 @@ class TextToSpeechManager:
         self.device_index = device_index
         self.initialize_tts_engine()
         self.osc = VRChatOSC
-        self.lock = threading.Lock()
         self.processing = False
         self.processing_lock = threading.Lock()
 
@@ -93,7 +92,8 @@ class TextToSpeechManager:
             while True:
                 try:
                     # Use timeout to handle empty queue reliably
-                    text = self.tts_queue.get(timeout=0.1)
+                    # 0.5 second timeout balances responsiveness and CPU usage
+                    text = self.tts_queue.get(timeout=0.5)
                     self.generate_audio(text)
                 except queue.Empty:
                     # Queue is empty, exit the processing loop
