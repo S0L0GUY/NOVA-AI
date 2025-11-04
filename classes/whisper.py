@@ -1,10 +1,10 @@
 import collections
 
-from faster_whisper import WhisperModel
 import numpy as np
 import sounddevice as sd
 import torch
 import webrtcvad
+from faster_whisper import WhisperModel
 
 import constants as constant
 
