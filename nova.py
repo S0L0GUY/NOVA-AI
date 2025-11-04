@@ -220,9 +220,8 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
         user_speech = {"role": "user", "content": user_speech}
         history.append(user_speech)
 
-        # Update history
+        # Write history to file (no need to read it back immediately)
         JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
-        history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
 
         osc.send_message("Thinking")
         osc.set_typing_indicator(True)
