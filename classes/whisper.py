@@ -33,10 +33,12 @@ class WhisperTranscriber:
         print("\033[95mLoading Whisper model...\033[0m")
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         try:
-            # Initialize Whisper with the correct model path
+            # Initialize Whisper with the correct model path and download_root for caching
             self.model = whisper.load_model(
                 constant.WhisperSettings.MODEL_SIZE,
                 device=self.device,
+                download_root=None,  # Use default cache location
+                in_memory=True       # Keep model in memory for faster reuse
             )
             print(f"\033[35mWhisper model loaded on {self.device}.\033[0m")
         except Exception as e:
@@ -137,7 +139,15 @@ class WhisperTranscriber:
         osc.send_message("Thinking")
         osc.set_typing_indicator(True)
         try:
-            result = self.model.transcribe(audio_array, fp16=torch.cuda.is_available())
+            # Optimize transcription with faster settings
+            result = self.model.transcribe(
+                audio_array,
+                fp16=torch.cuda.is_available(),
+                language="en",  # Skip language detection for faster processing
+                beam_size=1,  # Use greedy decoding for speed
+                best_of=1,  # Single pass for speed
+                temperature=0.0  # Deterministic output
+            )
             text = result["text"].strip()
             return text
         except Exception as e:

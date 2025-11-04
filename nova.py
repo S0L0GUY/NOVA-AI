@@ -138,8 +138,9 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
         print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
         tts.add_to_queue(buffer)
 
+    # Reduced wait time - just ensure TTS has started processing
     while not tts.is_idle():
-        time.sleep(0.1)
+        time.sleep(0.05)  # Reduced from 0.1 to 0.05 for faster response
 
     return full_response
 

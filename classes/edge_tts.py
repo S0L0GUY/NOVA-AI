@@ -32,6 +32,8 @@ class TextToSpeechManager:
         self.initialize_tts_engine()
         self.osc = VRChatOSC
         self.lock = threading.Lock()
+        self.processing = False
+        self.processing_lock = threading.Lock()
 
     def initialize_tts_engine(self) -> None:
         """
@@ -64,7 +66,12 @@ class TextToSpeechManager:
         """
 
         self.tts_queue.put(text)
-        threading.Thread(target=self.process_queue, daemon=True).start()
+
+        # Only start processing thread if not already processing
+        with self.processing_lock:
+            if not self.processing:
+                self.processing = True
+                threading.Thread(target=self.process_queue, daemon=True).start()
 
         if not self.is_playing:
             threading.Thread(target=self.playback_loop, daemon=True).start()
@@ -80,10 +87,13 @@ class TextToSpeechManager:
             None
         """
 
-        while not self.tts_queue.empty():
-            with self.lock:
+        try:
+            while not self.tts_queue.empty():
                 text = self.tts_queue.get()
                 self.generate_audio(text)
+        finally:
+            with self.processing_lock:
+                self.processing = False
 
     def generate_audio(self, text: str) -> None:
         """

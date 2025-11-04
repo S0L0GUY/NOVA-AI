@@ -177,6 +177,8 @@ class WhisperSettings:
     """
 
     # Whisper model size ("tiny", "base", "small", "medium", "large")
+    # Note: "tiny" or "base" are recommended for fastest response time
+    # "tiny" is 4x faster than "base" but slightly less accurate
     MODEL_SIZE = "tiny"
     # Sample rate for audio processing
     SAMPLE_RATE = 16000
@@ -189,6 +191,7 @@ class WhisperSettings:
     # Maximum recording duration in seconds
     MAX_RECORDING_DURATION = 30
     # VAD aggressiveness level (0-3, higher = more aggressive)
+    # Higher values = faster detection but may cut off speech
     VAD_AGGRESSIVENESS = 0
 
 
@@ -202,7 +205,8 @@ class TTSSettings:
     # Audio bit depth conversion factor for pydub
     AUDIO_CONVERSION_FACTOR = 2**15
     # Sleep interval for queue processing (seconds)
-    QUEUE_SLEEP_INTERVAL = 0.1
+    # Reduced from 0.1 to 0.05 for faster response
+    QUEUE_SLEEP_INTERVAL = 0.05
 
 
 class SystemMessages:
