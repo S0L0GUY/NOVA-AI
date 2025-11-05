@@ -177,7 +177,7 @@ class WhisperSettings:
     """
 
     # Whisper model size ("tiny", "base", "small", "medium", "large")
-    MODEL_SIZE = "tiny"
+    MODEL_SIZE = "base"
     # Sample rate for audio processing
     SAMPLE_RATE = 16000
     # Frame duration in milliseconds for VAD
