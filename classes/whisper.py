@@ -1,4 +1,5 @@
 import collections
+import threading
 
 import numpy as np
 import sounddevice as sd
@@ -48,6 +49,8 @@ class WhisperTranscriber:
         self.stream = None
 
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
+        self._barge_thread = None
+        self._barge_stop_event = None
 
     def get_voice_input(self, osc) -> None:
         """
@@ -151,3 +154,74 @@ class WhisperTranscriber:
         except Exception as e:
             print(f"\033[38;5;92mError during transcription: {e}\033[0m")
             return None
+
+    def start_barge_in_monitor(self, interrupt_event) -> None:
+        """
+        Start a background thread that monitors the microphone using VAD.
+        When speech is detected it sets the provided `interrupt_event` and
+        stops the monitor. The monitor is lightweight and only detects the
+        start of speech (not a full transcription).
+        """
+
+        # If already running, do nothing
+        if self._barge_thread and self._barge_thread.is_alive():
+            return
+
+        self._barge_stop_event = threading.Event()
+
+        def monitor():
+            sample_rate = constant.WhisperSettings.SAMPLE_RATE
+            frame_duration = constant.WhisperSettings.FRAME_DURATION_MS
+            num_padding_frames = constant.WhisperSettings.NUM_PADDING_FRAMES
+            threshold = constant.WhisperSettings.VOICE_THRESHOLD
+
+            ring_buffer = collections.deque(maxlen=num_padding_frames)
+            triggered = False
+
+            try:
+                with sd.InputStream(
+                    samplerate=sample_rate,
+                    channels=1,
+                    dtype="int16",
+                    device=self.audio_input_index,
+                    latency="low",
+                ) as stream:
+                    while not self._barge_stop_event.is_set():
+                        data, overflowed = stream.read(int(sample_rate * frame_duration / 1000))
+                        if overflowed:
+                            continue
+
+                        audio_data = data.flatten().astype(np.int16).tobytes()
+                        is_speech = self.vad.is_speech(audio_data, sample_rate)
+
+                        if not triggered:
+                            ring_buffer.append((data.tobytes(), is_speech))
+                            num_voiced = len([f for f, s in ring_buffer if s])
+                            if num_voiced > threshold * num_padding_frames:
+                                triggered = True
+                                # signal barge-in
+                                try:
+                                    interrupt_event.set()
+                                except Exception:
+                                    pass
+                                break
+                        else:
+                            break
+            except Exception:
+                # If audio device is busy or an error occurs, just exit monitor
+                return
+
+        self._barge_thread = threading.Thread(target=monitor, daemon=True)
+        self._barge_thread.start()
+
+    def stop_barge_in_monitor(self) -> None:
+        """Stop the barge-in monitor if running."""
+        if self._barge_stop_event:
+            self._barge_stop_event.set()
+        if self._barge_thread:
+            try:
+                self._barge_thread.join(timeout=0.5)
+            except Exception:
+                pass
+        self._barge_thread = None
+        self._barge_stop_event = None

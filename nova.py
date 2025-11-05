@@ -13,6 +13,7 @@ import datetime
 import re
 import time
 from typing import Iterator
+import threading
 
 from together import Together
 
@@ -98,7 +99,13 @@ def chunk_text(text: str) -> list:
     return chunks
 
 
-def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager) -> str:
+def process_completion(
+        completion: Iterator,
+        osc: VRChatOSC,
+        tts: TextToSpeechManager,
+        transcriber: WhisperTranscriber,
+        interrupt_event: threading.Event
+    ) -> str:
     """
     Processes a streaming completion response, extracts text chunks, and
     handles output and text-to-speech functionality.
@@ -112,6 +119,10 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
                       It should have a `set_typing_indicator` method.
         tts (object): An object responsible for text-to-speech functionality.
                       It should have `add_to_queue` and `is_idle` methods.
+        transcriber (object): An object responsible for handling transcription
+                             and barge-in monitoring.
+        interrupt_event (threading.Event): An event to signal if a barge-in
+                                           has occurred.
     Returns:
         str: The full response text generated from the completion.
     """
@@ -120,7 +131,15 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
     full_response = ""
     osc.set_typing_indicator(True)
 
+    transcriber.start_barge_in_monitor(interrupt_event)
+
     for chunk in completion:
+        # If a barge-in occurred, abort streaming/generation
+        if interrupt_event.is_set():
+            # stop TTS playback immediately
+            tts.interrupt()
+            completion.close()
+
         if chunk.choices[0].delta.content:
             buffer += chunk.choices[0].delta.content
             sentence_chunks = chunk_text(buffer)
@@ -137,6 +156,15 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
         full_response += f" {buffer}"
         print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
         tts.add_to_queue(buffer)
+
+    # If interrupted, ensure barge monitor is stopped and return early
+    transcriber.stop_barge_in_monitor()
+
+    if interrupt_event.is_set():
+        # Clear interrupt on TTS so main loop can proceed to listen
+        tts.clear_interrupt()
+
+        return full_response
 
     while not tts.is_idle():
         time.sleep(0.1)
@@ -203,7 +231,9 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
-        full_response = process_completion(completion, osc, tts)
+        # Prepare an interrupt event and start barge-in monitoring inside process_completion
+        interrupt_event = threading.Event()
+        full_response = process_completion(completion, osc, tts, transcriber, interrupt_event)
         new_message["content"] = full_response
         history.append(new_message)
 

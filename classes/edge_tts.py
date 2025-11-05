@@ -32,6 +32,7 @@ class TextToSpeechManager:
         self.initialize_tts_engine()
         self.osc = VRChatOSC
         self.lock = threading.Lock()
+        self.interrupted = threading.Event()
 
     def initialize_tts_engine(self) -> None:
         """
@@ -113,6 +114,14 @@ class TextToSpeechManager:
         try:
             communicate = edge_tts.Communicate(text=text, voice=self.voice)
             asyncio.run(communicate.save(output_file))
+            # If an interrupt happened while generating, discard the audio
+            if self.interrupted.is_set():
+                os.remove(output_file)
+
+                logging.info(f"Audio generation discarded due to interrupt: {text}")
+
+                return
+
             self.audio_queue.put((text, output_file))
             logging.info(f"Audio generated for: {text}")
         except Exception as e:
@@ -140,6 +149,26 @@ class TextToSpeechManager:
             while not self.audio_queue.empty() or not self.tts_queue.empty():
                 self.osc.set_typing_indicator(True)
                 try:
+                    # If interrupted, stop processing queued audio
+                    if self.interrupted.is_set():
+                        # Clear queues
+                        with self.lock:
+                            while not self.audio_queue.empty():
+                                try:
+                                    _, fp = self.audio_queue.get_nowait()
+                                    try:
+                                        os.remove(fp)
+                                    except Exception:
+                                        pass
+                                except Exception:
+                                    break
+                            while not self.tts_queue.empty():
+                                try:
+                                    self.tts_queue.get_nowait()
+                                except Exception:
+                                    break
+                        break
+
                     text, filepath = self.audio_queue.get()
                     self.osc.send_message(text)
                     self.osc.set_typing_indicator(True)
@@ -149,6 +178,7 @@ class TextToSpeechManager:
                     logging.error(f"Error during playback: {e}")
         finally:
             self.is_playing = False
+            self.interrupted.clear()
 
     def play_audio_file(self, filepath: str) -> None:
         """
@@ -168,6 +198,12 @@ class TextToSpeechManager:
         """
 
         try:
+            # If an interrupt was signaled before playback starts, skip
+            if self.interrupted.is_set():
+                os.remove(filepath)
+
+                return
+
             if filepath.endswith(".wav"):
                 data, samplerate = sf.read(filepath)
             elif filepath.endswith(".mp3"):
@@ -179,9 +215,49 @@ class TextToSpeechManager:
                 logging.error(f"Unsupported audio format: {filepath}")
                 return
             sd.play(data, samplerate, device=self.device_index)
+            # Wait will return early if sd.stop() is called from another thread
             sd.wait()
         except Exception as e:
             logging.error(f"Error playing audio file: {e}")
+
+    def interrupt(self) -> None:
+        """
+        Interrupt current playback and generation (barge-in).
+        This will stop any currently playing audio, clear queued items,
+        and mark the manager as interrupted so in-progress generation
+        doesn't enqueue audio.
+        """
+
+        # Signal interrupt
+        self.interrupted.set()
+
+        sd.stop()
+
+        # Clear queued items (files will be removed in playback_loop or here)
+        with self.lock:
+            while not self.audio_queue.empty():
+                try:
+                    _, fp = self.audio_queue.get_nowait()
+                    try:
+                        os.remove(fp)
+                    except Exception:
+                        pass
+                except Exception:
+                    break
+
+            while not self.tts_queue.empty():
+                try:
+                    self.tts_queue.get_nowait()
+                except Exception:
+                    break
+
+        # Indicate no longer playing
+        self.is_playing = False
+
+    def clear_interrupt(self) -> None:
+        """Clear the interrupt state so TTS can resume normally."""
+
+        self.interrupted.clear()
 
     def is_idle(self):
         """
