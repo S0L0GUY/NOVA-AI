@@ -1,5 +1,6 @@
 import os
 import socket
+import list_audio_devices as audio_device
 
 from dotenv import load_dotenv
 
@@ -136,14 +137,18 @@ class Audio:
     This class defines constants for audio input and output device indices,
     specifically for VB-Audio Cable virtual audio devices.
     Attributes:
+        AUDIO_SETUP (str): The audio setup type, default is "audio cable",
+            can be configured to "local".
         AUDIO_OUTPUT_INDEX (int): The device index for audio output,
             configured for VB-Audio Cable B Input
         AUDIO_INPUT_INDEX (int): The device index for audio input,
             configured for VB-Audio Cable A Output
     """
 
-    AUDIO_OUTPUT_INDEX = 8
-    AUDIO_INPUT_INDEX = 4
+    AUDIO_SETUP = "audio cable"
+
+    AUDIO_OUTPUT_INDEX = audio_device.get_audio_output_index()
+    AUDIO_INPUT_INDEX = audio_device.get_audio_input_index()
 
 
 class Voice:

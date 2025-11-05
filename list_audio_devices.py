@@ -28,7 +28,7 @@ def list_audio_devices() -> None:
         print("Available Audio Devices:")
         for i in range(device_count):
             device_info = p.get_device_info_by_index(i)
-            name = device_info.get("name", "")
+            name = str(device_info.get("name", ""))
             channels = device_info.get("maxInputChannels", 0)
 
             # case-insensitive substring match against the patterns
@@ -38,6 +38,80 @@ def list_audio_devices() -> None:
                 print(f"{HIGHLIGHT}{line}{RESET}")
             else:
                 print(line)
+    finally:
+        p.terminate()
+
+
+def list_audio_devices_json() -> str:
+    """List all of the audio devices in JSON format.
+
+    Returns:
+        JSON: A JSON object containing the list of audio devices with their
+              indexes, names, and number of channels.
+    """
+    import json
+
+    p = pyaudio.PyAudio()
+    devices = []
+    try:
+        device_count = p.get_device_count()
+
+        for i in range(device_count):
+            device_info = p.get_device_info_by_index(i)
+            name = device_info.get("name", "")
+            channels = device_info.get("maxInputChannels", 0)
+
+            devices.append({
+                "index": i,
+                "name": name,
+                "channels": channels
+            })
+    finally:
+        p.terminate()
+
+    return json.dumps(devices, indent=4)
+
+
+def get_audio_output_index() -> int:
+    """Get the audio output device index for VB-Audio Cable B Input.
+
+    Returns:
+        int: The device index for audio output.
+    """
+    p = pyaudio.PyAudio()
+    try:
+        device_count = p.get_device_count()
+
+        for i in range(device_count):
+            device_info = p.get_device_info_by_index(i)
+            name = str(device_info.get("name", ""))
+
+            if "CABLE-B Input (VB-Audio Cable B" in name:
+                return i
+
+        raise ValueError("VB-Audio Cable B Input device not found.")
+    finally:
+        p.terminate()
+
+
+def get_audio_input_index() -> int:
+    """Get the audio input device index for VB-Audio Cable A Output.
+
+    Returns:
+        int: The device index for audio input.
+    """
+    p = pyaudio.PyAudio()
+    try:
+        device_count = p.get_device_count()
+
+        for i in range(device_count):
+            device_info = p.get_device_info_by_index(i)
+            name = str(device_info.get("name", ""))
+
+            if "CABLE-A Output (VB-Audio Cable A" in name:
+                return i
+
+        raise ValueError("VB-Audio Cable A Output device not found.")
     finally:
         p.terminate()
 
