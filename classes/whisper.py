@@ -146,7 +146,7 @@ class WhisperTranscriber:
             if not segments_list:
                 return None
             text_parts = [segment.text for segment in segments_list]
-            text = "".join(text_parts).strip()
+            text = " ".join(text_parts).strip()
             return text
         except Exception as e:
             print(f"\033[38;5;92mError during transcription: {e}\033[0m")
