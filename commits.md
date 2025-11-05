@@ -1,5 +1,65 @@
 # Commit History
 
+- **Commit:** [c6cab19](https://github.com/S0L0GUY/NOVA-AI/commit/c6cab1923b5263b732c1838ec923ca1c08f659b9)
+  **Author:** Evan Grinnell
+  **Message:** 69 remove resource monitor (#70)
+
+* Remove ResourceMonitor class and related functionality from the project
+
+* Update compiled Python files in __pycache__ directory
+
+* Removed Unused Imports
+
+- **Commit:** [9ed2932](https://github.com/S0L0GUY/NOVA-AI/commit/9ed293216e26dc0685672e502057a5a6ea45ff35)
+  **Author:** Evan Grinnell
+  **Message:** Merge branch 'main' of https://github.com/S0L0GUY/NOVA-AI
+
+- **Commit:** [3eee96b](https://github.com/S0L0GUY/NOVA-AI/commit/3eee96b0310c6f7a04a5ffb3ee352c165198558e)
+  **Author:** Evan Grinnell
+  **Message:** Enhance voice input handling by passing OSC instance to get_voice_input method
+
+- **Commit:** [4c20997](https://github.com/S0L0GUY/NOVA-AI/commit/4c20997c9d8d826da0c76da8a03dbdcfba6da849)
+  **Author:** Evan Grinnell
+  **Message:** Updated ReadMe (#66)
+
+- **Commit:** [ee52442](https://github.com/S0L0GUY/NOVA-AI/commit/ee5244276b8668ad1a21ec0408892d050a4d51fd)
+  **Author:** Copilot
+  **Message:** Add comprehensive code quality checks with GitHub Actions workflows (#65)
+
+* Initial plan
+
+* Add comprehensive code quality checks with GitHub Actions workflows
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+* Add quick start guide for code quality checks
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+* Address code review feedback on documentation
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+* Updated With Black Formatter
+
+* Updated Black Formatting
+
+* Fix indentation error and apply code formatting (Black, isort)
+
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+
+* Update compiled Python files in __pycache__ directory
+
+---------
+
+Co-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>
+Co-authored-by: S0L0GUY <155865196+S0L0GUY@users.noreply.github.com>
+Co-authored-by: Evan Grinnell <worldevan8@gmail.com>
+
+- **Commit:** [6759f5a](https://github.com/S0L0GUY/NOVA-AI/commit/6759f5aba4dbbfb1c8b272f9dca6b176a92bfe7c)
+  **Author:** Evan Grinnell
+  **Message:** Updated Commit History
+
 - **Commit:** [9b3ec1f](https://github.com/S0L0GUY/NOVA-AI/commit/9b3ec1f2981c1c7016894d8141770863ec9d648b)
   **Author:** Copilot
   **Message:** Refactor to use only Together AI, remove OpenAI and LMStudio support (#62)
@@ -264,42 +324,4 @@ Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
 ---------
 
 Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
-
-- **Commit:** [612372c](https://github.com/S0L0GUY/NOVA-AI/commit/612372c99d69003f0f977041029d52d75927e544)
-  **Author:** Evan Grinnell
-  **Message:** Update default voice name to "en-US-JennyNeural" and enhance system prompt with new reference guidelines
-
-- **Commit:** [787e342](https://github.com/S0L0GUY/NOVA-AI/commit/787e3420bb90512383dde7380d5b48fc5bdb4ebd)
-  **Author:** Evan Grinnell
-  **Message:** Enhance TextToSpeechManager to filter out emojis and refactor SystemPrompt to improve prompt retrieval logic
-
-- **Commit:** [558999b](https://github.com/S0L0GUY/NOVA-AI/commit/558999b0caf23c5093f8fe1f2e91821e35c3a680)
-  **Author:** Evan Grinnell
-  **Message:** Fix text chunking regex and update OSC typing indicator handling
-
-- **Commit:** [34496ec](https://github.com/S0L0GUY/NOVA-AI/commit/34496ec53f2e6f6fa752f4e86706f6cdf9acbe7a)
-  **Author:** Evan Grinnell
-  **Message:** Added New Contributor
-
-- **Commit:** [02dc9c8](https://github.com/S0L0GUY/NOVA-AI/commit/02dc9c82c8a88d5e3a652ba1dbd3c6ab39404e51)
-  **Author:** Evan Grinnell
-  **Message:** Whisper fixes (#34)
-
-* Refactor code structure for improved readability and maintainability
-
-* Fixed Small Errors
-
-* Refactor output management; remove OutputManager class and implement TextToSpeechManager for Edge TTS integration
-
-* Refactor JsonWrapper class; update read_json method to return Python objects and add whipe_json method for clearing JSON file contents
-
-* Remove unused audio files: temp_audio.wav and tts_output.wav
-
-* Add pattern to ignore all .wav files in the repository
-
-* Removed Linting
-
-- **Commit:** [147c79a](https://github.com/S0L0GUY/NOVA-AI/commit/147c79a92b2c30c0f6cecb14983d2f81828d6248)
-  **Author:** Evan Grinnell
-  **Message:** Updated TTS to EdgeTTS
 
