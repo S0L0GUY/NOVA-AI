@@ -189,7 +189,7 @@ class WhisperSettings:
     # Maximum recording duration in seconds
     MAX_RECORDING_DURATION = 30
     # VAD aggressiveness level (0-3, higher = more aggressive)
-    VAD_AGGRESSIVENESS = 0
+    VAD_AGGRESSIVENESS = 2
 
 
 class TTSSettings:
