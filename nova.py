@@ -13,7 +13,6 @@ import datetime
 import re
 import time
 from typing import Iterator
-import threading
 
 from together import Together
 
@@ -100,12 +99,12 @@ def chunk_text(text: str) -> list:
 
 
 def process_completion(
-        completion: Iterator,
-        osc: VRChatOSC,
-        tts: TextToSpeechManager,
-        transcriber: WhisperTranscriber,
-        interrupt_event: threading.Event
-    ) -> str:
+    completion: Iterator,
+    osc: VRChatOSC,
+    tts: TextToSpeechManager,
+    transcriber: WhisperTranscriber,
+) -> str:
+
     """
     Processes a streaming completion response, extracts text chunks, and
     handles output and text-to-speech functionality.
@@ -119,10 +118,8 @@ def process_completion(
                       It should have a `set_typing_indicator` method.
         tts (object): An object responsible for text-to-speech functionality.
                       It should have `add_to_queue` and `is_idle` methods.
-        transcriber (object): An object responsible for handling transcription
-                             and barge-in monitoring.
-        interrupt_event (threading.Event): An event to signal if a barge-in
-                                           has occurred.
+    transcriber (object): An object responsible for handling transcription
+                 and barge-in monitoring.
     Returns:
         str: The full response text generated from the completion.
     """
@@ -131,14 +128,19 @@ def process_completion(
     full_response = ""
     osc.set_typing_indicator(True)
 
-    transcriber.start_barge_in_monitor(interrupt_event)
+    # Start barge-in monitor and call tts.interrupt() directly when VAD detects speech
+    transcriber.clear_barge_triggered()
+    transcriber.start_barge_in_monitor(on_barge_in=tts.interrupt)
 
     for chunk in completion:
         # If a barge-in occurred, abort streaming/generation
-        if interrupt_event.is_set():
-            # stop TTS playback immediately
-            tts.interrupt()
-            completion.close()
+        if transcriber.is_barge_triggered():
+            # stop TTS playback should already have been requested via callback
+            try:
+                completion.close()
+            except Exception:
+                pass
+            break
 
         if chunk.choices[0].delta.content:
             buffer += chunk.choices[0].delta.content
@@ -157,13 +159,13 @@ def process_completion(
         print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
         tts.add_to_queue(buffer)
 
-    # If interrupted, ensure barge monitor is stopped and return early
+    # Stop monitor and check if a barge-in occurred
     transcriber.stop_barge_in_monitor()
 
-    if interrupt_event.is_set():
+    if transcriber.is_barge_triggered():
         # Clear interrupt on TTS so main loop can proceed to listen
         tts.clear_interrupt()
-
+        # leave transcriber flag cleared by caller if desired
         return full_response
 
     while not tts.is_idle():
@@ -231,9 +233,8 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
-        # Prepare an interrupt event and start barge-in monitoring inside process_completion
-        interrupt_event = threading.Event()
-        full_response = process_completion(completion, osc, tts, transcriber, interrupt_event)
+        # Start barge-in monitoring inside process_completion (VAD-driven)
+        full_response = process_completion(completion, osc, tts, transcriber)
         new_message["content"] = full_response
         history.append(new_message)
 

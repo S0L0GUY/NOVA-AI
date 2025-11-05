@@ -1,5 +1,6 @@
 import collections
 import threading
+from typing import Callable, Optional
 
 import numpy as np
 import sounddevice as sd
@@ -51,6 +52,22 @@ class WhisperTranscriber:
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
         self._barge_thread = None
         self._barge_stop_event = None
+        # internal thread-safe flag to indicate a barge-in was detected
+        self._barge_triggered = False
+        self._barge_trigger_lock = threading.Lock()
+
+    def _set_barge_triggered(self, value: bool) -> None:
+        with self._barge_trigger_lock:
+            self._barge_triggered = value
+
+    def clear_barge_triggered(self) -> None:
+        """Clear the internal barge-in triggered flag."""
+        self._set_barge_triggered(False)
+
+    def is_barge_triggered(self) -> bool:
+        """Return True if a barge-in was detected."""
+        with self._barge_trigger_lock:
+            return self._barge_triggered
 
     def get_voice_input(self, osc) -> None:
         """
@@ -155,12 +172,15 @@ class WhisperTranscriber:
             print(f"\033[38;5;92mError during transcription: {e}\033[0m")
             return None
 
-    def start_barge_in_monitor(self, interrupt_event) -> None:
+    def start_barge_in_monitor(self, on_barge_in: Optional[Callable[[], None]] = None) -> None:
         """
         Start a background thread that monitors the microphone using VAD.
-        When speech is detected it sets the provided `interrupt_event` and
-        stops the monitor. The monitor is lightweight and only detects the
-        start of speech (not a full transcription).
+        When speech is detected it sets an internal flag and optionally
+        calls the provided `on_barge_in` callback (for example to interrupt
+        TTS). The monitor is lightweight and only detects the start of
+        speech (not a full transcription).
+        Args:
+            on_barge_in: optional callable invoked when barge-in is detected.
         """
 
         # If already running, do nothing
@@ -199,10 +219,16 @@ class WhisperTranscriber:
                             num_voiced = len([f for f, s in ring_buffer if s])
                             if num_voiced > threshold * num_padding_frames:
                                 triggered = True
-                                # signal barge-in
+                                # signal barge-in via internal flag and optional callback
                                 try:
-                                    interrupt_event.set()
+                                    self._set_barge_triggered(True)
                                 except Exception:
+                                    pass
+                                try:
+                                    if on_barge_in:
+                                        on_barge_in()
+                                except Exception:
+                                    # swallow exceptions from callback to avoid crashing monitor
                                     pass
                                 break
                         else:
