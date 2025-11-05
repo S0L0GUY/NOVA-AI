@@ -177,7 +177,7 @@ class WhisperSettings:
     """
 
     # Whisper model size ("tiny", "base", "small", "medium", "large")
-    MODEL_SIZE = "tiny"
+    MODEL_SIZE = "base"
     # Sample rate for audio processing
     SAMPLE_RATE = 16000
     # Frame duration in milliseconds for VAD
@@ -189,7 +189,7 @@ class WhisperSettings:
     # Maximum recording duration in seconds
     MAX_RECORDING_DURATION = 30
     # VAD aggressiveness level (0-3, higher = more aggressive)
-    VAD_AGGRESSIVENESS = 0
+    VAD_AGGRESSIVENESS = 2
 
 
 class TTSSettings:
