@@ -141,10 +141,11 @@ class WhisperTranscriber:
         try:
             # faster-whisper returns (segments, info). segments is an iterator of Segment
             segments, info = self.model.transcribe(audio_array, beam_size=5)
-            # Join all segment texts to form the final transcript
-            if segments is None:
+            # Convert segments iterator to a list and check if it's empty
+            segments_list = list(segments)
+            if not segments_list:
                 return None
-            text_parts = [segment.text for segment in segments]
+            text_parts = [segment.text for segment in segments_list]
             text = "".join(text_parts).strip()
             return text
         except Exception as e:
