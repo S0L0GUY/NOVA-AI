@@ -111,7 +111,7 @@ class TextToSpeechManager:
             output_file = tmp_file.name
 
         try:
-            communicate = edge_tts.Communicate(text=text, voice=self.voice)
+            communicate = edge_tts.Communicate(text=text, voice=self.voice, boundary="WordBoundary")
             asyncio.run(communicate.save(output_file))
             self.audio_queue.put((text, output_file))
             logging.info(f"Audio generated for: {text}")
