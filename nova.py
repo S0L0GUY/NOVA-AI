@@ -14,7 +14,7 @@ import re
 import time
 from typing import Iterator
 
-from together import Together
+from google import genai
 
 import constants as constant
 from classes.edge_tts import TextToSpeechManager
@@ -67,7 +67,7 @@ def initialize_components() -> tuple:
 
     history = initialize_history()
 
-    client = Together(base_url=constant.LLM_API.BASE_URL, api_key=constant.LLM_API.API_KEY)
+    client = genai.Client(api_key=constant.LLM_API.API_KEY)
 
     tts = TextToSpeechManager(
         voice=constant.Voice.VOICE_NAME,
@@ -116,13 +116,50 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
         str: The full response text generated from the completion.
     """
 
-    buffer = ""
-    full_response = ""
+    """
+    Accepts either a streaming iterator of chunks (SDK streaming) or a
+    completed response object containing `.text`. Handles extracting text,
+    splitting into sentence chunks, printing, and queuing TTS. Returns the
+    full response text.
+    """
+
     osc.set_typing_indicator(True)
 
-    for chunk in completion:
-        if chunk.choices[0].delta.content:
-            buffer += chunk.choices[0].delta.content
+    # Helper to consume a plain text string and queue TTS
+    def handle_text(text: str) -> str:
+        full = ""
+        for sentence in chunk_text(text):
+            full += f" {sentence}"
+            print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
+            tts.add_to_queue(sentence)
+        return full
+
+    full_response = ""
+
+    # If the completion is a single response object with .text, handle it
+    if hasattr(completion, "text"):
+        full_response = handle_text(completion.text)
+    else:
+        # Otherwise attempt to iterate streaming-like chunks. Support both
+        # Google GenAI streaming chunks (chunk.text) and fallback to OpenAI
+        # style chunks (choices[0].delta.content) if present.
+        buffer = ""
+        for chunk in completion:
+            text_piece = None
+            # google-genai streaming chunk
+            if hasattr(chunk, "text") and chunk.text:
+                text_piece = chunk.text
+            else:
+                # try OpenAI-like delta access (backwards-compat)
+                try:
+                    text_piece = chunk.choices[0].delta.content
+                except (AttributeError, IndexError):
+                    text_piece = None
+
+            if not text_piece:
+                continue
+
+            buffer += text_piece
             sentence_chunks = chunk_text(buffer)
 
             while len(sentence_chunks) > 1:
@@ -131,13 +168,14 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
                 print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
                 tts.add_to_queue(sentence)
 
-            buffer = sentence_chunks[0]
+            buffer = sentence_chunks[0] if sentence_chunks else ""
 
-    if buffer:
-        full_response += f" {buffer}"
-        print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
-        tts.add_to_queue(buffer)
+        if buffer:
+            full_response += f" {buffer}"
+            print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
+            tts.add_to_queue(buffer)
 
+    # Wait until TTS finished speaking
     while not tts.is_idle():
         time.sleep(0.1)
 
@@ -181,6 +219,43 @@ def get_current_model(client: object, vision_manager: VisionManager) -> str:
     return constant.LanguageModel.MODEL_ID
 
 
+def generate_contents(history: list) -> list:
+    """
+    Converts the chat-style conversation history into the GenAI SDK `contents` format,
+    mapping roles appropriately for GenAI ('user' or 'model').
+
+    Args:
+        history (list): List of message dictionaries, each with 'role' and 'content' keys.
+
+    Returns:
+        list: List of GenAI Content objects (or raw text strings if construction fails),
+              with roles mapped to 'user' or 'model' as required by the SDK.
+    """
+    # Convert the existing chat-style `history` into the GenAI SDK
+    # `contents` format. Each history entry becomes a Content with a
+    # text Part so the SDK receives role-aware inputs.
+    contents = []
+    for msg in history:
+        text = msg.get("content", "")
+        # Map roles from chat format to GenAI allowed roles ('user' or 'model')
+        role = msg.get("role", "user")
+        if role != "user":
+            # GenAI accepts 'user' and 'model' for content.role; map everything
+            # that's not 'user' to 'model' (assistant/system -> model).
+            role = "model"
+
+        try:
+            part = genai.types.Part.from_text(text=text)
+            content = genai.types.Content(role=role, parts=[part])
+            contents.append(content)
+        except (AttributeError, TypeError) as e:
+            # Fallback: if types are unavailable or construction fails, log a warning and pass raw text
+            print(f"Warning: Failed to construct GenAI content object for role '{role}': {e}. Appending raw text as fallback.")
+            contents.append(text)
+
+    return contents
+
+
 def run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber) -> None:
 
     while True:
@@ -193,17 +268,15 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
         # Check for vision updates before generating response
         history = add_vision_updates_to_history(history, vision_manager)
 
-        # Creates model parameters
-        completion = client.chat.completions.create(
-            model=current_model,
-            messages=history,
-            temperature=constant.LanguageModel.LM_TEMPERATURE,
-            stream=True,
-        )
+        contents = generate_contents(history)
+
+        # Call the Google GenAI SDK. Use the synchronous non-streaming
+        # `generate_content` method and then handle the returned `.text`.
+        response = client.models.generate_content(model=current_model, contents=contents)
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
-        full_response = process_completion(completion, osc, tts)
+        full_response = process_completion(response, osc, tts)
         new_message["content"] = full_response
         history.append(new_message)
 

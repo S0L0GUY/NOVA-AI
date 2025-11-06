@@ -77,12 +77,13 @@ class LanguageModel:
         MODEL_ID (str): The identifier for the specific language model being
         used. Default is set to Meta-Llama 3.3 70B Instruct Turbo from
         Together AI.
-        LM_TEMPERATURE (float): The temperature parameter for the language
-        model's output.
     """
 
-    MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
-    LM_TEMPERATURE = 0.7
+    # Default to a Google GenAI (Gemini) model since the project uses
+    # `google-genai` by default. You can override this with the
+    # GENAI_MODEL environment variable if you want another model or
+    # a Together/other provider model name.
+    MODEL_ID = "gemini-2.5-flash"
 
 
 class VisionSystem:

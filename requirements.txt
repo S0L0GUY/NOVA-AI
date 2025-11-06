@@ -21,3 +21,4 @@ numba
 vrchatapi
 python-dotenv
 faster-whisper
+google-genai

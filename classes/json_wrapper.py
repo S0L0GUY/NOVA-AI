@@ -3,7 +3,7 @@ import json
 
 class JsonWrapper:
     @staticmethod
-    def read_json(file_path: str) -> tuple:
+    def read_json(file_path: str) -> object:
         """
         Reads a JSON file and returns its contents as a Python object.
         Args:
@@ -44,7 +44,7 @@ class JsonWrapper:
             json.dump({}, file, indent=4)
 
     @staticmethod
-    def write(file_path: str, data: tuple) -> None:
+    def write(file_path: str, data: object) -> None:
         """
         Writes data to a JSON file. If the file already exists, it will be
         overwritten.
