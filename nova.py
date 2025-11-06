@@ -260,10 +260,7 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
 
         # Call the Google GenAI SDK. Use the synchronous non-streaming
         # `generate_content` method and then handle the returned `.text`.
-        response = client.models.generate_content(
-            model=current_model,
-            contents=contents
-        )
+        response = client.models.generate_content(model=current_model, contents=contents)
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
