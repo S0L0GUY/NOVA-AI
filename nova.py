@@ -153,7 +153,7 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
                 # try OpenAI-like delta access (backwards-compat)
                 try:
                     text_piece = chunk.choices[0].delta.content
-                except Exception:
+                except (AttributeError, IndexError):
                     text_piece = None
 
             if not text_piece:
