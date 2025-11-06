@@ -248,8 +248,9 @@ def generate_contents(history: list) -> list:
             part = genai.types.Part.from_text(text=text)
             content = genai.types.Content(role=role, parts=[part])
             contents.append(content)
-        except Exception:
-            # Fallback: if types are unavailable or construction fails, pass raw text
+        except (AttributeError, TypeError) as e:
+            # Fallback: if types are unavailable or construction fails, log a warning and pass raw text
+            print(f"Warning: Failed to construct GenAI content object for role '{role}': {e}. Appending raw text as fallback.")
             contents.append(text)
 
     return contents
