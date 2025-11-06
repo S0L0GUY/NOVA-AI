@@ -220,6 +220,17 @@ def get_current_model(client: object, vision_manager: VisionManager) -> str:
 
 
 def generate_contents(history: list) -> list:
+    """
+    Converts the chat-style conversation history into the GenAI SDK `contents` format,
+    mapping roles appropriately for GenAI ('user' or 'model').
+
+    Args:
+        history (list): List of message dictionaries, each with 'role' and 'content' keys.
+
+    Returns:
+        list: List of GenAI Content objects (or raw text strings if construction fails),
+              with roles mapped to 'user' or 'model' as required by the SDK.
+    """
     # Convert the existing chat-style `history` into the GenAI SDK
     # `contents` format. Each history entry becomes a Content with a
     # text Part so the SDK receives role-aware inputs.
