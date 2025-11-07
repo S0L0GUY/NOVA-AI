@@ -15,10 +15,10 @@ import time
 from typing import Iterator
 
 from google import genai
+from classes.json_wrapper import JsonWrapper
 
 import constants as constant
 from classes.edge_tts import TextToSpeechManager
-from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC
 from classes.system_prompt import SystemPrompt
 from classes.vision_manager import VisionManager
