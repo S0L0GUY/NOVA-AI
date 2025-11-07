@@ -48,7 +48,7 @@ class SpeechToTextHandler:
             print(f"\033[38;5;55mFailed to load Faster-Whisper model: {e}\033[0m")
             raise
         self.genai = genai.Client(api_key=constant.LLM_API.API_KEY)
-        self.prompt = 'Generate a transcript of the speech.'
+        self.prompt = "Generate a transcript of the speech."
         self.vad = webrtcvad.Vad(constant.SpeechRecognitionConfig.VAD_AGGRESSIVENESS)
         self.stream = None
 
@@ -146,7 +146,6 @@ class SpeechToTextHandler:
         else:
             print("\033[38;5;55mInvalid transcription model specified.\033[0m")
             return ""
-
 
     def transcribe_audio_whisper(self, osc, audio_data: bytes) -> str:
         audio_array = np.frombuffer(audio_data, dtype="int16").astype(np.float32) / 32768.0
