@@ -15,14 +15,14 @@ import time
 from typing import Iterator
 
 from google import genai
-from classes.json_wrapper import JsonWrapper
 
 import constants as constant
 from classes.edge_tts import TextToSpeechManager
+from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC
+from classes.speech_to_text import SpeechToTextHandler
 from classes.system_prompt import SystemPrompt
 from classes.vision_manager import VisionManager
-from classes.speech_to_text import SpeechToTextHandler
 
 
 def initialize_history() -> list:
