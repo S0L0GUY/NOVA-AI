@@ -1,15 +1,18 @@
 import collections
+import io
+import wave
 
 import numpy as np
 import sounddevice as sd
 import torch
 import webrtcvad
 from faster_whisper import WhisperModel
+from google import genai
 
 import constants as constant
 
 
-class WhisperTranscriber:
+class SpeechToTextHandler:
     def __init__(self) -> None:
         """
         Initializes the Whisper class.
@@ -36,7 +39,7 @@ class WhisperTranscriber:
             # Initialize faster-whisper WhisperModel
             compute_type = "float16" if self.device == "cuda" else "float32"
             self.model = WhisperModel(
-                constant.WhisperSettings.MODEL_SIZE,
+                constant.SpeechRecognitionConfig.MODEL_SIZE,
                 device=self.device,
                 compute_type=compute_type,
             )
@@ -44,12 +47,14 @@ class WhisperTranscriber:
         except Exception as e:
             print(f"\033[38;5;55mFailed to load Faster-Whisper model: {e}\033[0m")
             raise
-        self.vad = webrtcvad.Vad(constant.WhisperSettings.VAD_AGGRESSIVENESS)
+        self.genai = genai.Client(api_key=constant.LLM_API.API_KEY)
+        self.prompt = "Generate a transcript of the speech."
+        self.vad = webrtcvad.Vad(constant.SpeechRecognitionConfig.VAD_AGGRESSIVENESS)
         self.stream = None
 
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
 
-    def get_voice_input(self, osc) -> None:
+    def get_voice_input(self, osc) -> str:
         """
         Captures voice input using Voice Activity Detection (VAD) and
         transcribes it into text. This method listens for voice input through
@@ -78,10 +83,10 @@ class WhisperTranscriber:
         """
 
         print("\033[38;5;55mListening for voice input with VAD...\033[0m")
-        sample_rate = constant.WhisperSettings.SAMPLE_RATE
-        frame_duration = constant.WhisperSettings.FRAME_DURATION_MS  # ms
-        num_padding_frames = constant.WhisperSettings.NUM_PADDING_FRAMES
-        threshold = constant.WhisperSettings.VOICE_THRESHOLD
+        sample_rate = constant.SpeechRecognitionConfig.SAMPLE_RATE
+        frame_duration = constant.SpeechRecognitionConfig.FRAME_DURATION_MS  # ms
+        num_padding_frames = constant.SpeechRecognitionConfig.NUM_PADDING_FRAMES
+        threshold = constant.SpeechRecognitionConfig.VOICE_THRESHOLD
 
         ring_buffer = collections.deque(maxlen=num_padding_frames)
         triggered = False
@@ -118,7 +123,7 @@ class WhisperTranscriber:
                         num_unvoiced = len([f for f, speech in ring_buffer if not speech])
                         if num_unvoiced > threshold * num_padding_frames:
                             break  # End of speech
-                    max_dur = constant.WhisperSettings.MAX_RECORDING_DURATION
+                    max_dur = constant.SpeechRecognitionConfig.MAX_RECORDING_DURATION
                     max_frames = sample_rate * max_dur
                     if len(voiced_frames) > max_frames:
                         print(("\033[38;5;55mMax recording duration reached." "\033[0m"))
@@ -126,13 +131,23 @@ class WhisperTranscriber:
 
         except Exception as e:
             print(f"\033[38;5;55mError during voice input: {e}\033[0m")
-            return None
+            return ""
 
         if not voiced_frames:
             print("\033[38;5;55mNo speech detected.\033[0m")
-            return None
+            return ""
 
         audio_data = b"".join(voiced_frames)
+
+        if constant.SpeechRecognitionConfig.QUEUED_MODEL == "whisper":
+            return self.transcribe_audio_whisper(osc, audio_data)
+        elif constant.SpeechRecognitionConfig.QUEUED_MODEL == "genai":
+            return self.transcribe_audio_genai(osc, audio_data)
+        else:
+            print("\033[38;5;55mInvalid transcription model specified.\033[0m")
+            return ""
+
+    def transcribe_audio_whisper(self, osc, audio_data: bytes) -> str:
         audio_array = np.frombuffer(audio_data, dtype="int16").astype(np.float32) / 32768.0
 
         print("\033[38;5;55mTranscribing voice input with faster-whisper...\033[0m")
@@ -144,10 +159,37 @@ class WhisperTranscriber:
             # Convert segments iterator to a list and check if it's empty
             segments_list = list(segments)
             if not segments_list:
-                return None
+                return ""
             text_parts = [segment.text for segment in segments_list]
             text = " ".join(text_parts).strip()
             return text
         except Exception as e:
             print(f"\033[38;5;92mError during transcription: {e}\033[0m")
-            return None
+            return ""
+
+    def transcribe_audio_genai(self, osc, audio_data: bytes):
+        print("\033[38;5;55mTranscribing voice input with GenAI...\033[0m")
+        # Convert raw PCM int16 bytes to a WAV file in-memory and upload it
+        file_obj = io.BytesIO()
+        with wave.open(file_obj, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)  # 16-bit audio
+            wf.setframerate(constant.SpeechRecognitionConfig.SAMPLE_RATE)
+            wf.writeframes(audio_data)
+        file_obj.seek(0)
+        file_obj.name = "speech.wav"
+
+        myfile = self.genai.files.upload(file=file_obj, config={"mime_type": "audio/wav"})
+        response = self.genai.models.generate_content(model="gemini-2.5-flash", contents=[self.prompt, myfile])
+
+        return response.text
+
+    def get_user_input(self, osc) -> str:
+        """
+        Wrapper method to get voice input using the preferred transcription
+        method.
+        Returns:
+            str: The transcribed text from the voice input.
+        """
+
+        return self.get_voice_input(osc)
