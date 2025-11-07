@@ -172,7 +172,7 @@ class FilePaths:
     NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
 
 
-class WhisperSettings:
+class SpeechRecognitionConfig:
     """
     Configuration for Whisper speech recognition.
     """
@@ -191,6 +191,8 @@ class WhisperSettings:
     MAX_RECORDING_DURATION = 30
     # VAD aggressiveness level (0-3, higher = more aggressive)
     VAD_AGGRESSIVENESS = 2
+    # Model to use for queued transcription, can be [whisper|genai]
+    QUEUED_MODEL = "whisper"
 
 
 class TTSSettings:

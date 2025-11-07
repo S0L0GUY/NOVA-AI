@@ -22,7 +22,7 @@ from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC
 from classes.system_prompt import SystemPrompt
 from classes.vision_manager import VisionManager
-from classes.whisper import WhisperTranscriber
+from classes.speech_to_text import SpeechToTextHandler
 
 
 def initialize_history() -> list:
@@ -63,7 +63,7 @@ def initialize_components() -> tuple:
     osc.send_message("System Starting")
     osc.set_typing_indicator(True)
 
-    transcriber = WhisperTranscriber()
+    transcriber = SpeechToTextHandler()
 
     history = initialize_history()
 
@@ -285,7 +285,7 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
         while not user_speech:
             osc.send_message("Listening")
             osc.set_typing_indicator(False)
-            user_speech = transcriber.get_voice_input(osc)
+            user_speech = transcriber.get_user_input(osc)
 
         # Add user speech to history
         print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
