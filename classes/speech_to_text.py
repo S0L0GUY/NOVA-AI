@@ -1,5 +1,4 @@
 import collections
-from google import genai
 import io
 import wave
 
@@ -8,6 +7,7 @@ import sounddevice as sd
 import torch
 import webrtcvad
 from faster_whisper import WhisperModel
+from google import genai
 
 import constants as constant
 
