@@ -174,7 +174,7 @@ class FilePaths:
 
 class SpeechRecognitionConfig:
     """
-    Configuration for Whisper speech recognition.
+    Configuration for speech recognition (Whisper and GenAI).
     """
 
     # Whisper model size ("tiny", "base", "small", "medium", "large")
