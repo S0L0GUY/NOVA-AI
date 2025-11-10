@@ -190,9 +190,9 @@ class SpeechRecognitionConfig:
     # Maximum recording duration in seconds
     MAX_RECORDING_DURATION = 30
     # VAD aggressiveness level (0-3, higher = more aggressive)
-    VAD_AGGRESSIVENESS = 2
+    VAD_AGGRESSIVENESS = 1
     # Model to use for queued transcription, can be [whisper|genai]
-    QUEUED_MODEL = "whisper"
+    QUEUED_MODEL = "genai"
 
 
 class TTSSettings:
