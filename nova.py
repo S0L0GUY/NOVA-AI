@@ -23,6 +23,7 @@ from classes.osc import VRChatOSC
 from classes.speech_to_text import SpeechToTextHandler
 from classes.system_prompt import SystemPrompt
 from classes.vision_manager import VisionManager
+from classes import adapters
 
 
 def initialize_history() -> list:
@@ -58,27 +59,19 @@ def initialize_components() -> tuple:
             - vision_manager (VisionManager): The vision system manager.
     """
 
-    osc = VRChatOSC(constant.Network.LOCAL_IP, constant.Network.VRC_PORT)
+    # Use adapters to construct components so each feature is module-adapter backed.
+    osc = adapters.initialize_osc()
 
-    osc.send_message("System Starting")
-    osc.set_typing_indicator(True)
-
-    transcriber = SpeechToTextHandler()
+    transcriber = adapters.create_transcriber()
 
     history = initialize_history()
 
-    client = genai.Client(api_key=constant.LLM_API.API_KEY)
+    client = adapters.create_genai_client()
 
-    tts = TextToSpeechManager(
-        voice=constant.Voice.VOICE_NAME,
-        device_index=constant.Audio.AUDIO_OUTPUT_INDEX,
-        VRChatOSC=osc,
-    )
-    tts.initialize_tts_engine()
+    tts = adapters.create_tts(osc)
 
-    # Initialize vision system
-    vision_manager = VisionManager()
-    vision_manager.start_vision_system()
+    # Initialize vision system via adapter
+    vision_manager = adapters.create_vision_manager()
 
     return osc, transcriber, history, client, tts, vision_manager
 
