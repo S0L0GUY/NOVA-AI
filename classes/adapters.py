@@ -2,13 +2,14 @@ import logging
 import warnings
 from typing import Optional
 
+from google import genai
+
 import constants as constant
 from classes.edge_tts import TextToSpeechManager
 from classes.osc import VRChatOSC
 from classes.speech_to_text import SpeechToTextHandler
 from classes.vision_manager import VisionManager
 from classes.vrchat_api import VRChatAPIManager
-from google import genai
 
 
 def initialize_osc() -> Optional[VRChatOSC]:
