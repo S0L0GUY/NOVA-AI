@@ -21,7 +21,6 @@ from classes import adapters
 from classes.edge_tts import TextToSpeechManager
 from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC
-from classes.speech_to_text import SpeechToTextHandler
 from classes.system_prompt import SystemPrompt
 from classes.vision_manager import VisionManager
 

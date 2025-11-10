@@ -1,10 +1,7 @@
 import logging
-import warnings
 
-import nova
 import classes.adapters as adapters
-from classes.vision_manager import VisionManager
-from classes.vrchat_api import VRChatAPIManager
+import nova
 
 # Set up logging configuration
 logging.basicConfig(level=logging.ERROR, format="%(asctime)s - %(levelname)s - %(message)s")
