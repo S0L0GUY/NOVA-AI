@@ -92,7 +92,7 @@ class VisionSystem:
     """
 
     # Whether vision system is enabled
-    ENABLED = False
+    ENABLED = True
     # How often to analyze screenshots continuously (seconds)
     ANALYSIS_INTERVAL = 60
     # Maximum image size for API calls (pixels)
@@ -110,7 +110,7 @@ class VisionSystem:
     # VRChat window search keywords
     WINDOW_KEYWORDS = ["VRChat", "vrchat"]
     # Vision model to use (adjust for your local setup)
-    VISION_MODEL = "meta-llama/Llama-Vision-Free"
+    VISION_MODEL = "gemini-2.5-flash"
     # Maximum tokens for vision API response
     MAX_VISION_TOKENS = 90
     # Temperature for vision analysis

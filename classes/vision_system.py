@@ -2,12 +2,12 @@ import base64
 import json
 import os
 import time
-from io import BytesIO
 from typing import Any, Dict, List, Optional
 
 import win32gui
 from PIL import Image, ImageGrab
-from together import Together
+from google import genai
+from google.genai import types
 
 import constants as constant
 
@@ -125,51 +125,44 @@ class VRChatWindowCapture:
 
 class VisionAnalyzer:
     def __init__(self, client):
-        self.client = client
+        self.client = genai.Client(api_key=constant.Vision_API.API_KEY)
 
-    def image_to_base64(self, image: Image.Image) -> str:
-        """Convert PIL Image to base64 string."""
-        # Resize image to reduce API costs while maintaining quality
-        max_size = constant.VisionSystem.MAX_IMAGE_SIZE
-        if image.width > max_size or image.height > max_size:
-            image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+    def image_to_bytes(self, image: Image.Image) -> bytes:
+        with open('path/to/small-sample.jpg', 'rb') as f:
+            image_bytes = f.read()
+        return image_bytes
 
-        buffer = BytesIO()
-        image.save(buffer, format="JPEG", quality=constant.VisionSystem.IMAGE_QUALITY)
-        return base64.b64encode(buffer.getvalue()).decode()
+    def analyze_screenshot(self, img: Optional[Image.Image]) -> str:
+        if img is None:
+            return "Vision: VRChat window not found"
+        # If a client with a compatible API is provided, try it, otherwise return a short message.
+        if not self.client:
+            return "Vision: (no client) looking around the world"
 
-    def analyze_screenshot(self, image: Image.Image) -> str:
-        """Analyze a screenshot and return description of what's visible."""
+        response = self.client.models.generate_content(
+            model=constant.VisionSystem.VISION_MODEL,
+            contents=[
+                types.Part.from_bytes(
+                    data=self.image_to_bytes(img),
+                    mime_type='image/jpeg',
+                ),
+                self._read_prompt()
+            ]
+        )
+        text = getattr(response, "text", None)
+        if text is None:
+            # try common alternative attributes or fall back to stringifying the object
+            text = getattr(response, "output", None)
+        if text is None:
+            text = ""
+        return str(text)
+
+    def _read_prompt(self) -> str:
         try:
-            base64_image = self.image_to_base64(image)
-
-            # Try vision model first, fallback to text model if needed
-            try:
-                response = self.client.chat.completions.create(
-                    model=constant.VisionSystem.VISION_MODEL,
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": self._get_vision_prompt()},
-                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64," f"{base64_image}"}},
-                            ],
-                        }
-                    ],
-                    max_tokens=constant.VisionSystem.MAX_VISION_TOKENS,
-                    temperature=constant.VisionSystem.VISION_TEMPERATURE,
-                )
-            except Exception as vision_error:
-                print(f"\033[91m[VISION ERROR]\033[0m " f"Vision model not available: {vision_error}")
-                # Fallback to simple text-based response
-                return "Vision: Looking around the VRChat world"
-
-            return response.choices[0].message.content.strip()
-
-        except Exception as e:
-            print(f"\033[91m[VISION ERROR]\033[0m " f"Error analyzing screenshot: {e}")
-            return "Vision system temporarily unavailable"
-
+            with open(constant.VisionSystem.VISION_PROMPT_PATH, "r", encoding="utf-8") as f:
+                return f.read().strip()
+        except Exception:
+            return "Describe the screenshot concisely."
     def _get_vision_prompt(self) -> str:
         """Get the vision analysis prompt."""
         try:
