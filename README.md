@@ -1,4 +1,4 @@
-[![](https://img.shields.io/discord/1251927684313776219?label=Discord&logo=discord)](https://discord.gg/kyVQJvsZ)
+[![](https://dcbadge.limes.pink/api/server/KbCqreWX)](https://discord.gg/KbCqreWX)
 # NOVA AI
 
 /ˈnōvə/ — VRChat AI companion
@@ -146,3 +146,4 @@ MIT — see LICENSE
 
 
 Star the repo, report issues, suggest features, or open PRs for fixes and improvements
+
