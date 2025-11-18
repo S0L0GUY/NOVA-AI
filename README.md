@@ -5,10 +5,10 @@
 
 NOVA is a lightweight VRChat assistant that:
 
-* Listens via **Whisper**
-* Uses **Together AI** for language & vision
+* Listens via **Whisper || GenAI**
+* Uses **GenAI** for language
 * Speaks using **Edge TTS**
-* Supports **multilingual speech, vision features, OSC integration**, and **customizable personalities** via prompt files
+* Supports **multilingual speech, OSC integration**, and **customizable personalities** via prompt files
 
 ---
 
@@ -45,7 +45,7 @@ pip install -r requirements.txt
 
 ```powershell
 copy .env.example .env
-# Edit .env and set at least: LLM_API_KEY=your-together-api-key
+# Edit .env and set at least: LLM_API_KEY=your-genai-api-key
 ```
 
 4. *(Optional)* Detect audio devices
@@ -85,7 +85,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-* **Together API auth error:** set `LLM_API_KEY` in `.env` or session (`TOGETHER_API_KEY`)
+* **GenAI API auth error:** set `LLM_API_KEY` in `.env`
 
 * **Mic/audio issues:**
 
@@ -99,13 +99,13 @@ pip install -r requirements.txt
 
 * **TTS / language issues:** verify voice name, terminal UTF-8 encoding, try larger Whisper model, or tweak VAD/threshold
 
-* **Vision features not working:** ensure `VisionSystem.ENABLED = True` and Together AI key is valid
+* **Vision features not working:** ensure `VisionSystem.ENABLED = True` and GenAI key is valid
 
 ---
 
 ## Advanced Usage
 
-* **Virtual audio routing:** use VB-Audio Virtual Cable, update indices in `constants.py`
+* **Virtual audio routing:** [use VB-Audio Virtual Cable](https://vb-audio.com/Cable/), update indices in `constants.py`
 * **Multi-instance:** separate project folders & OSC ports, set unique `VRC_PORT`
 * **Development:** follow PEP8, run tests, consider `flake8`. Modular code lives under `classes/`
 
