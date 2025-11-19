@@ -4,13 +4,13 @@ import os
 import time
 from typing import Any, Dict, List, Optional
 
+import win32gui
 from google import genai
 from google.genai import types
 from PIL import Image, ImageGrab
-import win32gui
 
-from classes import adapters
 import constants as constant
+from classes import adapters
 
 
 class VisionState:
