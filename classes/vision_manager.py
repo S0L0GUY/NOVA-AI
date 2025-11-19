@@ -2,8 +2,8 @@ import threading
 import time
 from typing import List
 
-from classes import adapters
 import constants as constant
+from classes import adapters
 from classes.json_wrapper import JsonWrapper
 from classes.vision_system import VisionState, VisionSystem
 
