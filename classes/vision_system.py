@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 import time
@@ -6,10 +5,12 @@ from io import BytesIO
 from typing import Any, Dict, List, Optional
 
 import win32gui
+from google import genai
+from google.genai import types
 from PIL import Image, ImageGrab
-from together import Together
 
 import constants as constant
+from classes import adapters
 
 
 class VisionState:
@@ -124,51 +125,49 @@ class VRChatWindowCapture:
 
 
 class VisionAnalyzer:
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, client=None):
+        # Use provided client if available, otherwise create a genai client from config
+        self.client = client if client is not None else genai.Client(api_key=constant.Vision_API.API_KEY)
 
-    def image_to_base64(self, image: Image.Image) -> str:
-        """Convert PIL Image to base64 string."""
-        # Resize image to reduce API costs while maintaining quality
-        max_size = constant.VisionSystem.MAX_IMAGE_SIZE
-        if image.width > max_size or image.height > max_size:
-            image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+    def image_to_bytes(self, image: Image.Image) -> bytes:
+        # Encode PIL Image into JPEG bytes (the API expects a real image file, not raw pixels)
+        buf = BytesIO()
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+        image.save(buf, format="JPEG", quality=85)
+        return buf.getvalue()
 
-        buffer = BytesIO()
-        image.save(buffer, format="JPEG", quality=constant.VisionSystem.IMAGE_QUALITY)
-        return base64.b64encode(buffer.getvalue()).decode()
+    def analyze_screenshot(self, img: Optional[Image.Image]) -> str:
+        if img is None:
+            return "Vision: VRChat window not found"
+        # If a client with a compatible API is provided, try it, otherwise return a short message.
+        if not self.client:
+            return "Vision: (no client) looking around the world"
 
-    def analyze_screenshot(self, image: Image.Image) -> str:
-        """Analyze a screenshot and return description of what's visible."""
+        response = self.client.models.generate_content(
+            model=constant.VisionSystem.VISION_MODEL,
+            contents=[
+                types.Part.from_bytes(
+                    data=self.image_to_bytes(img),
+                    mime_type="image/jpeg",
+                ),
+                self._read_prompt(),
+            ],
+        )
+
+        # Robustly extract text from various possible response shapes
         try:
-            base64_image = self.image_to_base64(image)
-
-            # Try vision model first, fallback to text model if needed
-            try:
-                response = self.client.chat.completions.create(
-                    model=constant.VisionSystem.VISION_MODEL,
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": self._get_vision_prompt()},
-                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64," f"{base64_image}"}},
-                            ],
-                        }
-                    ],
-                    max_tokens=constant.VisionSystem.MAX_VISION_TOKENS,
-                    temperature=constant.VisionSystem.VISION_TEMPERATURE,
-                )
-            except Exception as vision_error:
-                print(f"\033[91m[VISION ERROR]\033[0m " f"Vision model not available: {vision_error}")
-                # Fallback to simple text-based response
-                return "Vision: Looking around the VRChat world"
-
-            return response.choices[0].message.content.strip()
-
+            return str(response.text or "")
         except Exception as e:
-            print(f"\033[91m[VISION ERROR]\033[0m " f"Error analyzing screenshot: {e}")
-            return "Vision system temporarily unavailable"
+            print(f"\033[91m[VISION ERROR]\033[0m Error parsing vision response: {e}")
+            return ""
+
+    def _read_prompt(self) -> str:
+        try:
+            with open(constant.VisionSystem.VISION_PROMPT_PATH, "r", encoding="utf-8") as f:
+                return f.read().strip()
+        except Exception:
+            return "Describe the screenshot concisely."
 
     def _get_vision_prompt(self) -> str:
         """Get the vision analysis prompt."""
@@ -246,7 +245,7 @@ class VisionSystem:
 def run_vision_subprocess():
     """Entry point for running vision system as a subprocess."""
 
-    client = Together(base_url=constant.Vision_API.BASE_URL, api_key=constant.Vision_API.API_KEY)
+    client = adapters.create_genai_client()
 
     vision_system = VisionSystem(client)
     try:
