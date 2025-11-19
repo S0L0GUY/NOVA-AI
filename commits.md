@@ -1,5 +1,119 @@
 # Commit History
 
+- **Commit:** [c43192d](https://github.com/S0L0GUY/NOVA-AI/commit/c43192d3e0724b9e243477bad55ab7bfaae272a4)
+  **Author:** Evan Grinnell
+  **Message:** Change queued transcription model from 'genai' to 'whisper'
+
+- **Commit:** [c30ac12](https://github.com/S0L0GUY/NOVA-AI/commit/c30ac12b01f644ebcde40e02316fb1a45a3cea5e)
+  **Author:** Evan Grinnell
+  **Message:** Update README with Markdown formatting (#87)
+
+- **Commit:** [12a5f86](https://github.com/S0L0GUY/NOVA-AI/commit/12a5f8675802235727749de87fe236875fa3ee75)
+  **Author:** Evan Grinnell
+  **Message:** Update README with new formatting and content
+
+- **Commit:** [2b10618](https://github.com/S0L0GUY/NOVA-AI/commit/2b10618399145136c8d539e2692c9d46d3b119e7)
+  **Author:** Evan Grinnell
+  **Message:** Refactor README for clarity and support details
+
+Updated README to improve formatting and add support information.
+
+- **Commit:** [e7e0330](https://github.com/S0L0GUY/NOVA-AI/commit/e7e0330eae9431c30a9152c7437d7768719b0294)
+  **Author:** Evan Grinnell
+  **Message:** Update Adapter Logic (#83)
+
+* Refactor initialization logic into adapters for better modularity and error handling
+
+* Update SpeechRecognitionConfig to use GenAI model and adjust VAD aggressiveness
+
+* Condense logging configuration setup in main.py for improved readability
+
+* Sorted Imports
+
+* Sorted Imports (again)
+
+- **Commit:** [615350b](https://github.com/S0L0GUY/NOVA-AI/commit/615350b5acbc7ee5b470bd44ecad79d5cea8307f)
+  **Author:** Evan Grinnell
+  **Message:** Add GenAI STT (#80)
+
+* Refactor speech recognition components: remove WhisperTranscriber, introduce SpeechToTextHandler, and update configuration settings.
+
+* Fix string formatting in SpeechToTextHandler and remove unnecessary blank line
+
+* Fix import order in speech_to_text.py by moving genai import to the correct position
+
+* Fix import order in nova.py by moving JsonWrapper import to the correct position
+
+* Update constants.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Fix import order in nova.py by moving JsonWrapper import to the correct position
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+- **Commit:** [567b10e](https://github.com/S0L0GUY/NOVA-AI/commit/567b10e6ae64c3aba00da688df93896ed9a219a0)
+  **Author:** Evan Grinnell
+  **Message:** Mad NOVA-AI (#78)
+
+* Refactor prompt structure by removing emojis and consolidating language rules for clarity
+
+* Add boundary parameter to edge_tts.Communicate for improved audio generation
+
+- **Commit:** [1be2904](https://github.com/S0L0GUY/NOVA-AI/commit/1be2904c575926255a42d8490360023436850206)
+  **Author:** Evan Grinnell
+  **Message:** GenAI Integration (#76)
+
+* Refactor JSON handling and update dependencies for Google GenAI integration
+
+* Refactor generate_content call for improved readability
+
+* Added Clearer Documentation
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Update nova.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Update nova.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+- **Commit:** [0c55cbe](https://github.com/S0L0GUY/NOVA-AI/commit/0c55cbee55c31de30d039bf98cd5715163ad6ab0)
+  **Author:** Evan Grinnell
+  **Message:** Use Faster Whisper (#73)
+
+* Refactor Whisper model integration to use faster-whisper and update requirements
+
+* Sorted Imports
+
+* Fix import order by moving WhisperModel import to the correct position
+
+* Update VAD aggressiveness in WhisperSettings and refine system prompt formatting
+
+* Update WhisperSettings to change model size from "tiny" to "base"
+
+* Updated Segment Handling
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Segment Spacing
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Update commit history with recent changes and enhancements
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
 - **Commit:** [c6cab19](https://github.com/S0L0GUY/NOVA-AI/commit/c6cab1923b5263b732c1838ec923ca1c08f659b9)
   **Author:** Evan Grinnell
   **Message:** 69 remove resource monitor (#70)
@@ -264,64 +378,4 @@ Introduced clear_vision_history() in VisionManager to reset vision log and state
 * Disable vision system by default and clear vision history at startup
 
 * Add detailed documentation for the Vision System in README.md
-
-- **Commit:** [01a6320](https://github.com/S0L0GUY/NOVA-AI/commit/01a63207e956640209090d11059ce65466f959c9)
-  **Author:** Evan Grinnell
-  **Message:** Fix AUDIO_OUTPUT_INDEX value in Audio class to match configuration
-
-- **Commit:** [b438a9d](https://github.com/S0L0GUY/NOVA-AI/commit/b438a9dba99566edb47ba58013e57e995d5e56f6)
-  **Author:** Evan Grinnell
-  **Message:** Quick tuner (#42)
-
-* Revise README.md for clarity and detail, enhancing project description, features, prerequisites, installation, and setup instructions.
-
-* Enhance configuration management by centralizing settings in constants.py, refactor related classes, and update usage across the codebase for improved maintainability and customization.
-
-* Refactor constants for improved clarity and consistency, updating frame duration and sleep intervals in Whisper and Interruption settings.
-
-- **Commit:** [0145cfc](https://github.com/S0L0GUY/NOVA-AI/commit/0145cfc6ce110ddbd1cd2d8eb4d7766c35ed812f)
-  **Author:** Evan Grinnell
-  **Message:** Revise README.md for clarity and detail, enhancing project description, features, prerequisites, installation, and setup instructions.
-
-- **Commit:** [86af28c](https://github.com/S0L0GUY/NOVA-AI/commit/86af28cd1a49b71df238c834ce4b345609e5eb12)
-  **Author:** Evan Grinnell
-  **Message:** Refactor system prompt handling and update identity rules in prompts
-
-- **Commit:** [7dd4050](https://github.com/S0L0GUY/NOVA-AI/commit/7dd40507b93e35e35feeff077da27ba6f5396997)
-  **Author:** Evan Grinnell
-  **Message:** Local IP and Model ID (#40)
-
-- **Commit:** [e7e2667](https://github.com/S0L0GUY/NOVA-AI/commit/e7e266799158a21ff97c97a475bf4190c57f4c8b)
-  **Author:** Evan Grinnell
-  **Message:** Updated Documentation (#38)
-
-* Updated Documentation
-
-* Add resource monitor startup in main and remove from run_code
-
-- **Commit:** [187a5a9](https://github.com/S0L0GUY/NOVA-AI/commit/187a5a97360b361755a6f3150348d9a64fd8235b)
-  **Author:** Evan Grinnell
-  **Message:** Enhance console output with color coding for better visibility and add system monitor functionality (#37)
-
-- **Commit:** [435b370](https://github.com/S0L0GUY/NOVA-AI/commit/435b3706f6bf9288236a51013ef06daffa1a9765)
-  **Author:** Evan Grinnell
-  **Message:** Add time module import
-
-- **Commit:** [aa76750](https://github.com/S0L0GUY/NOVA-AI/commit/aa7675067c2313b0d3542b6d2b78b88f7a11cb65)
-  **Author:** Evan Grinnell
-  **Message:** Asynchronous TTS Processing (#36)
-
-* Refactor TextToSpeechManager to improve queue processing and add VRChatOSC support; update WhisperTranscriber to remove debug print statement; enhance system prompt instructions to clarify emoji usage and instruction adherence.
-
-* Fixed Spelling Errors
-
-Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
-
-* Updated nova.py
-
-Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
-
----------
-
-Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
 
