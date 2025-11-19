@@ -26,7 +26,7 @@ class VisionManager:
         try:
             VisionManager.clear_vision_history()
 
-            # Create the Together AI client for the vision system
+            # Create the Google Gemini API client for the vision system
             client = adapters.create_genai_client()
 
             self.vision_system = VisionSystem(client)
