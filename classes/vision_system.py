@@ -1,10 +1,10 @@
-import base64
 from io import BytesIO
 import json
 import os
 import time
 from typing import Any, Dict, List, Optional
 
+from classes import adapters
 import win32gui
 from PIL import Image, ImageGrab
 from google import genai
@@ -149,10 +149,10 @@ class VisionAnalyzer:
             contents=[
                 types.Part.from_bytes(
                     data=self.image_to_bytes(img),
-                    mime_type='image/jpeg',
+                    mime_type="image/jpeg",
                 ),
-                self._read_prompt()
-            ]
+                self._read_prompt(),
+            ],
         )
 
         # Robustly extract text from various possible response shapes
@@ -245,7 +245,7 @@ class VisionSystem:
 def run_vision_subprocess():
     """Entry point for running vision system as a subprocess."""
 
-    client = Together(base_url=constant.Vision_API.BASE_URL, api_key=constant.Vision_API.API_KEY)
+    client = adapters.create_genai_client()
 
     vision_system = VisionSystem(client)
     try:
