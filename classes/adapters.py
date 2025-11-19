@@ -69,7 +69,7 @@ def create_tts(osc: Optional[VRChatOSC]) -> Optional[TextToSpeechManager]:
 def create_vision_manager() -> Optional[VisionManager]:
     """Adapter to create and start the vision manager."""
     try:
-        vision_manager = VisionManager(client=create_genai_client())
+        vision_manager = VisionManager()
         vision_manager.start_vision_system()
         return vision_manager
     except Exception as e:
