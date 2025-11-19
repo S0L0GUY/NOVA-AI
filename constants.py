@@ -109,7 +109,7 @@ class VisionSystem:
     MAX_LOG_ENTRIES = 5
     # VRChat window search keywords
     WINDOW_KEYWORDS = ["VRChat", "vrchat"]
-    # Vision model to use (adjust for your local setup)
+    # Vision model to use (cloud API model identifier)
     VISION_MODEL = "gemini-2.5-flash"
     # Maximum tokens for vision API response
     MAX_VISION_TOKENS = 90
