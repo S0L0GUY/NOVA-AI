@@ -4,12 +4,12 @@ import os
 import time
 from typing import Any, Dict, List, Optional
 
-from classes import adapters
-import win32gui
-from PIL import Image, ImageGrab
 from google import genai
 from google.genai import types
+from PIL import Image, ImageGrab
+import win32gui
 
+from classes import adapters
 import constants as constant
 
 
