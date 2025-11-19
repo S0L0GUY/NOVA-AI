@@ -2,7 +2,7 @@ import threading
 import time
 from typing import List
 
-from together import Together
+import google.genai as genai
 
 import constants as constant
 from classes.json_wrapper import JsonWrapper
@@ -10,8 +10,9 @@ from classes.vision_system import VisionState, VisionSystem
 
 
 class VisionManager:
-    def __init__(self):
+    def __init__(self, client: genai.Client):
         self.vision_state = VisionState()
+        self.client = client
         self.vision_system = None
         self.vision_thread = None
         self.last_update_check = 0
@@ -28,10 +29,7 @@ class VisionManager:
             VisionManager.clear_vision_history()
 
             # Create the Together AI client for the vision system
-            client = Together(
-                base_url=constant.Vision_API.BASE_URL,
-                api_key=constant.Vision_API.API_KEY,
-            )
+            client = self.client
 
             self.vision_system = VisionSystem(client)
             self.vision_thread = threading.Thread(target=self.vision_system.run_vision_loop, daemon=True)

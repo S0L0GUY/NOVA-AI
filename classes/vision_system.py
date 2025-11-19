@@ -1,4 +1,5 @@
 import base64
+from io import BytesIO
 import json
 import os
 import time
@@ -124,13 +125,17 @@ class VRChatWindowCapture:
 
 
 class VisionAnalyzer:
-    def __init__(self, client):
-        self.client = genai.Client(api_key=constant.Vision_API.API_KEY)
+    def __init__(self, client=None):
+        # Use provided client if available, otherwise create a genai client from config
+        self.client = client if client is not None else genai.Client(api_key=constant.Vision_API.API_KEY)
 
     def image_to_bytes(self, image: Image.Image) -> bytes:
-        with open('path/to/small-sample.jpg', 'rb') as f:
-            image_bytes = f.read()
-        return image_bytes
+        # Encode PIL Image into JPEG bytes (the API expects a real image file, not raw pixels)
+        buf = BytesIO()
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+        image.save(buf, format="JPEG", quality=85)
+        return buf.getvalue()
 
     def analyze_screenshot(self, img: Optional[Image.Image]) -> str:
         if img is None:
@@ -149,13 +154,13 @@ class VisionAnalyzer:
                 self._read_prompt()
             ]
         )
-        text = getattr(response, "text", None)
-        if text is None:
-            # try common alternative attributes or fall back to stringifying the object
-            text = getattr(response, "output", None)
-        if text is None:
-            text = ""
-        return str(text)
+
+        # Robustly extract text from various possible response shapes
+        try:
+            return str(response.text or "")
+        except Exception as e:
+            print(f"\033[91m[VISION ERROR]\033[0m Error parsing vision response: {e}")
+            return ""
 
     def _read_prompt(self) -> str:
         try:
@@ -163,6 +168,7 @@ class VisionAnalyzer:
                 return f.read().strip()
         except Exception:
             return "Describe the screenshot concisely."
+
     def _get_vision_prompt(self) -> str:
         """Get the vision analysis prompt."""
         try:
