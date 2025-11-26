@@ -92,7 +92,7 @@ class VisionSystem:
     """
 
     # Whether vision system is enabled
-    ENABLED = True
+    ENABLED = False
     # How often to analyze screenshots continuously (seconds)
     ANALYSIS_INTERVAL = 60
     # Maximum image size for API calls (pixels)
@@ -206,6 +206,10 @@ class TTSSettings:
     AUDIO_CONVERSION_FACTOR = 2**15
     # Sleep interval for queue processing (seconds)
     QUEUE_SLEEP_INTERVAL = 0.1
+    # Caches audio files to avoid re-generation
+    ENABLE_CACHING = True
+    # Caching directory for TTS audio files
+    CACHE_DIR = "tts_cache"
 
 
 class SystemMessages:
@@ -214,7 +218,7 @@ class SystemMessages:
     """
 
     # Initial conversation starter
-    INITIAL_USER_MESSAGE = "Who are you?"
+    INITIAL_USER_MESSAGE = ""
     # VRChat status messages
     SYSTEM_STARTING = "System Starting"
     THINKING_MESSAGE = "Thinking"

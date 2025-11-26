@@ -4,6 +4,9 @@ import os
 import queue
 import tempfile
 import threading
+import hashlib
+import shutil
+from pathlib import Path
 
 import edge_tts
 import numpy as np
@@ -32,6 +35,16 @@ class TextToSpeechManager:
         self.initialize_tts_engine()
         self.osc = VRChatOSC
         self.lock = threading.Lock()
+
+        # Ensure cache directory exists if caching enabled
+        self.caching_enabled = bool(constant.TTSSettings.ENABLE_CACHING)
+        self.cache_dir = Path(constant.TTSSettings.CACHE_DIR)
+        if self.caching_enabled:
+            try:
+                self.cache_dir.mkdir(parents=True, exist_ok=True)
+            except Exception as e:
+                logging.error(f"Failed to create TTS cache directory '{self.cache_dir}': {e}")
+                self.caching_enabled = False
 
     def initialize_tts_engine(self) -> None:
         """
@@ -88,63 +101,87 @@ class TextToSpeechManager:
     def generate_audio(self, text: str) -> None:
         """
         Generate an audio file from the given text using the edge_tts library.
-        This method processes the input text, filters out emojis and
-        non-printable characters, and generates a .wav audio file using the
-        specified voice. The generated audio file is then added to the audio
-        queue.
-        Args:
-            text (str): The input text to convert into audio.
-        Raises:
-            Exception: If an error occurs during the audio generation process.
-        Logs:
-            - Logs an info message when audio generation starts and completes.
-            - Logs an error message if audio generation fails.
-        Notes:
-            - The generated audio file is stored in a temporary file with a
-            .wav suffix.
-            - The method uses asyncio to run the edge_tts.Communicate.save()
-            function.
+        Caches generated audio files when caching is enabled. The audio_queue
+        will receive tuples of (text, filepath, is_cached).
         """
-
         logging.info(f"Generating audio for: {text}")
+
+        # Prepare cache key using voice + normalized text
+        normalized = " ".join(text.strip().split())  # collapse whitespace
+        key_source = f"{self.voice or ''}|{normalized}".encode("utf-8")
+        key = hashlib.sha256(key_source).hexdigest()
+        cached_filename = f"{key}.wav"
+        cached_path = self.cache_dir / cached_filename
+
+        # If caching enabled and cached file exists, reuse it
+        if self.caching_enabled and cached_path.exists():
+            logging.info(f"TTS cache hit for text (hash={key})")
+            self.audio_queue.put((text, str(cached_path), True))
+            return
+
+        # Otherwise generate audio to a temporary file, then move to cache (if enabled)
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
             output_file = tmp_file.name
 
         try:
-            communicate = edge_tts.Communicate(text=text, voice=self.voice, boundary="WordBoundary")
+            communicate = edge_tts.Communicate(
+                text=text,
+                voice=self.voice,
+                boundary="WordBoundary"
+            )
             asyncio.run(communicate.save(output_file))
-            self.audio_queue.put((text, output_file))
+
+            if self.caching_enabled:
+                try:
+                    shutil.move(output_file, str(cached_path))
+                    logging.info(f"Audio cached at: {cached_path}")
+                    self.audio_queue.put((text, str(cached_path), True))
+                except Exception as e:
+                    logging.error(f"Failed to move generated audio to cache: {e}. Using temp file.")
+                    self.audio_queue.put((text, output_file, False))
+            else:
+                self.audio_queue.put((text, output_file, False))
+
             logging.info(f"Audio generated for: {text}")
         except Exception as e:
             logging.error(f"Error generating audio for '{text}': {e}")
+            # Clean up temp file if it exists and wasn't moved
+            try:
+                if os.path.exists(output_file):
+                    os.remove(output_file)
+            except Exception:
+                pass
 
     def playback_loop(self) -> None:
         """
         Handles the playback loop for audio files in the queue.
-        This method continuously processes audio and text from the
-        `audio_queue` and `tts_queue` until both are empty. It sets the typing
-        indicator, sends messages, plays audio files, and removes the files
-        after playback. If an error occurs during playback, it logs the error.
-        Attributes:
-            self.is_playing (bool): Indicates whether playback is currently
-            active.
-        Exceptions:
-            Logs any exceptions that occur during playback.
-        Note:
-            Ensures `self.is_playing` is set to False when the playback loop
-            ends.
+        Expects audio_queue items to be (text, filepath, is_cached).
+        Cached files are NOT deleted after playback.
         """
-
         self.is_playing = True
         try:
             while not self.audio_queue.empty() or not self.tts_queue.empty():
                 self.osc.set_typing_indicator(True)
                 try:
-                    text, filepath = self.audio_queue.get()
+                    # Updated to unpack cached flag
+                    item = self.audio_queue.get()
+                    if len(item) == 3:
+                        text, filepath, is_cached = item
+                    else:
+                        # Backwards compatibility: if older tuple present
+                        text, filepath = item
+                        is_cached = False
+
                     self.osc.send_message(text)
                     self.osc.set_typing_indicator(True)
                     self.play_audio_file(filepath)
-                    os.remove(filepath)
+
+                    # Only remove files that are not cached
+                    if not is_cached:
+                        try:
+                            os.remove(filepath)
+                        except Exception:
+                            pass
                 except Exception as e:
                     logging.error(f"Error during playback: {e}")
         finally:
@@ -156,17 +193,7 @@ class TextToSpeechManager:
         Args:
             filepath (str): The path to the audio file to be played. Supported
             formats are '.wav' and '.mp3'.
-        Raises:
-            Exception: Logs an error message if there is an issue reading or
-            playing the audio file.
-        Notes:
-            - For '.wav' files, the file is read using the `soundfile` library.
-            - For '.mp3' files, the file is read using the `pydub` library and
-            converted to a NumPy array.
-            - Unsupported audio formats will log an error and the function
-            will return without playing audio.
         """
-
         try:
             if filepath.endswith(".wav"):
                 data, samplerate = sf.read(filepath)
@@ -190,5 +217,4 @@ class TextToSpeechManager:
             bool: True if the TTS queue and audio queue are both empty,
                   and no audio is currently playing. False otherwise.
         """
-
         return self.tts_queue.empty() and self.audio_queue.empty() and not self.is_playing
