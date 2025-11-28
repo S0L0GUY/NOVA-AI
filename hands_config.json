@@ -1,0 +1,47 @@
+{
+  "vrchat": {
+    "address": "127.0.0.1",
+    "port": 9000
+  },
+  "osc_rate": 30,
+  "smoothing_alpha": 0.6,
+  "model_path": "models/hand_motion_model.pth",
+  "use_torch": true,
+  "use_procedural_fallback": true,
+  "max_hand_offset": {
+    "x": 0.35,
+    "y": 0.35,
+    "z": 0.35
+  },
+  "finger_curl_range": [0.0, 1.0],
+  "gesture_energy_multiplier": 1.0,
+  "log_level": "INFO",
+  "idle_energy_threshold": 0.1,
+  "silence_threshold_seconds": 2.0,
+  "debug_print_interval": 30,
+  "osc_parameters": {
+    "left_hand_x": "/avatar/parameters/LeftHandX",
+    "left_hand_y": "/avatar/parameters/LeftHandY",
+    "left_hand_z": "/avatar/parameters/LeftHandZ",
+    "left_hand_rot_x": "/avatar/parameters/LeftHandRotX",
+    "left_hand_rot_y": "/avatar/parameters/LeftHandRotY",
+    "left_hand_rot_z": "/avatar/parameters/LeftHandRotZ",
+    "left_finger_1": "/avatar/parameters/LeftFinger1",
+    "left_finger_2": "/avatar/parameters/LeftFinger2",
+    "left_finger_3": "/avatar/parameters/LeftFinger3",
+    "left_finger_4": "/avatar/parameters/LeftFinger4",
+    "left_finger_5": "/avatar/parameters/LeftFinger5",
+    "right_hand_x": "/avatar/parameters/RightHandX",
+    "right_hand_y": "/avatar/parameters/RightHandY",
+    "right_hand_z": "/avatar/parameters/RightHandZ",
+    "right_hand_rot_x": "/avatar/parameters/RightHandRotX",
+    "right_hand_rot_y": "/avatar/parameters/RightHandRotY",
+    "right_hand_rot_z": "/avatar/parameters/RightHandRotZ",
+    "right_finger_1": "/avatar/parameters/RightFinger1",
+    "right_finger_2": "/avatar/parameters/RightFinger2",
+    "right_finger_3": "/avatar/parameters/RightFinger3",
+    "right_finger_4": "/avatar/parameters/RightFinger4",
+    "right_finger_5": "/avatar/parameters/RightFinger5",
+    "gesture_energy": "/avatar/parameters/HandGestureEnergy"
+  }
+}
