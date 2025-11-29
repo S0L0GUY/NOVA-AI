@@ -147,6 +147,27 @@ class Audio:
     AUDIO_INPUT_INDEX = 4
 
 
+class MicNoise:
+    """
+    Configuration for simulated microphone noise used for testing.
+
+    Environment variables:
+      - MIC_NOISE_ENABLED: 'True' or 'False' (case-insensitive)
+      - MIC_NOISE_LEVEL: float between 0.0 and 0.5
+    """
+
+    _enabled_raw = os.getenv("MIC_NOISE_ENABLED", "False")
+    ENABLED = True if _enabled_raw in ("True", "true", "TRUE") else False
+
+    try:
+        _level = float(os.getenv("MIC_NOISE_LEVEL", "0.10"))
+    except (TypeError, ValueError):
+        _level = 0.10
+
+    # Clamp to a reasonable range
+    LEVEL = max(0.0, min(0.5, _level))
+
+
 class Voice:
     """
     A class that defines constants for voice-related configurations in

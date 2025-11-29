@@ -113,6 +113,13 @@ class TextToSpeechManager:
         try:
             communicate = edge_tts.Communicate(text=text, voice=self.voice, boundary="WordBoundary")
             asyncio.run(communicate.save(output_file))
+            # Optionally add simulated noise to the generated output file
+            try:
+                if constant.MicNoise.ENABLED:
+                    self.add_noise_to_file(output_file)
+            except Exception as e:
+                logging.error(f"Error adding simulated noise: {e}")
+
             self.audio_queue.put((text, output_file))
             logging.info(f"Audio generated for: {text}")
         except Exception as e:
@@ -182,6 +189,39 @@ class TextToSpeechManager:
             sd.wait()
         except Exception as e:
             logging.error(f"Error playing audio file: {e}")
+
+    def add_noise_to_file(self, filepath: str) -> None:
+        """
+        Adds simulated Gaussian noise to a WAV file in-place according to
+        the `constants.MicNoise.LEVEL` setting. Currently only supports
+        WAV files (edge-tts output is .wav).
+        """
+        try:
+            if not filepath.endswith('.wav'):
+                logging.debug(f"Skipping noise injection for non-wav file: {filepath}")
+                return
+
+            # Read as float32 to keep values in -1.0..1.0 range
+            data, samplerate = sf.read(filepath, dtype='float32')
+
+            # Determine scale to apply noise relative to signal amplitude
+            max_abs = float(np.max(np.abs(data))) if data.size > 0 else 0.0
+            scale = max_abs if max_abs > 0 else 1.0
+
+            noise_level = float(constant.MicNoise.LEVEL)
+
+            # Generate Gaussian noise with std = noise_level * scale
+            noise = np.random.normal(0.0, noise_level * scale, size=data.shape).astype(np.float32)
+
+            noisy = data.astype(np.float32) + noise
+            # Clip to valid range
+            noisy = np.clip(noisy, -1.0, 1.0)
+
+            # Overwrite the original file
+            sf.write(filepath, noisy, samplerate, subtype='PCM_16')
+            logging.debug(f"Injected noise into: {filepath} (level={noise_level})")
+        except Exception as e:
+            logging.error(f"Failed to inject noise into {filepath}: {e}")
 
     def is_idle(self):
         """
