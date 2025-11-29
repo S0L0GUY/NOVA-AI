@@ -92,7 +92,7 @@ class VisionSystem:
     """
 
     # Whether vision system is enabled
-    ENABLED = True
+    ENABLED = False
     # How often to analyze screenshots continuously (seconds)
     ANALYSIS_INTERVAL = 60
     # Maximum image size for API calls (pixels)
