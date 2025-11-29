@@ -12,7 +12,7 @@ class JsonWrapper:
             dict or list: The contents of the JSON file as a Python object.
         Raises:
             IOError: If the file cannot be opened or read.
-            json.JSONDecodeError: If the file does not contain valid JSON.
+            orjson.JSONDecodeError: If the file does not contain valid JSON.
         """
         with open(file_path, "rb") as file:
             return _orjson.loads(file.read())
