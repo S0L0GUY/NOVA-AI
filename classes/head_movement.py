@@ -164,7 +164,7 @@ class HeadMovementController:
         Returns:
             Random interval in seconds.
         """
-        return self._rng.randint(self.t_min_ms, self.t_max_ms) / 1000.0
+        return self._rng.uniform(self.t_min_ms, self.t_max_ms) / 1000.0
 
     def send_head_target(self, x: float, y: float) -> None:
         """

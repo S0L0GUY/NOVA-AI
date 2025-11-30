@@ -10,6 +10,9 @@ from unittest.mock import MagicMock
 
 from classes.head_movement import HeadMovementController
 
+# Tolerance for floating point comparison due to clamping
+FLOAT_TOLERANCE = 0.001
+
 
 class TestHeadMovementController(unittest.TestCase):
     """Test cases for HeadMovementController."""
@@ -100,8 +103,8 @@ class TestHeadMovementController(unittest.TestCase):
             # The change should be limited to max_step (with tolerance for clamping)
             delta_x = abs(x - prev_x)
             delta_y = abs(y - prev_y)
-            self.assertLessEqual(delta_x, self.controller.max_step + 0.001)
-            self.assertLessEqual(delta_y, self.controller.max_step + 0.001)
+            self.assertLessEqual(delta_x, self.controller.max_step + FLOAT_TOLERANCE)
+            self.assertLessEqual(delta_y, self.controller.max_step + FLOAT_TOLERANCE)
 
     def test_generate_random_target_non_step_limited(self):
         """Test non-step-limited (random position) mode."""
