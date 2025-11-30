@@ -61,6 +61,12 @@ representative at an online or offline event.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
 worldevan8@gmail.com.
+
+You may also file a confidential report via the repository's Issues page
+by creating a private issue (or contacting repository owners directly).
+For public reporting please use the GitHub Issues page:
+https://github.com/S0L0GUY/NOVA-AI/issues
+
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
