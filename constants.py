@@ -156,7 +156,7 @@ class Voice:
         synthesis.
     """
 
-    VOICE_NAME = "en-US-EmmaMultilingualNeural"
+    VOICE_NAME = "en-US-LolaMultilingualNeural"
 
 
 class FilePaths:
