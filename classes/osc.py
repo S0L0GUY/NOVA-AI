@@ -31,3 +31,11 @@ class VRChatOSC:
 
         self.client.send_message("/chatbox/input", [message, True])
         self.client.send_message("/chatbox/typing", False)
+
+    def jump(self):
+        """
+        Makes the avatar jump.
+        """
+
+        self.client.send_message("/input/Jump", 1)
+        self.client.send_message("/input/Jump", 0)
