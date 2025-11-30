@@ -1,5 +1,79 @@
 # Commit History
 
+- **Commit:** [9561dac](https://github.com/S0L0GUY/NOVA-AI/commit/9561dacb1ffa917e5e480b9eb6e0cab458caf04f)
+  **Author:** Evan Grinnell
+  **Message:** Add Audio Caching (#96)
+
+* Add audio generation caching functionality and update constants
+
+* Remove merge conflict markers from vision_log.json
+
+* Refactor audio generation code for improved readability and maintainability
+
+* Update json_files/vision_log.json
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+- **Commit:** [c1864be](https://github.com/S0L0GUY/NOVA-AI/commit/c1864bee87d282d45fc670436a86259dc594e85a)
+  **Author:** Evan Grinnell
+  **Message:** 93 use orjson instead of json (#97)
+
+* Replace json with orjson for improved performance in JsonWrapper class
+
+* Built Files
+
+* Update classes/json_wrapper.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+- **Commit:** [3542b4b](https://github.com/S0L0GUY/NOVA-AI/commit/3542b4b766d26a7e4373c442264a10845d7d1e8f)
+  **Author:** Evan Grinnell
+  **Message:** Update README.md with new link for discord
+
+- **Commit:** [dcef739](https://github.com/S0L0GUY/NOVA-AI/commit/dcef739ecb8d0e2587c46032f83a908db08053db)
+  **Author:** Evan Grinnell
+  **Message:** 85 update vision to genai (#92)
+
+* Enable vision system and update model to Gemini 2.5; log errors during analysis
+
+* Integrate GenAI client into VisionManager and VisionAnalyzer; update vision log with new analysis output
+
+* Refactor VisionManager to remove direct GenAI client dependency; update vision log with new environment description
+
+* Refactor VisionSystem to use adapter for GenAI client creation; update VisionAnalyzer to fix prompt handling
+
+* Update classes/vision_manager.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Update constants.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Sorted Imports
+
+* Fix import order in vision_manager.py
+
+* Refactor imports in vision_system.py for clarity and consistency
+
+* Reorder imports in vision_system.py and update vision_log.json with initial log entries
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+- **Commit:** [0fbae25](https://github.com/S0L0GUY/NOVA-AI/commit/0fbae25bb407814f6b022afadee3043c9900bb55)
+  **Author:** Evan Grinnell
+  **Message:** Update documentation and environment variables for GenAI integration (#90)
+
 - **Commit:** [c43192d](https://github.com/S0L0GUY/NOVA-AI/commit/c43192d3e0724b9e243477bad55ab7bfaae272a4)
   **Author:** Evan Grinnell
   **Message:** Change queued transcription model from 'genai' to 'whisper'
@@ -278,104 +352,4 @@ Replaces OpenAI-specific API key and config with generalized LLM_API and Vision_
 - **Commit:** [6b3d1a6](https://github.com/S0L0GUY/NOVA-AI/commit/6b3d1a679d9c3ffcaaa6221d3a40ab3ed713b7a3)
   **Author:** Evan Grinnell
   **Message:** Update commits.md
-
-- **Commit:** [e358828](https://github.com/S0L0GUY/NOVA-AI/commit/e35882891f774b6eaa070235c69af12a89f95a6f)
-  **Author:** Evan Grinnell
-  **Message:** Update constants.py
-
-- **Commit:** [34269b6](https://github.com/S0L0GUY/NOVA-AI/commit/34269b663dae1fbe3f0d9a6d1db44d4d19149b59)
-  **Author:** Evan Grinnell
-  **Message:** 46 update all comments and logic (#48)
-
-* Updated 'main.py' for better readabulity
-
-* Refactor nova.py main loop and model selection
-
-Refactored nova.py by splitting the main loop and model selection logic into separate functions for improved clarity and maintainability. Updated main.py to call nova.main() instead of nova.run_code(). Minor formatting and docstring improvements were also made.
-
-* Refactor config and prompts; update .env.example
-
-Removed unused InterruptionSettings and ErrorHandling classes from constants.py, updated OpenAI API key handling to use environment variables, and clarified documentation. Adjusted system prompts for consistency, and updated .env.example to include OPENAI_API_KEY. Minor sleep interval and initial message changes for improved clarity and maintainability.
-
-* Remove unused scripts and refactor resource monitor
-
-Deleted http_server.py, list_voices.py, and test_vision_system.py as they are no longer needed. Refactored resource_monitor.py to use ResourceMonitor constants directly and improved color and configuration handling. Cleaned up constants.py by removing unused NovaPlacement movement sequence timings.
-
-* Remove redundant comments and docstrings from classes
-
-Cleaned up code by removing unnecessary comments and module-level docstrings from edge_tts.py, osc.py, vision_manager.py, vision_system.py, vrchat_api.py, and whisper.py. This improves code readability and reduces clutter without affecting functionality.
-
-* Expand README with VRChat API and setup improvements
-
-Added detailed documentation for VRChat API integration, including configuration, security, and troubleshooting. Enhanced setup instructions for local and cloud AI models, clarified environment variable usage, and updated feature lists to reflect new capabilities such as computer vision, resource monitoring, and modular architecture. Improved troubleshooting, configuration, and advanced usage sections for better developer onboarding.
-
-* Update main.py
-
-Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
-
----------
-
-Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
-
-- **Commit:** [dfa0e8c](https://github.com/S0L0GUY/NOVA-AI/commit/dfa0e8c2b25caa873d4e0cf857720e720b6182a9)
-  **Author:** Evan Grinnell
-  **Message:** VRChat API (#47)
-
-* Add VRChat API integration and periodic friend checks
-
-Introduces a new VRChatAPIManager class for handling VRChat API authentication, friend request management, and notification checks. Adds configuration for VRChat API credentials and settings in constants.py. Updates main.py to initialize and manage the VRChat API lifecycle, including periodic background checks for friend requests and notifications. Adds 'vrchatapi' to requirements.txt.
-
-* Add TODO comments for VRChat API credentials in constants.py
-
-* Add support for environment variables and update VRChat credentials handling
-
-- Introduced .env file support for storing sensitive VRChat credentials.
-- Updated VRChatAPI class to retrieve credentials from environment variables.
-- Enhanced README with instructions for setting up the .env file.
-- Added python-dotenv to requirements.txt for environment variable management.
-- Created test_vrchat_notification_fix.py for future tests.
-
-* Removed unneded file
-
-* Add rate limiting and cooldowns to VRChat API manager
-
-This still does not work perfectly do DO NOT MERGE until this code is proven to work smoothly
-
-* Add .env.example and improve VRChat API config handling
-
-Introduced a .env.example file for easier environment variable setup and updated the README with clearer configuration instructions. Enhanced VRChat API integration by adding a master enable/disable switch, improved credential validation, and made API initialization conditional based on configuration. Updated constants.py with more granular settings and improved main.py to respect the new API enable flag.
-
-* Update classes/vrchat_api.py
-
-Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
-
----------
-
-Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
-
-- **Commit:** [f5c4e88](https://github.com/S0L0GUY/NOVA-AI/commit/f5c4e88f2448b4fafb5998e5b589335d32336e0d)
-  **Author:** Evan Grinnell
-  **Message:** Remove exception handling from main loop in nova.py
-
-The try-except block around the main loop in run_code() was removed, so exceptions and interrupts will now propagate instead of being caught and handled locally. This change may be intended to simplify error handling or to allow for higher-level management of exceptions.
-
-- **Commit:** [484e290](https://github.com/S0L0GUY/NOVA-AI/commit/484e2902af55707c2bdb943f50b1b25c00eeb717)
-  **Author:** Evan Grinnell
-  **Message:** Vision Estimates (#44)
-
-* Add vision system integration for VRChat
-
-Introduces a vision system for Nova AI, including new classes for vision management and analysis, configuration constants, prompt files, and test scripts. The vision system captures VRChat window screenshots, analyzes them using an AI model, and injects environment/player updates into the conversation history. Updates to main.py and nova.py integrate the vision system into the main application flow.
-
-* Update vision system to run asynchronously
-
-The vision system now operates in the background and continuously monitors VRChat without waiting for the AI to finish processing. Updated documentation in nova.py and clarified a comment in constants.py. Updated vision_log.json with new entries.
-
-* Add method to clear vision history at startup
-
-Introduced clear_vision_history() in VisionManager to reset vision log and state files at startup. Updated nova.py to call this method during initialization, ensuring a clean state for each run. Updated vision_log.json and vision_state.json to reflect the cleared state.
-
-* Disable vision system by default and clear vision history at startup
-
-* Add detailed documentation for the Vision System in README.md
 

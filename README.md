@@ -60,19 +60,27 @@ python list_audio_devices.py
 python main.py
 ```
 
+6. *(Optional)* Run a quick smoke test to verify core components
+
+```powershell
+python smoke_test.py
+```
+
 ---
 
 ## Configuration
 
-* **Runtime options:** `constants.py` (audio indices, VRC_PORT, voice, Whisper model, toggles)
-* **Prompt files:**
+- **Runtime options:** `constants.py` (audio indices, `VRC_PORT`, voice, Whisper model, toggles)
+- **Prompt files:**
 
   * `prompts/normal_system_prompt.txt`
-  * `prompts/snapchat_system_prompt.txt`
-  * `prompts/additional_system_prompt.txt`
   * `prompts/vision_prompt.txt`
-* **Whisper model:** `WhisperSettings.MODEL_SIZE` (`tiny|base|small|medium|large`)
-* **TTS voice:** `Voice.VOICE_NAME` (list available voices if needed)
+
+  Add additional prompt files to the `prompts/` directory to create new
+  personalities or system prompts. Only the files present in the `prompts/`
+  folder are loaded by default.
+- **Whisper model:** `WhisperSettings.MODEL_SIZE` (`tiny|base|small|medium|large`)
+- **TTS voice:** `Voice.VOICE_NAME` (list available voices if needed)
 
 ---
 
@@ -108,6 +116,13 @@ pip install -r requirements.txt
 * **Virtual audio routing:** [use VB-Audio Virtual Cable](https://vb-audio.com/Cable/), update indices in `constants.py`
 * **Multi-instance:** separate project folders & OSC ports, set unique `VRC_PORT`
 * **Development:** follow PEP8, run tests, consider `flake8`. Modular code lives under `classes/`
+
+**Branch / Feature Notes**
+
+This repository may contain feature branches that add or change behavior
+(for example, an audio-generation caching feature). If you're using a
+non-main branch, review the branch/PR notes for any special runtime
+requirements before filing issues.
 
 ---
 
@@ -145,7 +160,7 @@ MIT — see LICENSE
 ## Support
 
 
-Star the repo, report issues, suggest features, or open PRs for fixes and improvements
+Star the repo, report issues, suggest features, or open PRs for fixes and improvements, join the discord
 
 
 

@@ -177,7 +177,7 @@ class Voice:
         synthesis.
     """
 
-    VOICE_NAME = "en-US-EmmaMultilingualNeural"
+    VOICE_NAME = "en-US-LolaMultilingualNeural"
 
 
 class FilePaths:
@@ -227,6 +227,10 @@ class TTSSettings:
     AUDIO_CONVERSION_FACTOR = 2**15
     # Sleep interval for queue processing (seconds)
     QUEUE_SLEEP_INTERVAL = 0.1
+    # Caches audio files to avoid re-generation
+    ENABLE_CACHING = True
+    # Caching directory for TTS audio files
+    CACHE_DIR = "tts_cache"
 
 
 class SystemMessages:
@@ -235,7 +239,7 @@ class SystemMessages:
     """
 
     # Initial conversation starter
-    INITIAL_USER_MESSAGE = "Who are you?"
+    INITIAL_USER_MESSAGE = ""
     # VRChat status messages
     SYSTEM_STARTING = "System Starting"
     THINKING_MESSAGE = "Thinking"

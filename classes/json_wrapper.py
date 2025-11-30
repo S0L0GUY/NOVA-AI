@@ -1,4 +1,4 @@
-import json
+import orjson as _orjson
 
 
 class JsonWrapper:
@@ -12,10 +12,10 @@ class JsonWrapper:
             dict or list: The contents of the JSON file as a Python object.
         Raises:
             IOError: If the file cannot be opened or read.
-            json.JSONDecodeError: If the file does not contain valid JSON.
+            orjson.JSONDecodeError: If the file does not contain valid JSON.
         """
-        with open(file_path, "r", encoding="utf-8") as file:
-            return json.load(file)
+        with open(file_path, "rb") as file:
+            return _orjson.loads(file.read())
 
     def read_txt(self, file_path: str) -> str:
         """
@@ -40,8 +40,10 @@ class JsonWrapper:
             IOError: If the file cannot be opened or written to.
         """
 
-        with open(file_path, "w", encoding="utf-8") as file:
-            json.dump({}, file, indent=4)
+        with open(file_path, "wb") as file:
+            # orjson returns bytes
+            file.write(_orjson.dumps({}, option=_orjson.OPT_INDENT_2))
+        return
 
     @staticmethod
     def write(file_path: str, data: object) -> None:
@@ -55,8 +57,9 @@ class JsonWrapper:
             IOError: If the file cannot be opened or written to.
         """
 
-        with open(file_path, "w", encoding="utf-8") as file:
-            json.dump(data, file, indent=4)
+        with open(file_path, "wb") as file:
+            file.write(_orjson.dumps(data, option=_orjson.OPT_INDENT_2))
+        return
 
     @staticmethod
     def delete(file_path: str) -> None:
@@ -68,8 +71,8 @@ class JsonWrapper:
             IOError: If the file cannot be deleted.
         """
 
-        with open(file_path, "r", encoding="utf-8") as file:
-            data = json.load(file)
+        with open(file_path, "rb") as file:
+            data = _orjson.loads(file.read())
 
         if isinstance(data, list):
             empty_data = []
@@ -78,5 +81,6 @@ class JsonWrapper:
         else:
             raise ValueError("The file does not contain a JSON object or array.")
 
-        with open(file_path, "w", encoding="utf-8") as file:
-            json.dump(empty_data, file, indent=4)
+        with open(file_path, "wb") as file:
+            file.write(_orjson.dumps(empty_data, option=_orjson.OPT_INDENT_2))
+        return
