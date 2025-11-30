@@ -22,3 +22,4 @@ vrchatapi
 python-dotenv
 faster-whisper
 google-genai
+orjson

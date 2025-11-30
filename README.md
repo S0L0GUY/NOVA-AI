@@ -1,4 +1,4 @@
-[![](https://dcbadge.limes.pink/api/server/KbCqreWX?style=flat)](https://discord.gg/KbCqreWX)
+[![](https://dcbadge.limes.pink/api/server/fQr8DcZs?style=flat)](https://discord.gg/fQr8DcZs)
 # NOVA AI
 
 /ˈnōvə/ — VRChat AI companion
@@ -146,5 +146,6 @@ MIT — see LICENSE
 
 
 Star the repo, report issues, suggest features, or open PRs for fixes and improvements
+
 
 
