@@ -1,11 +1,11 @@
 import asyncio
+import hashlib
 import logging
 import os
 import queue
+import shutil
 import tempfile
 import threading
-import hashlib
-import shutil
 from pathlib import Path
 
 import edge_tts
@@ -124,11 +124,7 @@ class TextToSpeechManager:
             output_file = tmp_file.name
 
         try:
-            communicate = edge_tts.Communicate(
-                text=text,
-                voice=self.voice,
-                boundary="WordBoundary"
-            )
+            communicate = edge_tts.Communicate(text=text, voice=self.voice, boundary="WordBoundary")
             asyncio.run(communicate.save(output_file))
 
             if self.caching_enabled:
