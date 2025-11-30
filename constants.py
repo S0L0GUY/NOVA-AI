@@ -218,7 +218,7 @@ class SystemMessages:
     """
 
     # Initial conversation starter
-    INITIAL_USER_MESSAGE = "안녕하세요. 오늘 하루 어땠어요?"
+    INITIAL_USER_MESSAGE = ""
     # VRChat status messages
     SYSTEM_STARTING = "System Starting"
     THINKING_MESSAGE = "Thinking"
