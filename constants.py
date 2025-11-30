@@ -238,6 +238,51 @@ class NovaPlacement:
     DEFAULT_SPEED = 1
 
 
+class HeadMovement:
+    """
+    Configuration for random head movement via OSC.
+
+    Coordinate system: Normalized range [-1..1] for both x and y axes.
+    The head target is sent as avatar-local coordinates where:
+    - x: horizontal axis (negative = left, positive = right)
+    - y: vertical axis (negative = down, positive = up)
+    """
+
+    # Whether head movement is enabled
+    ENABLED = False
+
+    # Square bounds center (cx, cy) and half-size (r)
+    # Valid targets satisfy: cx - r <= x <= cx + r and cy - r <= y <= cy + r
+    CENTER_X = 0.0
+    CENTER_Y = 0.0
+    HALF_SIZE = 0.1  # Half-size of the square bounds
+
+    # Update timing (milliseconds)
+    # New target is sent every T ms, where T is random in [T_MIN, T_MAX]
+    T_MIN_MS = 200
+    T_MAX_MS = 600
+
+    # Interpolation time (milliseconds)
+    # Time for the client to smoothly move to the new target
+    INTERP_TIME_MS = 300
+
+    # Movement mode: if True, uses step-limited movement for smoother motion
+    # If False, picks random position anywhere in the square
+    USE_STEP_LIMIT = True
+
+    # Maximum step size per update (only used if USE_STEP_LIMIT is True)
+    # Limits how far the head can move in one update for smoother motion
+    MAX_STEP = 0.05
+
+    # OSC address for head target messages
+    OSC_ADDRESS = "/avatar/parameters/HeadX"
+    OSC_ADDRESS_Y = "/avatar/parameters/HeadY"
+
+    # Optional: Fixed random seed for deterministic/repeatable movement (for testing)
+    # Set to None for truly random movement
+    RANDOM_SEED = None
+
+
 class ConsoleColors:
     """
     ANSI color codes for console output.
