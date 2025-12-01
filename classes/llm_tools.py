@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional
 
 from google.genai import types
 
+
 def get_time(location: Optional[str]) -> Dict[str, Any]:
     """Return the current time for a given location.
 
