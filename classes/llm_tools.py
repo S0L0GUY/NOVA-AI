@@ -7,7 +7,6 @@ in the main loop. The functions here are intentionally simple and mockable.
 """
 
 import datetime
-
 from typing import Any, Dict, Optional
 
 from google.genai import types
