@@ -12,12 +12,12 @@ continuously monitors VRChat without waiting for the AI to stop thinking.
 import datetime
 import re
 import time
-from typing import Iterator
+from typing import Iterator, List, Optional
 
 from google import genai
 
 import constants as constant
-from classes import adapters
+from classes import adapters, llm_tools
 from classes.edge_tts import TextToSpeechManager
 from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC
@@ -75,7 +75,7 @@ def initialize_components() -> tuple:
     return osc, transcriber, history, client, tts, vision_manager
 
 
-def chunk_text(text: str) -> list:
+def chunk_text(text: Optional[str]) -> List[str]:
     """
     Args:
         text (string): The text to break down.
@@ -85,7 +85,16 @@ def chunk_text(text: str) -> list:
 
     Split the text by sentence-ending punctuation
     """
-    chunks = re.split(r"(?<=[.!?]) +", text)
+    # Guard against None or non-string inputs
+    if not isinstance(text, str):
+        return []
+
+    text = text.strip()
+    if not text:
+        return []
+
+    # Split on sentence-ending punctuation followed by whitespace (robust to newlines/tabs)
+    chunks = re.split(r"(?<=[.!?])\s+", text)
 
     return chunks
 
@@ -264,7 +273,10 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
 
         # Call the Google GenAI SDK. Use the synchronous non-streaming
         # `generate_content` method and then handle the returned `.text`.
-        response = client.models.generate_content(model=current_model, contents=contents)
+        # Attach function-calling tools/config with minimal changes: functions are defined
+        # in `classes/llm_tools.py` and the Python SDK will handle automatic calls.
+        config = llm_tools.get_generate_config()
+        response = client.models.generate_content(model=current_model, contents=contents, config=config)
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
