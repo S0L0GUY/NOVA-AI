@@ -12,21 +12,6 @@ from typing import Any, Dict, Optional
 
 from google.genai import types
 
-
-def get_weather_forecast(location: str) -> Dict[str, Any]:
-    """Return a simple mocked forecast for a given location.
-
-    Args:
-        location: city or location string
-
-    Returns:
-        A dict with a mock temperature and unit.
-    """
-    # In real usage you would call a weather API here.
-    print(f"\033[94mGetting weather for location: {location}\033[0m")
-    return {"location": location, "temperature": 20, "unit": "celsius"}
-
-
 def get_time(location: Optional[str]) -> Dict[str, Any]:
     """Return the current time for a given location.
 
@@ -36,10 +21,18 @@ def get_time(location: Optional[str]) -> Dict[str, Any]:
     Returns:
         A dict with the current time for the location if provided, else UTC time.
     """
-    # In real usage you would call a time API here.
     print(f"\033[94mGetting time for location: {location}\033[0m")
-    current_time = datetime.datetime.now().isoformat()
-    return {"location": location, "current_time": current_time}
+
+    now = datetime.datetime.now()
+    iso = now.isoformat()
+    readable = now.strftime("%Y-%m-%d %H:%M:%S")
+    loc_label = location if location else "local"
+
+    return {
+        "location": loc_label,
+        "iso": iso,
+        "readable": readable,
+    }
 
 
 def get_generate_config(disable_automatic: bool = False) -> types.GenerateContentConfig:
@@ -59,7 +52,7 @@ def get_generate_config(disable_automatic: bool = False) -> types.GenerateConten
     """
 
     # Pass the callables directly so the SDK can infer schemas and handle calls.
-    tools = [get_weather_forecast, get_time]
+    tools = [get_time]
 
     config = types.GenerateContentConfig(tools=tools)
     if disable_automatic:
