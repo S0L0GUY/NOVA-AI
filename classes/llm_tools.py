@@ -19,7 +19,7 @@ def get_time(location: Optional[str]) -> Dict[str, Any]:
         location: city or location string (optional)
 
     Returns:
-        A dict with the current time for the location if provided, else UTC time.
+        A dict with the current time for the location if provided, else local time.
     """
     print(f"\033[94mGetting time for location: {location}\033[0m")
 
