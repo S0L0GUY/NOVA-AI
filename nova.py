@@ -12,18 +12,17 @@ continuously monitors VRChat without waiting for the AI to stop thinking.
 import datetime
 import re
 import time
-from typing import Iterator, Optional, List
+from typing import Iterator, List, Optional
 
 from google import genai
 
 import constants as constant
-from classes import adapters
+from classes import adapters, llm_tools
 from classes.edge_tts import TextToSpeechManager
 from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC
 from classes.system_prompt import SystemPrompt
 from classes.vision_manager import VisionManager
-from classes import llm_tools
 
 
 def initialize_history() -> list:
