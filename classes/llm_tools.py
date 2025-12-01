@@ -5,11 +5,12 @@ This file keeps all function-declaration and implementation details out of
 `nova.py` so only a tiny import and a single `config=` change are required
 in the main loop. The functions here are intentionally simple and mockable.
 """
-from typing import Dict, Any, Optional
-
-from google.genai import types
 
 import datetime
+
+from typing import Any, Dict, Optional
+
+from google.genai import types
 
 
 def get_weather_forecast(location: str) -> Dict[str, Any]:
