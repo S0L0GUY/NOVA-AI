@@ -1,3 +1,4 @@
+import time
 from pythonosc import udp_client
 
 
@@ -31,3 +32,34 @@ class VRChatOSC:
 
         self.client.send_message("/chatbox/input", [message, True])
         self.client.send_message("/chatbox/typing", False)
+
+    def look_left(self, seconds: float):
+        """
+        Sends a command to make the avatar look left by a specified angle.
+        Args:
+            seconds (float): The amount of time in seconds to look left.
+        """
+
+        self.client.send_message("/input/LookLeft", 1)
+        time.sleep(seconds)
+        self.client.send_message("/input/LookLeft", 0)
+
+    def look_right(self, seconds: float):
+        """
+        Sends a command to make the avatar look right by a specified angle.
+        Args:
+            seconds (float): The amount of time in seconds to look right.
+        """
+
+        self.client.send_message("/input/LookRight", 1)
+        time.sleep(seconds)
+        self.client.send_message("/input/LookRight", 0)
+
+    def jump(self):
+        """
+        Sends a command to make the avatar jump.
+        """
+
+        self.client.send_message("/input/Jump", 1)
+        time.sleep(0.1)
+        self.client.send_message("/input/Jump", 0)
