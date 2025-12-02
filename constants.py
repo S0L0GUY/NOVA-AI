@@ -18,6 +18,15 @@ class LLM_API:
     API_KEY = os.getenv("LLM_API_KEY")
 
 
+class Memory:
+    """
+    Memory configuration settings.
+    """
+
+    # File path for memory storage
+    MEMORY_FILE = "json_files/memory.json"
+
+
 class Vision_API:
     """
     Vision API configuration settings for Together AI.
@@ -218,7 +227,7 @@ class SystemMessages:
     """
 
     # Initial conversation starter
-    INITIAL_USER_MESSAGE = ""
+    INITIAL_USER_MESSAGE = "Whats your favorite type of food? Can you remember that?"
     # VRChat status messages
     SYSTEM_STARTING = "System Starting"
     THINKING_MESSAGE = "Thinking"
