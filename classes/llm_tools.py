@@ -65,10 +65,7 @@ def calculator(expression: str) -> str:
     allowed_names = {k: v for k, v in math.__dict__.items() if not k.startswith("__")}
 
     # Add safe things like abs(), round(), etc.
-    allowed_names.update({
-        "abs": abs,
-        "round": round
-    })
+    allowed_names.update({"abs": abs, "round": round})
 
     print(f"\033[94mCalculating expression: {expression}\033[0m")
 
@@ -95,7 +92,7 @@ def memory_get(key: str):
 
 
 def memory_set(key: str, value: str):
-    """"Store a key-value pair in the persistent memory store.
+    """ "Store a key-value pair in the persistent memory store.
     Only set memories that you want to keep long-term! This can
     be things about your personality, but not things about other
     users other than their names and what they tell you about
