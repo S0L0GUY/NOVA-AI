@@ -15,14 +15,15 @@ import time
 from typing import Iterator, List, Optional
 
 from google import genai
+import imghdr
+import io
 
 import constants as constant
-from classes import adapters, llm_tools
+from classes import adapters, llm_tools, vision_system
 from classes.edge_tts import TextToSpeechManager
 from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC
 from classes.system_prompt import SystemPrompt
-from classes.vision_manager import VisionManager
 
 
 def initialize_history() -> list:
@@ -183,29 +184,7 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
     return full_response
 
 
-def add_vision_updates_to_history(history: list, vision_manager: VisionManager) -> list:
-    """
-    Add any new vision updates to the conversation history.
-
-    Args:
-        history (list): Current conversation history
-        vision_manager (VisionManager): The vision manager instance
-
-    Returns:
-        list: Updated history with vision updates added as system messages
-    """
-    vision_updates = vision_manager.get_new_vision_updates()
-
-    for update in vision_updates:
-        vision_message = {"role": "system", "content": update}
-        history.append(vision_message)
-
-        print(f"\033[96m[VISION]\033[0m \033[94m{update}\033[0m")
-
-    return history
-
-
-def get_current_model(client: object, vision_manager: VisionManager) -> str:
+def get_current_model(client: object) -> str:
     """
     Returns the current language model to use from the Together AI client.
 
@@ -266,17 +245,68 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
         if not history:
             history = initialize_history()
 
-        # Check for vision updates before generating response
-        history = add_vision_updates_to_history(history, vision_manager)
+        history_contents = generate_contents(history)
 
-        contents = generate_contents(history)
+        # Safely capture a VRChat screenshot if the vision system is available.
+        vision_bytes = None
+        if vision_manager:
+            try:
+                screenshot = vision_manager.capture_vrchat_screenshot()
+                if screenshot:
+                    vision_bytes = vision_manager.image_to_bytes(screenshot)
+            except Exception as e:
+                print(f"\033[91m[VISION ERROR]\033[0m Error during capture: {e}")
+
+        # Build contents for the LLM call. `history_contents` is already a list
+        # of GenAI `Content` objects, so flatten it into `contents_param`.
+        contents_param = list(history_contents)
+
+        # If vision bytes are available, detect mime type and convert into a
+        # Part so the GenAI SDK can accept the binary data. Use `imghdr` to
+        # detect common formats and fall back to Pillow (PNG) if detection fails.
+        if vision_bytes:
+            try:
+                img_type = imghdr.what(None, h=vision_bytes)
+                mime = None
+                if img_type == "jpeg":
+                    mime = "image/jpeg"
+                elif img_type == "png":
+                    mime = "image/png"
+                elif img_type == "gif":
+                    mime = "image/gif"
+                elif img_type == "bmp":
+                    mime = "image/bmp"
+                elif img_type == "webp":
+                    mime = "image/webp"
+
+                # If we couldn't detect the type, try opening with Pillow and
+                # convert to PNG bytes.
+                if not mime:
+                    try:
+                        from PIL import Image
+
+                        buf = io.BytesIO(vision_bytes)
+                        img = Image.open(buf)
+                        out = io.BytesIO()
+                        img.save(out, format="PNG")
+                        vision_bytes = out.getvalue()
+                        mime = "image/png"
+                    except Exception:
+                        # As a last resort, assume PNG to satisfy the SDK.
+                        mime = "image/png"
+
+                image_part = genai.types.Part.from_bytes(data=vision_bytes, mime_type=mime)
+                image_content = genai.types.Content(role="user", parts=[image_part])
+                contents_param.append(image_content)
+            except Exception as e:
+                print(f"Warning: Failed to attach vision bytes to request: {e}")
 
         # Call the Google GenAI SDK. Use the synchronous non-streaming
         # `generate_content` method and then handle the returned `.text`.
         # Attach function-calling tools/config with minimal changes: functions are defined
         # in `classes/llm_tools.py` and the Python SDK will handle automatic calls.
         config = llm_tools.get_generate_config()
-        response = client.models.generate_content(model=current_model, contents=contents, config=config)
+        response = client.models.generate_content(model=current_model, contents=contents_param, config=config)
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
@@ -312,7 +342,7 @@ def main() -> None:
     # Whip the old history file
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
-    current_model = get_current_model(client, vision_manager)
+    current_model = get_current_model(client)
 
     run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber)
 

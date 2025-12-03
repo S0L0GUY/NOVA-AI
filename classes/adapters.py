@@ -4,11 +4,11 @@ from typing import Optional
 
 from google import genai
 
+from classes.vision_system import VRChatWindowCapture
 import constants as constant
 from classes.edge_tts import TextToSpeechManager
 from classes.osc import VRChatOSC
 from classes.speech_to_text import SpeechToTextHandler
-from classes.vision_manager import VisionManager
 from classes.vrchat_api import VRChatAPIManager
 
 
@@ -31,7 +31,6 @@ def create_vrchat_api_manager() -> None:
     """Adapter wrapper to create the VRChat API manager."""
     print("Creating VRChat API Manager (adapters)...")
     try:
-        VisionManager.clear_vision_history()
         VRChatAPIManager.create_vrchat_api_manager()
         print("\033[92mVRChat API Manager Created Successfully (adapters).\033[0m")
     except Exception as e:
@@ -66,11 +65,15 @@ def create_tts(osc: Optional[VRChatOSC]) -> Optional[TextToSpeechManager]:
         return None
 
 
-def create_vision_manager() -> Optional[VisionManager]:
+def create_vision_manager() -> Optional[VRChatWindowCapture]:
     """Adapter to create and start the vision manager."""
+    # Only create and start the vision manager when the feature is enabled
+    if not constant.VisionSystem.ENABLED:
+        print("\033[96m[VISION]\033[0m \033[91mVision system disabled in configuration. Skipping startup.\033[0m")
+        return None
+
     try:
-        vision_manager = VisionManager()
-        vision_manager.start_vision_system()
+        vision_manager = VRChatWindowCapture()
         return vision_manager
     except Exception as e:
         logging.error(f"\033[91mFailed to create VisionManager: {e}\033[0m")
