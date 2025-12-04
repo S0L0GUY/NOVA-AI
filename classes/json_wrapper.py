@@ -17,6 +17,19 @@ class JsonWrapper:
         with open(file_path, "rb") as file:
             return _orjson.loads(file.read())
 
+    def read_dict(self, file_path: str) -> dict:
+        """
+        Reads a JSON file and returns its contents as a Python dictionary.
+        Args:
+            file_path (str): The path to the JSON file to be read.
+
+        Returns:
+            dict: The contents of the JSON file as a Python dictionary.
+        """
+
+        with open(file_path, "rb") as file:
+            return _orjson.loads(file.read())
+
     def read_txt(self, file_path: str) -> str:
         """
         Reads a text file and returns its contents as a string.
