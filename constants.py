@@ -18,15 +18,6 @@ class LLM_API:
     API_KEY = os.getenv("LLM_API_KEY")
 
 
-class Memory:
-    """
-    Memory configuration settings.
-    """
-
-    # File path for memory storage
-    MEMORY_FILE = "json_files/memory.json"
-
-
 class Vision_API:
     """
     Vision API configuration settings for Together AI.
@@ -179,6 +170,8 @@ class FilePaths:
     HISTORY_PATH = "json_files/history.json"
 
     NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
+
+    MEMORY_FILE = "json_files/memory.json"
 
 
 class SpeechRecognitionConfig:
