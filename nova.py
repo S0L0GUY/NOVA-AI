@@ -41,7 +41,6 @@ def initialize_history() -> list:
     history.append({"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"})
     history.append({"role": "user", "content": constant.SystemMessages.INITIAL_USER_MESSAGE})
 
-    print(history)
     return history
 
 
