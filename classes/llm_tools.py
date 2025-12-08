@@ -13,8 +13,71 @@ import os
 from typing import Any, Dict, Optional
 
 from google.genai import types
+import urllib.parse
+import urllib.request
+from typing import List
 
 import constants
+
+
+
+def search_web(query: str, max_results: int = 5) -> Dict[str, Any]:
+    """Perform a lightweight web search using DuckDuckGo Instant Answer API.
+
+    Args:
+        query: Search query string.
+        max_results: Maximum number of results to return.
+
+    Returns:
+        A dict with a list of search result dicts containing `title`,
+        `snippet`, and `url`.
+    """
+    print(f"\033[94mSearching the web for: {query}\033[0m")
+    try:
+        encoded = urllib.parse.urlencode({"q": query, "format": "json", "no_redirect": 1, "no_html": 1, "skip_disambig": 1})
+        url = f"https://api.duckduckgo.com/?{encoded}"
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            raw = resp.read()
+        data = json.loads(raw.decode("utf-8"))
+
+        results: List[Dict[str, str]] = []
+
+        # Primary abstract
+        if data.get("AbstractText"):
+            results.append({
+                "title": data.get("Heading") or "Summary",
+                "snippet": data.get("AbstractText"),
+                "url": data.get("AbstractURL") or "",
+            })
+
+        # Related topics can include more items
+        related = data.get("RelatedTopics", [])
+        for item in related:
+            if len(results) >= max_results:
+                break
+            if isinstance(item, dict):
+                # Some items have 'Text' and 'FirstURL'
+                text = item.get("Text") or item.get("Name")
+                first_url = item.get("FirstURL") or ""
+                if text:
+                    results.append({"title": text.split(" - ")[0], "snippet": text, "url": first_url})
+            elif isinstance(item, list):
+                for sub in item:
+                    if len(results) >= max_results:
+                        break
+                    text = sub.get("Text")
+                    first_url = sub.get("FirstURL")
+                    if text:
+                        results.append({"title": text.split(" - ")[0], "snippet": text, "url": first_url})
+
+        # Trim to max_results
+        results = results[:max_results]
+
+        print(f"\033[94mFound {len(results)} results.\033[0m")
+
+        return {"query": query, "results": results}
+    except Exception as e:
+        return {"error": str(e), "query": query, "results": []}
 
 
 def load_memory():
@@ -142,7 +205,9 @@ def get_generate_config(disable_automatic: bool = False) -> types.GenerateConten
     """
 
     # Pass the callables directly so the SDK can infer schemas and handle calls.
-    tools = [get_time, calculator, memory_get, memory_set, memory_search]
+    # Include a Python-callable `search_web` instead of an SDK `Tool` to avoid
+    # the "Tool use with function calling is unsupported" error.
+    tools = [get_time, calculator, memory_get, memory_set, memory_search, search_web]
 
     config = types.GenerateContentConfig(tools=tools)
     if disable_automatic:
