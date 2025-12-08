@@ -127,7 +127,7 @@ class Audio:
             configured for VB-Audio Cable A Output
     """
 
-    AUDIO_OUTPUT_INDEX = 8
+    AUDIO_OUTPUT_INDEX = 7
     AUDIO_INPUT_INDEX = 4
 
 
@@ -202,7 +202,7 @@ class SystemMessages:
     """
 
     # Initial conversation starter
-    INITIAL_USER_MESSAGE = "What do you see?"
+    INITIAL_USER_MESSAGE = ""
     # VRChat status messages
     SYSTEM_STARTING = "System Starting"
     THINKING_MESSAGE = "Thinking"
