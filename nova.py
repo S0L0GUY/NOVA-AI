@@ -28,11 +28,18 @@ from classes.vision_manager import VisionManager
 def initialize_history() -> list:
     system_prompt = SystemPrompt.get_full_prompt()
     now = datetime.datetime.now()
-    history = [
-        {"role": "system", "content": system_prompt},
-        {"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"},
-        {"role": "user", "content": constant.SystemMessages.INITIAL_USER_MESSAGE},
-    ]
+    history = []
+    memories = JsonWrapper().read_dict(file_path=constant.FilePaths.MEMORY_FILE)
+
+    # Load recent memories into history
+    if memories:
+        recent_memories = list(memories.items())[-20:]
+        for key, value in recent_memories:
+            history.append({"role": "system", "content": f"{key}: {value}"})
+
+    history.append({"role": "system", "content": system_prompt})
+    history.append({"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"})
+    history.append({"role": "user", "content": constant.SystemMessages.INITIAL_USER_MESSAGE})
 
     return history
 

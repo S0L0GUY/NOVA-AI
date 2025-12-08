@@ -171,6 +171,8 @@ class FilePaths:
 
     NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
 
+    MEMORY_FILE = "json_files/memory.json"
+
 
 class SpeechRecognitionConfig:
     """
@@ -218,7 +220,7 @@ class SystemMessages:
     """
 
     # Initial conversation starter
-    INITIAL_USER_MESSAGE = ""
+    INITIAL_USER_MESSAGE = "Hi"
     # VRChat status messages
     SYSTEM_STARTING = "System Starting"
     THINKING_MESSAGE = "Thinking"
