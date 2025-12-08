@@ -92,29 +92,13 @@ class VisionSystem:
     """
 
     # Whether vision system is enabled
-    ENABLED = False
-    # How often to analyze screenshots continuously (seconds)
-    ANALYSIS_INTERVAL = 60
+    ENABLED = True
     # Maximum image size for API calls (pixels)
     MAX_IMAGE_SIZE = 1024
     # JPEG quality for screenshots (1-100)
     IMAGE_QUALITY = 85
-    # Vision state file path
-    STATE_FILE = "json_files/vision_state.json"
-    # Vision log file path
-    LOG_FILE = "json_files/vision_log.json"
-    # Vision prompt file path
-    VISION_PROMPT_PATH = "prompts/vision_prompt.txt"
-    # Maximum number of vision updates to keep in log
-    MAX_LOG_ENTRIES = 5
     # VRChat window search keywords
     WINDOW_KEYWORDS = ["VRChat", "vrchat"]
-    # Vision model to use (cloud API model identifier)
-    VISION_MODEL = "gemini-2.5-flash"
-    # Maximum tokens for vision API response
-    MAX_VISION_TOKENS = 90
-    # Temperature for vision analysis
-    VISION_TEMPERATURE = 0.3
 
 
 class Network:
@@ -169,7 +153,7 @@ class FilePaths:
 
     HISTORY_PATH = "json_files/history.json"
 
-    NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
+    NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.md"
 
 
 class SpeechRecognitionConfig:

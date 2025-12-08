@@ -247,66 +247,34 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
 
         history_contents = generate_contents(history)
 
-        # Safely capture a VRChat screenshot if the vision system is available.
-        vision_bytes = None
-        if vision_manager:
-            try:
-                screenshot = vision_manager.capture_vrchat_screenshot()
-                if screenshot:
-                    vision_bytes = vision_manager.image_to_bytes(screenshot)
-            except Exception as e:
-                print(f"\033[91m[VISION ERROR]\033[0m Error during capture: {e}")
-
         # Build contents for the LLM call. `history_contents` is already a list
         # of GenAI `Content` objects, so flatten it into `contents_param`.
         contents_param = list(history_contents)
 
-        # If vision bytes are available, detect mime type and convert into a
-        # Part so the GenAI SDK can accept the binary data. Use `imghdr` to
-        # detect common formats and fall back to Pillow (PNG) if detection fails.
-        if vision_bytes:
+        # Get a screenshot from the VRChat window and convert it to bytes
+        if constant.VisionSystem.ENABLED:
             try:
-                img_type = imghdr.what(None, h=vision_bytes)
-                mime = None
-                if img_type == "jpeg":
-                    mime = "image/jpeg"
-                elif img_type == "png":
-                    mime = "image/png"
-                elif img_type == "gif":
-                    mime = "image/gif"
-                elif img_type == "bmp":
-                    mime = "image/bmp"
-                elif img_type == "webp":
-                    mime = "image/webp"
-
-                # If we couldn't detect the type, try opening with Pillow and
-                # convert to PNG bytes.
-                if not mime:
-                    try:
-                        from PIL import Image
-
-                        buf = io.BytesIO(vision_bytes)
-                        img = Image.open(buf)
-                        out = io.BytesIO()
-                        img.save(out, format="PNG")
-                        vision_bytes = out.getvalue()
-                        mime = "image/png"
-                    except Exception:
-                        # As a last resort, assume PNG to satisfy the SDK.
-                        mime = "image/png"
-
-                image_part = genai.types.Part.from_bytes(data=vision_bytes, mime_type=mime)
-                image_content = genai.types.Content(role="user", parts=[image_part])
-                contents_param.append(image_content)
+                screenshot = vision_manager.capture_vrchat_screenshot()
+                screenshot_bytes = vision_manager.image_to_bytes(screenshot)
             except Exception as e:
-                print(f"Warning: Failed to attach vision bytes to request: {e}")
+                print(f"\033[91m[VISION ERROR]\033[0m " f"Error capturing or processing screenshot: {e}")
+                screenshot_bytes = None
+        else:
+            screenshot_bytes = None
 
         # Call the Google GenAI SDK. Use the synchronous non-streaming
         # `generate_content` method and then handle the returned `.text`.
         # Attach function-calling tools/config with minimal changes: functions are defined
         # in `classes/llm_tools.py` and the Python SDK will handle automatic calls.
         config = llm_tools.get_generate_config()
-        response = client.models.generate_content(model=current_model, contents=contents_param, config=config)
+
+        if constant.VisionSystem.ENABLED and screenshot_bytes:
+            image_part = genai.types.Part.from_bytes(data=screenshot_bytes, mime_type="image/jpeg")
+            contents_with_image = list(contents_param) + [image_part]
+
+            response = client.models.generate_content(model=current_model, contents=contents_with_image, config=config)
+        else:
+            response = client.models.generate_content(model=current_model, contents=contents_param, config=config)
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
