@@ -220,7 +220,7 @@ class SystemMessages:
     """
 
     # Initial conversation starter
-    INITIAL_USER_MESSAGE = "Can you look up who the current president of the United States is?"
+    INITIAL_USER_MESSAGE = "Hello!"
     # VRChat status messages
     SYSTEM_STARTING = "System Starting"
     THINKING_MESSAGE = "Thinking"

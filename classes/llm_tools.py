@@ -20,9 +20,9 @@ from typing import List
 import constants
 
 
-
 def search_web(query: str, max_results: int = 5) -> Dict[str, Any]:
-    """Perform a lightweight web search using DuckDuckGo Instant Answer API.
+    """Perform a lightweight web search using DuckDuckGo Instant Answer API. You
+    are only allowed to use this tool once per response.
 
     Args:
         query: Search query string.
