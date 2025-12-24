@@ -14,6 +14,7 @@ class LLM_API:
 
     # Base URL for Together AI API
     BASE_URL = "https://api.together.xyz/v1"
+    IS_USING_TOGETHER = True
     # API key for Together AI
     API_KEY = os.getenv("LLM_API_KEY")
 
@@ -83,7 +84,7 @@ class LanguageModel:
     # `google-genai` by default. You can override this with the
     # GENAI_MODEL environment variable if you want another model or
     # a Together/other provider model name.
-    MODEL_ID = "gemini-2.5-flash"
+    MODEL_ID = "qwen3-1.7b-gemini-2.5-flash-lite-preview-distill"
 
 
 class VisionSystem:

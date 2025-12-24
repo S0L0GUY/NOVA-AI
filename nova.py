@@ -14,6 +14,7 @@ import re
 import time
 from typing import Iterator, List, Optional
 
+import lmstudio as lms
 from google import genai
 
 import constants as constant
@@ -31,14 +32,17 @@ def initialize_history() -> list:
     history = []
     memories = JsonWrapper().read_dict(file_path=constant.FilePaths.MEMORY_FILE)
 
-    # Load recent memories into history
+    # Build a single consolidated system message
+    system_content = f"{system_prompt} Today is {now.strftime('%Y-%m-%d')}."
+    
+    # Add recent memories to the system prompt if they exist
     if memories:
         recent_memories = list(memories.items())[-20:]
-        for key, value in recent_memories:
-            history.append({"role": "system", "content": f"{key}: {value}"})
+        memory_text = "\n\nRecent Memories:\n" + "\n".join([f"{key}: {value}" for key, value in recent_memories])
+        system_content += memory_text
 
-    history.append({"role": "system", "content": system_prompt})
-    history.append({"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"})
+    # LMStudio requires exactly one system message at the start
+    history.append({"role": "system", "content": system_content})
     history.append({"role": "user", "content": constant.SystemMessages.INITIAL_USER_MESSAGE})
 
     return history
@@ -70,7 +74,7 @@ def initialize_components() -> tuple:
 
     transcriber = adapters.create_transcriber()
 
-    history = initialize_history()
+    history: List[dict] = initialize_history()
 
     client = adapters.create_genai_client()
 
@@ -106,29 +110,25 @@ def chunk_text(text: Optional[str]) -> List[str]:
     return chunks
 
 
-def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager) -> str:
+def process_completion(completion, osc: VRChatOSC, tts: TextToSpeechManager) -> str:
     """
     Processes a streaming completion response, extracts text chunks, and
     handles output and text-to-speech functionality.
     handles output and text-to-speech functionality.
     Args:
-        completion (iter): An iterable object containing streaming completion
-                            data. Each chunk is expected to have a `choices`
-                            attribute with a `delta.content` field containing
-                            the text.
+        completion: Either a streaming iterator of chunks, a PredictionResult object,
+                    or a response object containing `.text`.
         osc (object): An object responsible for managing the typing indicator.
                       It should have a `set_typing_indicator` method.
         tts (object): An object responsible for text-to-speech functionality.
                       It should have `add_to_queue` and `is_idle` methods.
     Returns:
         str: The full response text generated from the completion.
-    """
 
-    """
-    Accepts either a streaming iterator of chunks (SDK streaming) or a
-    completed response object containing `.text`. Handles extracting text,
-    splitting into sentence chunks, printing, and queuing TTS. Returns the
-    full response text.
+    Handles different completion types:
+    - LMStudio PredictionResult: Extracts .text directly
+    - Google GenAI streaming chunks: Iterates with chunk.text
+    - OpenAI-style chunks: Iterates with choices[0].delta.content
     """
 
     osc.set_typing_indicator(True)
@@ -144,7 +144,7 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
 
     full_response = ""
 
-    # If the completion is a single response object with .text, handle it
+    # If the completion is a single response object with .text (LMStudio or Google response), handle it
     if hasattr(completion, "text"):
         full_response = handle_text(completion.text)
     else:
@@ -152,36 +152,41 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
         # Google GenAI streaming chunks (chunk.text) and fallback to OpenAI
         # style chunks (choices[0].delta.content) if present.
         buffer = ""
-        for chunk in completion:
-            text_piece = None
-            # google-genai streaming chunk
-            if hasattr(chunk, "text") and chunk.text:
-                text_piece = chunk.text
-            else:
-                # try OpenAI-like delta access (backwards-compat)
-                try:
-                    text_piece = chunk.choices[0].delta.content
-                except (AttributeError, IndexError):
-                    text_piece = None
+        try:
+            for chunk in completion:
+                text_piece = None
+                # google-genai streaming chunk
+                if hasattr(chunk, "text") and chunk.text:
+                    text_piece = chunk.text
+                else:
+                    # try OpenAI-like delta access (backwards-compat)
+                    try:
+                        text_piece = chunk.choices[0].delta.content
+                    except (AttributeError, IndexError):
+                        text_piece = None
 
-            if not text_piece:
-                continue
+                if not text_piece:
+                    continue
 
-            buffer += text_piece
-            sentence_chunks = chunk_text(buffer)
+                buffer += text_piece
+                sentence_chunks = chunk_text(buffer)
 
-            while len(sentence_chunks) > 1:
-                sentence = sentence_chunks.pop(0)
-                full_response += f" {sentence}"
-                print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
-                tts.add_to_queue(sentence)
+                while len(sentence_chunks) > 1:
+                    sentence = sentence_chunks.pop(0)
+                    full_response += f" {sentence}"
+                    print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
+                    tts.add_to_queue(sentence)
 
-            buffer = sentence_chunks[0] if sentence_chunks else ""
+                buffer = sentence_chunks[0] if sentence_chunks else ""
 
-        if buffer:
-            full_response += f" {buffer}"
-            print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
-            tts.add_to_queue(buffer)
+            if buffer:
+                full_response += f" {buffer}"
+                print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
+                tts.add_to_queue(buffer)
+        except TypeError:
+            # If completion is not iterable (e.g., non-streaming response without .text),
+            # treat as empty response
+            pass
 
     # Wait until TTS finished speaking
     while not tts.is_idle():
@@ -204,7 +209,8 @@ def add_vision_updates_to_history(history: list, vision_manager: VisionManager) 
     vision_updates = vision_manager.get_new_vision_updates()
 
     for update in vision_updates:
-        vision_message = {"role": "system", "content": update}
+        # Use 'user' role instead of 'system' to avoid LMStudio's multi-part system prompt error
+        vision_message = {"role": "user", "content": f"[VISION UPDATE]: {update}"}
         history.append(vision_message)
 
         print(f"\033[96m[VISION]\033[0m \033[94m{update}\033[0m")
@@ -212,7 +218,7 @@ def add_vision_updates_to_history(history: list, vision_manager: VisionManager) 
     return history
 
 
-def get_current_model(client: object, vision_manager: VisionManager) -> str:
+def get_current_model():
     """
     Returns the current language model to use from the Together AI client.
 
@@ -223,8 +229,10 @@ def get_current_model(client: object, vision_manager: VisionManager) -> str:
     Returns:
         str: The ID of the selected language model from constants.
     """
-
-    return constant.LanguageModel.MODEL_ID
+    if constant.LLM_API.IS_USING_TOGETHER:
+        return lms.llm(constant.LanguageModel.MODEL_ID)
+    else:
+        return constant.LanguageModel.MODEL_ID
 
 
 def generate_contents(history: list) -> list:
@@ -282,8 +290,15 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
         # `generate_content` method and then handle the returned `.text`.
         # Attach function-calling tools/config with minimal changes: functions are defined
         # in `classes/llm_tools.py` and the Python SDK will handle automatic calls.
-        config = llm_tools.get_generate_config()
-        response = client.models.generate_content(model=current_model, contents=contents, config=config)
+        if not constant.LLM_API.IS_USING_TOGETHER:
+            config = llm_tools.get_generate_config()
+            response = client.models.generate_content(model=current_model, contents=contents, config=config)
+        else:
+            # LMStudio: Use complete_stream() to get a streaming iterator of chunks
+            # instead of respond() which returns a non-iterable PredictionResult.
+            # Convert history to a prompt string (last user message) for streaming.
+            last_user_message = next((msg["content"] for msg in reversed(history) if msg["role"] == "user"), "")
+            response = current_model.complete_stream(last_user_message, config={"maxTokens": 512})
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
@@ -319,7 +334,7 @@ def main() -> None:
     # Whip the old history file
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
-    current_model = get_current_model(client, vision_manager)
+    current_model = get_current_model()
 
     run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber)
 
