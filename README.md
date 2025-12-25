@@ -28,6 +28,8 @@ NOVA is a lightweight VRChat assistant that:
 
 ## Quick Start (Windows / PowerShell)
 
+Recommended: Python 3.11 (create the virtual environment with 3.11 for best compatibility).
+
 1. **Create & activate virtual environment**
 
 ```powershell
