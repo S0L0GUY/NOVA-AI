@@ -143,8 +143,8 @@ class Audio:
             configured for VB-Audio Cable A Output
     """
 
-    AUDIO_OUTPUT_INDEX = 8
-    AUDIO_INPUT_INDEX = 4
+    AUDIO_OUTPUT_INDEX = 10
+    AUDIO_INPUT_INDEX = 5
 
 
 class Voice:
@@ -156,7 +156,7 @@ class Voice:
         synthesis.
     """
 
-    VOICE_NAME = "en-US-LolaMultilingualNeural"
+    VOICE_NAME = "en-US-EmmaMultilingualNeural"
 
 
 class FilePaths:
