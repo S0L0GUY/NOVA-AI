@@ -369,7 +369,6 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
             # {"messages": [...]} before calling respond() for chat-style models.
             chat_payload = {"messages": history}
             response = current_model.respond(chat_payload)
-            print(response)
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
