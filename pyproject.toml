@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 127
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ['py311']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -22,7 +22,7 @@ skip_gitignore = true
 skip = [".venv", "venv", "__pycache__", "build", "dist"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 ignore_missing_imports = true
 no_strict_optional = true
 allow_untyped_calls = true
