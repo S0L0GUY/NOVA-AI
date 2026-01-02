@@ -84,7 +84,7 @@ class LanguageModel:
     # `google-genai` by default. You can override this with the
     # GENAI_MODEL environment variable if you want another model or
     # a Together/other provider model name.
-    MODEL_ID = "qwen3-1.7b-gemini-2.5-flash-lite-preview-distill"
+    MODEL_ID = "gemini-3-pro-preview"
 
 
 class VisionSystem:
