@@ -12,7 +12,7 @@ continuously monitors VRChat without waiting for the AI to stop thinking.
 import datetime
 import re
 import time
-from typing import Iterator, List, Optional
+from typing import List, Optional
 
 import lmstudio as lms
 from google import genai
@@ -34,7 +34,7 @@ def initialize_history() -> list:
 
     # Build a single consolidated system message
     system_content = f"{system_prompt} Today is {now.strftime('%Y-%m-%d')}."
-    
+
     # Add recent memories to the system prompt if they exist
     if memories:
         recent_memories = list(memories.items())[-20:]
@@ -131,7 +131,8 @@ def process_completion(completion, osc: VRChatOSC, tts: TextToSpeechManager) -> 
     - OpenAI-style chunks: Iterates with choices[0].delta.content
     """
 
-    osc.set_typing_indicator(True)
+    if osc:
+        osc.set_typing_indicator(True)
 
     # Helper to consume a plain text string and queue TTS
     def handle_text(text: str) -> str:
@@ -142,11 +143,61 @@ def process_completion(completion, osc: VRChatOSC, tts: TextToSpeechManager) -> 
             tts.add_to_queue(sentence)
         return full
 
+    def extract_text_from_response(resp) -> Optional[str]:
+        """
+        Try to pull a text payload from common response shapes (GenAI, LMStudio).
+        Returns a stripped string or None if nothing usable is found.
+        """
+
+        text_value = getattr(resp, "text", None)
+        if isinstance(text_value, str) and text_value.strip():
+            return text_value.strip()
+
+        # LMStudio PredictionResult may expose output text via custom fields
+        alt_fields = ["output_text", "response_text", "content"]
+        for field in alt_fields:
+            val = getattr(resp, field, None)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+
+        # GenAI non-streaming responses may expose content via candidates/parts
+        candidates = getattr(resp, "candidates", None)
+        if candidates:
+            try:
+                content = getattr(candidates[0], "content", None)
+                parts = getattr(content, "parts", None) if content else None
+                if parts:
+                    text_parts = [getattr(p, "text", "") for p in parts]
+                    joined = " ".join([p for p in text_parts if p]).strip()
+                    if joined:
+                        return joined
+            except Exception:
+                # Best-effort fallback; if it fails we will log later
+                pass
+
+        # As a last resort, some response objects stringify to the text
+        try:
+            str_val = str(resp).strip()
+            if str_val:
+                return str_val
+        except Exception:
+            pass
+
+        return None
+
+    def preview_obj(obj) -> str:
+        """Return a short preview of the completion object for debugging."""
+        try:
+            return f"type={type(obj)}, dir={list(dir(obj))[:20]}"
+        except Exception:
+            return "<uninspectable>"
+
     full_response = ""
 
     # If the completion is a single response object with .text (LMStudio or Google response), handle it
-    if hasattr(completion, "text"):
-        full_response = handle_text(completion.text)
+    direct_text = extract_text_from_response(completion)
+    if direct_text:
+        full_response = handle_text(direct_text)
     else:
         # Otherwise attempt to iterate streaming-like chunks. Support both
         # Google GenAI streaming chunks (chunk.text) and fallback to OpenAI
@@ -187,6 +238,26 @@ def process_completion(completion, osc: VRChatOSC, tts: TextToSpeechManager) -> 
             # If completion is not iterable (e.g., non-streaming response without .text),
             # treat as empty response
             pass
+
+    if not full_response:
+        print("Warning: completion returned no text. Raw payload was not consumable.")
+        print(f"Completion preview: {preview_obj(completion)}")
+
+        # Best-effort verbose dump to help identify missing text paths
+        try:
+            if hasattr(completion, "candidates"):
+                for idx, cand in enumerate(getattr(completion, "candidates", []) or []):
+                    content = getattr(cand, "content", None)
+                    parts = getattr(content, "parts", None) if content else None
+                    print(f"Candidate[{idx}] content: {content}")
+                    if parts:
+                        for p_idx, part in enumerate(parts):
+                            print(f"  Part[{p_idx}] type={type(part)}, attrs={list(dir(part))[:15]}, value={getattr(part, 'text', None)}")
+            else:
+                # As a last resort, show a stringified version to see structure
+                print(f"Completion str(): {str(completion)}")
+        except Exception as dump_err:
+            print(f"Debug dump failed: {dump_err}")
 
     # Wait until TTS finished speaking
     while not tts.is_idle():
@@ -294,11 +365,11 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
             config = llm_tools.get_generate_config()
             response = client.models.generate_content(model=current_model, contents=contents, config=config)
         else:
-            # LMStudio: Use complete_stream() to get a streaming iterator of chunks
-            # instead of respond() which returns a non-iterable PredictionResult.
-            # Convert history to a prompt string (last user message) for streaming.
-            last_user_message = next((msg["content"] for msg in reversed(history) if msg["role"] == "user"), "")
-            response = current_model.complete_stream(last_user_message, config={"maxTokens": 512})
+            # LMStudio: Wrap chat history in the expected message envelope
+            # {"messages": [...]} before calling respond() for chat-style models.
+            chat_payload = {"messages": history}
+            response = current_model.respond(chat_payload)
+            print(response)
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}

@@ -84,7 +84,7 @@ class LanguageModel:
     # `google-genai` by default. You can override this with the
     # GENAI_MODEL environment variable if you want another model or
     # a Together/other provider model name.
-    MODEL_ID = "gemini-3-pro-preview"
+    MODEL_ID = "Hack337/ChatGPT-5-Q8_0-GGUF"
 
 
 class VisionSystem:
