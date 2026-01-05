@@ -19,14 +19,14 @@ import constants
 
 def load_memory():
     if not os.path.exists(constants.FilePaths.MEMORY_FILE):
-        with open(constants.FilePaths.MEMORY_FILE, "w") as f:
+        with open(constants.FilePaths.MEMORY_FILE, "w", encoding="utf-8") as f:
             json.dump({}, f)
-    with open(constants.FilePaths.MEMORY_FILE, "r") as f:
+    with open(constants.FilePaths.MEMORY_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_memory(db):
-    with open(constants.FilePaths.MEMORY_FILE, "w") as f:
+    with open(constants.FilePaths.MEMORY_FILE, "w", encoding="utf-8") as f:
         json.dump(db, f, indent=2)
 
 
