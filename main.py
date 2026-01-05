@@ -13,7 +13,7 @@ def main() -> None:
         "===========================================",
         "|                NOVA-AI                  |",
         "|          Developed by N O M A           |",
-        "==========================================="
+        "===========================================",
     ]
     for line in lines:
         colored_line = "".join(f"{colors[i % len(colors)]}{char}\033[0m" for i, char in enumerate(line))
