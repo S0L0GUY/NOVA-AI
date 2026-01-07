@@ -54,7 +54,7 @@ class SpeechToTextHandler:
 
         self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
 
-    def get_voice_input(self, osc) -> str:
+    def get_voice_input(self, osc) -> str | None:
         """
         Captures voice input using Voice Activity Detection (VAD) and
         transcribes it into text. This method listens for voice input through
@@ -151,7 +151,7 @@ class SpeechToTextHandler:
         audio_array = np.frombuffer(audio_data, dtype="int16").astype(np.float32) / 32768.0
 
         print("\033[38;5;55mTranscribing voice input with faster-whisper...\033[0m")
-        osc.send_message("Thinking")
+        osc.send_message("Transcribing Voice Input")
         osc.set_typing_indicator(True)
         try:
             # faster-whisper returns (segments, info). segments is an iterator of Segment
@@ -169,6 +169,10 @@ class SpeechToTextHandler:
 
     def transcribe_audio_genai(self, osc, audio_data: bytes):
         print("\033[38;5;55mTranscribing voice input with GenAI...\033[0m")
+
+        osc.send_message("Transcribing Voice Input")
+        osc.set_typing_indicator(True)
+
         # Convert raw PCM int16 bytes to a WAV file in-memory and upload it
         file_obj = io.BytesIO()
         with wave.open(file_obj, "wb") as wf:
