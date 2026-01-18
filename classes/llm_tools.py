@@ -148,4 +148,6 @@ def get_generate_config(disable_automatic: bool = False) -> types.GenerateConten
     if disable_automatic:
         config.automatic_function_calling = types.AutomaticFunctionCallingConfig(disable=True)
 
+    config.thinking_config = types.ThinkingConfig(thinking_budget=0)
+
     return config

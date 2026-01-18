@@ -176,25 +176,8 @@ class FilePaths:
 
 class SpeechRecognitionConfig:
     """
-    Configuration for speech recognition (Whisper and GenAI).
+    Configuration for speech recognition (GenAI).
     """
-
-    # Whisper model size ("tiny", "base", "small", "medium", "large")
-    MODEL_SIZE = "base"
-    # Sample rate for audio processing
-    SAMPLE_RATE = 16000
-    # Frame duration in milliseconds for VAD
-    FRAME_DURATION_MS = 30
-    # Number of padding frames for voice detection
-    NUM_PADDING_FRAMES = 10
-    # Threshold ratio of voiced frames needed to start recording
-    VOICE_THRESHOLD = 0.9
-    # Maximum recording duration in seconds
-    MAX_RECORDING_DURATION = 30
-    # VAD aggressiveness level (0-3, higher = more aggressive)
-    VAD_AGGRESSIVENESS = 1
-    # Model to use for queued transcription, can be [whisper|genai]
-    QUEUED_MODEL = "whisper"
 
 
 class TTSSettings:

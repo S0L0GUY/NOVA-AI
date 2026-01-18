@@ -22,6 +22,7 @@ from classes.edge_tts import TextToSpeechManager
 from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC
 from classes.system_prompt import SystemPrompt
+from classes.transcriber import WhisperTranscriber
 from classes.vision_manager import VisionManager
 
 
@@ -68,18 +69,19 @@ def initialize_components() -> tuple:
     # Use adapters to construct components so each feature is module-adapter backed.
     osc = adapters.initialize_osc()
 
-    transcriber = adapters.create_transcriber()
-
     history = initialize_history()
 
     client = adapters.create_genai_client()
 
     tts = adapters.create_tts(osc)
 
+    # Initialize transcriber
+    transcriber = WhisperTranscriber(model_size="base", language="en")
+
     # Initialize vision system via adapter
     vision_manager = adapters.create_vision_manager()
 
-    return osc, transcriber, history, client, tts, vision_manager
+    return osc, history, client, tts, transcriber, vision_manager
 
 
 def chunk_text(text: Optional[str]) -> List[str]:
@@ -264,7 +266,7 @@ def generate_contents(history: list) -> list:
     return contents
 
 
-def run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber) -> None:
+def run_main_loop(osc, history, vision_manager, client, tts, transcriber, current_model) -> None:
 
     while True:
         osc.send_message("Thinking")
@@ -291,37 +293,38 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
         new_message["content"] = full_response
         history.append(new_message)
 
-        # Get user speech input
-        user_speech = ""
-        while not user_speech:
-            osc.send_message("Listening")
-            osc.set_typing_indicator(False)
-            user_speech = transcriber.get_user_input(osc)
+        # Get user speech input with voice detection and transcription
+        osc.send_message("Listening")
+        osc.set_typing_indicator(False)
+        transcription_result = transcriber.record_and_transcribe(max_duration=30.0)
+        
+        if transcription_result["success"]:
+            user_speech = transcription_result["text"]
+        else:
+            user_speech = ""
+            print(f"\033[91m[ERROR]\033[0m Transcription failed: {transcription_result['error']}")
 
         # Add user speech to history
         print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
-        user_speech = {"role": "user", "content": user_speech}
-        history.append(user_speech)
+        user_speech_msg = {"role": "user", "content": user_speech}
+        history.append(user_speech_msg)
 
         # Update history
         JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
         history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
-
-        osc.send_message("Thinking")
-        osc.set_typing_indicator(True)
-
+ 
 
 def main() -> None:
     # Initialise the components
     components = initialize_components()
-    osc, transcriber, history, client, tts, vision_manager = components
+    osc, history, client, tts, transcriber, vision_manager = components
 
     # Whip the old history file
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
     current_model = get_current_model(client, vision_manager)
 
-    run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber)
+    run_main_loop(osc, history, vision_manager, client, tts, transcriber, current_model)
 
 
 if __name__ == "__main__":
