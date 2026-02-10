@@ -17,6 +17,56 @@ from google.genai import types
 import constants
 
 
+def web_search(query: str) -> Dict[str, Any]:
+    """Search the web for information using Brave Search API.
+
+    Args:
+        query: The search query string.
+
+    Returns:
+        A dict with search results including titles, URLs, and snippets.
+    """
+    import requests
+
+    api_key = os.getenv("BRAVE_API_KEY")
+    if not api_key:
+        return {
+            "error": "BRAVE_API_KEY not configured",
+            "message": "Set BRAVE_API_KEY in .env file to enable web search",
+            "results": []
+        }
+
+    url = "https://api.brave.com/v1/web/search"
+    headers = {"Accept": "application/json", "X-Subscription-Token": api_key}
+    params = {"q": query, "count": 5}
+
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        results = []
+        if "web" in data and "results" in data["web"]:
+            for item in data["web"]["results"][:5]:
+                results.append({
+                    "title": item.get("title", ""),
+                    "url": item.get("url", ""),
+                    "snippet": item.get("description", "")
+                })
+
+        return {
+            "query": query,
+            "results": results,
+            "count": len(results)
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "message": "Search failed",
+            "results": []
+        }
+
+
 def load_memory():
     if not os.path.exists(constants.FilePaths.MEMORY_FILE):
         with open(constants.FilePaths.MEMORY_FILE, "w", encoding="utf-8") as f:
@@ -142,7 +192,7 @@ def get_generate_config(disable_automatic: bool = False) -> types.GenerateConten
     """
 
     # Pass the callables directly so the SDK can infer schemas and handle calls.
-    tools = [get_time, calculator, memory_get, memory_set, memory_search]
+    tools = [get_time, calculator, memory_get, memory_set, memory_search, web_search]
 
     config = types.GenerateContentConfig(tools=tools)
     if disable_automatic:

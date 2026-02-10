@@ -1,10 +1,64 @@
 import os
 import socket
 
+import pyaudio
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+
+def auto_detect_audio_devices():
+    """
+    Automatically detect VB-Audio Cable device indices.
+    Returns tuple of (input_index, output_index) or None if not found.
+    """
+    patterns = {
+        "input": ["CABLE-A Output", "Cable-A Output"],
+        "output": ["CABLE-B Input", "Cable-B Input"]
+    }
+
+    p = pyaudio.PyAudio()
+    try:
+        device_count = p.get_device_count()
+        input_idx = None
+        output_idx = None
+
+        for i in range(device_count):
+            device_info = p.get_device_info_by_index(i)
+            name = device_info.get("name", "").lower()
+            channels = device_info.get("maxInputChannels", 0)
+
+            # Check for input device (CABLE-A Output)
+            if input_idx is None:
+                for pattern in patterns["input"]:
+                    if pattern.lower() in name and channels > 0:
+                        input_idx = i
+                        break
+
+            # Check for output device (CABLE-B Input)
+            if output_idx is None:
+                for pattern in patterns["output"]:
+                    if pattern.lower() in name:
+                        output_idx = i
+                        break
+
+        return input_idx, output_idx
+    finally:
+        p.terminate()
+
+
+# Auto-detect audio devices, fallback to defaults if not found
+_detected_audio = auto_detect_audio_devices()
+if _detected_audio[0] is not None and _detected_audio[1] is not None:
+    AUDIO_OUTPUT_INDEX = _detected_audio[1]  # CABLE-B Input for output
+    AUDIO_INPUT_INDEX = _detected_audio[0]    # CABLE-A Output for input
+    print(f"[AUTO-DETECT] Audio devices: Input={AUDIO_INPUT_INDEX}, Output={AUDIO_OUTPUT_INDEX}")
+else:
+    # Fallback to default indices if VB-Cable not found
+    AUDIO_OUTPUT_INDEX = 10
+    AUDIO_INPUT_INDEX = 5
+    print(f"[AUDIO] VB-Cable not detected, using defaults: Input={AUDIO_INPUT_INDEX}, Output={AUDIO_OUTPUT_INDEX}")
 
 
 class LLM_API:
@@ -143,8 +197,9 @@ class Audio:
             configured for VB-Audio Cable A Output
     """
 
-    AUDIO_OUTPUT_INDEX = 10
-    AUDIO_INPUT_INDEX = 5
+    # Use auto-detected values if available, otherwise fall back to module-level defaults
+    AUDIO_OUTPUT_INDEX = globals().get('AUDIO_OUTPUT_INDEX', 10)
+    AUDIO_INPUT_INDEX = globals().get('AUDIO_INPUT_INDEX', 5)
 
 
 class Voice:

@@ -264,6 +264,47 @@ def generate_contents(history: list) -> list:
     return contents
 
 
+def call_llm(client, model: str, messages: list, config=None) -> str:
+    """
+    Call the LLM with the given messages.
+    Supports both Google GenAI and OpenAI-compatible APIs (LM Studio, OpenAI).
+
+    Args:
+        client: The LLM client (GenAI or OpenAI-compatible)
+        model: The model ID to use
+        messages: List of message dicts with 'role' and 'content'
+        config: Optional config for GenAI
+
+    Returns:
+        The generated text response
+    """
+    # Check if this is an OpenAI-compatible client (LM Studio)
+    if hasattr(client, '_nova_provider') and client._nova_provider == 'lm_studio':
+        # Convert messages to OpenAI format
+        openai_messages = []
+        for msg in messages:
+            role = msg.get('role', 'user')
+            content = msg.get('content', '')
+            # Map 'assistant' to 'model' for OpenAI
+            if role == 'assistant':
+                role = 'model'
+            openai_messages.append({'role': role, 'content': content})
+
+        # Call LM Studio API
+        response = client.chat.completions.create(
+            model=model,
+            messages=openai_messages,
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+
+    # Default to Google GenAI
+    contents = generate_contents(messages)
+    genai_config = llm_tools.get_generate_config()
+    response = client.models.generate_content(model=model, contents=contents, config=genai_config)
+    return response.text
+
+
 def run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber) -> None:
 
     while True:
@@ -276,20 +317,24 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
         # Check for vision updates before generating response
         history = add_vision_updates_to_history(history, vision_manager)
 
-        contents = generate_contents(history)
-
-        # Call the Google GenAI SDK. Use the synchronous non-streaming
-        # `generate_content` method and then handle the returned `.text`.
-        # Attach function-calling tools/config with minimal changes: functions are defined
-        # in `classes/llm_tools.py` and the Python SDK will handle automatic calls.
-        config = llm_tools.get_generate_config()
-        response = client.models.generate_content(model=current_model, contents=contents, config=config)
+        # Call the LLM with the current history
+        full_response = call_llm(client, current_model, history)
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
-        full_response = process_completion(response, osc, tts)
         new_message["content"] = full_response
         history.append(new_message)
+
+        # Print and speak the response
+        osc.set_typing_indicator(True)
+        sentences = chunk_text(full_response)
+        for sentence in sentences:
+            print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
+            tts.add_to_queue(sentence)
+
+        # Wait until TTS finished speaking
+        while not tts.is_idle():
+            time.sleep(0.1)
 
         # Get user speech input
         user_speech = ""

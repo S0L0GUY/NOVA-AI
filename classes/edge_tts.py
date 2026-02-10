@@ -153,33 +153,50 @@ class TextToSpeechManager:
         Handles the playback loop for audio files in the queue.
         Expects audio_queue items to be (text, filepath, is_cached).
         Cached files are NOT deleted after playback.
+        Fixed: Added synchronization to prevent race condition where playback
+        exits before process_queue finishes adding audio.
         """
         self.is_playing = True
         try:
-            while not self.audio_queue.empty() or not self.tts_queue.empty():
-                self.osc.set_typing_indicator(True)
-                try:
-                    # Updated to unpack cached flag
-                    item = self.audio_queue.get()
-                    if len(item) == 3:
-                        text, filepath, is_cached = item
-                    else:
-                        # Backwards compatibility: if older tuple present
-                        text, filepath = item
-                        is_cached = False
-
-                    self.osc.send_message(text)
+            # Keep checking both queues until both are empty
+            # This prevents the race condition where playback_loop exits
+            # before process_queue finishes
+            while True:
+                # First check if there's anything to play
+                if not self.audio_queue.empty():
                     self.osc.set_typing_indicator(True)
-                    self.play_audio_file(filepath)
+                    try:
+                        # Updated to unpack cached flag
+                        item = self.audio_queue.get()
+                        if len(item) == 3:
+                            text, filepath, is_cached = item
+                        else:
+                            # Backwards compatibility: if older tuple present
+                            text, filepath = item
+                            is_cached = False
 
-                    # Only remove files that are not cached
-                    if not is_cached:
-                        try:
-                            os.remove(filepath)
-                        except Exception:
-                            pass
-                except Exception as e:
-                    logging.error(f"Error during playback: {e}")
+                        self.osc.send_message(text)
+                        self.osc.set_typing_indicator(True)
+                        self.play_audio_file(filepath)
+
+                        # Only remove files that are not cached
+                        if not is_cached:
+                            try:
+                                os.remove(filepath)
+                            except Exception:
+                                pass
+                    except Exception as e:
+                        logging.error(f"Error during playback: {e}")
+                
+                # Both queues empty - check one more time after brief sync
+                if self.tts_queue.empty() and self.audio_queue.empty():
+                    import time
+                    time.sleep(0.05)  # Brief sync to catch racing process_queue
+                    if self.tts_queue.empty() and self.audio_queue.empty():
+                        break  # Both still empty, safe to exit
+                
+                # Continue loop if either queue has items
+                continue
         finally:
             self.is_playing = False
 
