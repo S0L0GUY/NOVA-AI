@@ -64,3 +64,12 @@ class VRChatOSC:
         self.client.send_message("/input/Jump", 1)
         time.sleep(0.1)
         self.client.send_message("/input/Jump", 0)
+
+    def send_osc(self, address: str, value):
+        """
+        Sends a raw OSC message to the specified address.
+        Args:
+            address (str): The OSC address path.
+            value: The value(s) to send (can be single value or list).
+        """
+        self.client.send_message(address, value)

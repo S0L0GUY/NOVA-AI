@@ -84,6 +84,31 @@ python smoke_test.py
 - **Whisper model:** `WhisperSettings.MODEL_SIZE` (`tiny|base|small|medium|large`)
 - **TTS voice:** `Voice.VOICE_NAME` (list available voices if needed)
 
+### LM Studio Support (Local LLM)
+
+NOVA AI now supports running with local LLMs via [LM Studio](https://lmstudio.ai/):
+
+1. **Download and install LM Studio** from https://lmstudio.ai/
+2. **Start LM Studio** and load your preferred model
+3. **Enable the API server** in LM Studio (default: http://localhost:1234/v1)
+4. **Configure NOVA** by setting in your `.env` file:
+
+```bash
+LM_STUDIO_ENABLED=true
+LM_STUDIO_BASE_URL=http://localhost:1234/v1
+LM_STUDIO_MODEL=your-loaded-model-name
+LM_STUDIO_TEMPERATURE=0.7
+LM_STUDIO_MAX_TOKENS=4096
+```
+
+**Note:** When LM Studio is enabled, NOVA will use your local model instead of GenAI/Together AI. This requires the `openai` package (installed via `requirements.txt`).
+
+**Benefits:**
+- No API costs - runs entirely locally
+- Privacy - data never leaves your machine
+- Customizable models - use any model supported by LM Studio
+- Works offline
+
 ---
 
 ## Common Issues & Quick Fixes

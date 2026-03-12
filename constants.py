@@ -18,6 +18,26 @@ class LLM_API:
     API_KEY = os.getenv("LLM_API_KEY")
 
 
+class LMStudioConfig:
+    """
+    LM Studio local LLM configuration.
+    LM Studio provides an OpenAI-compatible API endpoint.
+    """
+
+    # Enable LM Studio integration
+    ENABLED = os.getenv("LM_STUDIO_ENABLED", "false").lower() == "true"
+    # Base URL for LM Studio API (default local endpoint)
+    BASE_URL = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")
+    # Model name to use (configured in LM Studio)
+    MODEL = os.getenv("LM_STUDIO_MODEL", "local-model")
+    # API key (LM Studio doesn't require one by default)
+    API_KEY = os.getenv("LM_STUDIO_API_KEY", "not-needed")
+    # Temperature for generation
+    TEMPERATURE = float(os.getenv("LM_STUDIO_TEMPERATURE", "0.8"))
+    # Max tokens for generation
+    MAX_TOKENS = int(os.getenv("LM_STUDIO_MAX_TOKENS", "10000"))
+
+
 class Vision_API:
     """
     Vision API configuration settings for Together AI.
@@ -143,8 +163,8 @@ class Audio:
             configured for VB-Audio Cable A Output
     """
 
-    AUDIO_OUTPUT_INDEX = 10
-    AUDIO_INPUT_INDEX = 5
+    AUDIO_OUTPUT_INDEX = 9
+    AUDIO_INPUT_INDEX = 18
 
 
 class Voice:

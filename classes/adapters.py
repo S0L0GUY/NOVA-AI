@@ -1,15 +1,38 @@
 import logging
 import warnings
-from typing import Optional
+from typing import Optional, Union
 
 from google import genai
 
 import constants as constant
 from classes.edge_tts import TextToSpeechManager
+from classes.head_tracker import HeadTracker, create_head_tracker as _create_head_tracker
 from classes.osc import VRChatOSC
 from classes.speech_to_text import SpeechToTextHandler
 from classes.vision_manager import VisionManager
 from classes.vrchat_api import VRChatAPIManager
+
+
+def create_lmstudio_client():
+    """Adapter to construct the LM Studio OpenAI-compatible client."""
+    if not constant.LMStudioConfig.ENABLED:
+        return None
+    
+    try:
+        from openai import OpenAI
+        client = OpenAI(
+            base_url=constant.LMStudioConfig.BASE_URL,
+            api_key=constant.LMStudioConfig.API_KEY,
+        )
+        print("\033[92mLM Studio client initialized successfully (adapters).\033[0m")
+        return client
+    except ImportError:
+        logging.error("\033[91mOpenAI package not installed. Install with: pip install openai\033[0m")
+        return None
+    except Exception as e:
+        logging.error(f"\033[91mFailed to initialize LM Studio client: {e}\033[0m")
+        warnings.warn("\033[91mLM Studio initialization failed. Falling back to GenAI (adapters).\033[0m")
+        return None
 
 
 def initialize_osc() -> Optional[VRChatOSC]:
@@ -86,4 +109,20 @@ def create_genai_client() -> Optional[genai.Client]:
     except Exception as e:
         logging.error(f"\033[91mFailed to initialize GenAI client: {e}\033[0m")
         warnings.warn("\033[91mGenAI client initialization failed. LLM features disabled (adapters).\033[0m")
+        return None
+
+
+def create_head_tracker(osc: Optional[VRChatOSC]) -> Optional[HeadTracker]:
+    """Adapter to create and initialize the head tracker."""
+    if not osc:
+        logging.warning("\033[93mOSC not available. Head tracker disabled (adapters).\033[0m")
+        return None
+
+    try:
+        head_tracker = _create_head_tracker(osc)
+        print("\033[92mHead Tracker initialized successfully (adapters).\033[0m")
+        return head_tracker
+    except Exception as e:
+        logging.error(f"\033[91mFailed to create Head Tracker: {e}\033[0m")
+        warnings.warn("\033[91mHead Tracker initialization failed. Continuing without head tracking (adapters).\033[0m")
         return None

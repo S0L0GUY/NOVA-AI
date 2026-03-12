@@ -19,6 +19,7 @@ from google import genai
 import constants as constant
 from classes import adapters, llm_tools
 from classes.edge_tts import TextToSpeechManager
+from classes.head_tracker import HeadTracker
 from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC
 from classes.system_prompt import SystemPrompt
@@ -52,17 +53,20 @@ def initialize_components() -> tuple:
     - WhisperTranscriber: Manages audio transcription.
     - System prompt and history: Prepares the initial system prompt and
     conversation history.
-    - Together AI client: Configures the Together AI API client for generating responses.
+    - LLM client: Configures either LM Studio or GenAI API client for generating responses.
     - TextToSpeechManager: Manages text-to-speech functionality.
+    - VisionManager: Manages the vision system.
+    - HeadTracker: Manages avatar head movement.
     Returns:
         tuple: A tuple containing the initialized components in the following
         order:
             - osc (VRChatOSC): The OSC communication handler.
             - transcriber (WhisperTranscriber): The audio transcriber.
             - history (list): The initial conversation history.
-            - client (Together): The Together AI API client.
+            - client: The LLM client (LM Studio or GenAI).
             - tts (TextToSpeechManager): The text-to-speech manager.
             - vision_manager (VisionManager): The vision system manager.
+            - head_tracker (HeadTracker): The head tracking manager.
     """
 
     # Use adapters to construct components so each feature is module-adapter backed.
@@ -72,14 +76,20 @@ def initialize_components() -> tuple:
 
     history = initialize_history()
 
-    client = adapters.create_genai_client()
+    # Try LM Studio first if enabled, otherwise fall back to GenAI
+    client = adapters.create_lmstudio_client()
+    if client is None:
+        client = adapters.create_genai_client()
 
     tts = adapters.create_tts(osc)
 
     # Initialize vision system via adapter
     vision_manager = adapters.create_vision_manager()
 
-    return osc, transcriber, history, client, tts, vision_manager
+    # Initialize head tracker via adapter
+    head_tracker = adapters.create_head_tracker(osc)
+
+    return osc, transcriber, history, client, tts, vision_manager, head_tracker
 
 
 def chunk_text(text: Optional[str]) -> List[str]:
@@ -214,16 +224,19 @@ def add_vision_updates_to_history(history: list, vision_manager: VisionManager) 
 
 def get_current_model(client: object, vision_manager: VisionManager) -> str:
     """
-    Returns the current language model to use from the Together AI client.
+    Returns the current language model to use based on the client type.
 
     Args:
-        client (object): The Together AI client instance.
+        client (object): The LLM client instance (GenAI or LM Studio).
         vision_manager (object): The vision manager instance (for cleanup if needed).
 
     Returns:
         str: The ID of the selected language model from constants.
     """
-
+    # Check if using LM Studio client
+    if hasattr(client, 'chat'):
+        return constant.LMStudioConfig.MODEL
+    
     return constant.LanguageModel.MODEL_ID
 
 
@@ -264,7 +277,57 @@ def generate_contents(history: list) -> list:
     return contents
 
 
-def run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber) -> None:
+def generate_with_client(client, contents, current_model, config=None):
+    """
+    Unified generation function that supports both LM Studio (OpenAI) and GenAI clients.
+    
+    Args:
+        client: Either an OpenAI client (LM Studio) or GenAI client
+        contents: The conversation contents/messages
+        current_model: The model ID to use
+        config: Optional generation config (for GenAI)
+    
+    Returns:
+        Response object with .text attribute or iterator for streaming
+    """
+    # Check if this is an LM Studio client (OpenAI style)
+    if hasattr(client, 'chat'):
+        # LM Studio / OpenAI client
+        messages = []
+        for content in contents:
+            if hasattr(content, 'role') and hasattr(content, 'parts'):
+                # GenAI Content object
+                role = 'assistant' if content.role == 'model' else content.role
+                text = content.parts[0].text if content.parts else ''
+                messages.append({"role": role, "content": text})
+            elif isinstance(content, dict):
+                role = content.get('role', 'user')
+                if role == 'model':
+                    role = 'assistant'
+                messages.append({"role": role, "content": content.get('content', '')})
+            else:
+                messages.append({"role": 'user', "content": str(content)})
+        
+        response = client.chat.completions.create(
+            model=current_model,
+            messages=messages,
+            temperature=constant.LMStudioConfig.TEMPERATURE,
+            max_tokens=constant.LMStudioConfig.MAX_TOKENS,
+            stream=True
+        )
+        return response
+    else:
+        # GenAI client
+        if config is None:
+            config = llm_tools.get_generate_config()
+        return client.models.generate_content(model=current_model, contents=contents, config=config)
+
+
+def run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber, head_tracker: Optional[HeadTracker] = None) -> None:
+
+    # Start head tracker if available
+    if head_tracker:
+        head_tracker.start()
 
     while True:
         osc.send_message("Thinking")
@@ -278,12 +341,9 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
 
         contents = generate_contents(history)
 
-        # Call the Google GenAI SDK. Use the synchronous non-streaming
-        # `generate_content` method and then handle the returned `.text`.
-        # Attach function-calling tools/config with minimal changes: functions are defined
-        # in `classes/llm_tools.py` and the Python SDK will handle automatic calls.
+        # Use unified generation that supports both LM Studio and GenAI
         config = llm_tools.get_generate_config()
-        response = client.models.generate_content(model=current_model, contents=contents, config=config)
+        response = generate_with_client(client, contents, current_model, config)
 
         # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
@@ -314,14 +374,14 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
 def main() -> None:
     # Initialise the components
     components = initialize_components()
-    osc, transcriber, history, client, tts, vision_manager = components
+    osc, transcriber, history, client, tts, vision_manager, head_tracker = components
 
     # Whip the old history file
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
     current_model = get_current_model(client, vision_manager)
 
-    run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber)
+    run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber, head_tracker)
 
 
 if __name__ == "__main__":
