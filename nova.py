@@ -1,12 +1,9 @@
 """
 Main module for running the application logic.
-This module initializes various components such as the VRChat OSC,
-WhisperTranscriber, and Together AI client. It sends a startup message to
-VRChat, sets up the system prompt and history, and enters a loop to
-continuously process user speech input and generate AI responses.
 
-Note: The vision system now runs asynchronously in the background and
-continuously monitors VRChat without waiting for the AI to stop thinking.
+This module initialises all NOVA-AI components, starts the enhanced
+Gabriel-feature subsystems (movement, SFX, personality switching, idle
+gaze, session persistence), and enters the main conversation loop.
 """
 
 import datetime
@@ -20,19 +17,30 @@ import constants as constant
 from classes import adapters, llm_tools
 from classes.edge_tts import TextToSpeechManager
 from classes.head_tracker import HeadTracker
+from classes.idle_gaze import IdleGazeController
 from classes.json_wrapper import JsonWrapper
+from classes.movement import MovementController
 from classes.osc import VRChatOSC
+from classes.personality_manager import PersonalityManager
+from classes.session_persistence import SessionPersistenceManager
+from classes.sfx_manager import SFXManager
 from classes.system_prompt import SystemPrompt
 from classes.vision_manager import VisionManager
 
 
 def initialize_history() -> list:
+    """
+    Builds the initial conversation history including recent memories and
+    the system prompt.
+
+    Returns:
+        list: Initial history list ready for the LLM client.
+    """
     system_prompt = SystemPrompt.get_full_prompt()
     now = datetime.datetime.now()
     history = []
     memories = JsonWrapper().read_dict(file_path=constant.FilePaths.MEMORY_FILE)
 
-    # Load recent memories into history
     if memories:
         recent_memories = list(memories.items())[-20:]
         for key, value in recent_memories:
@@ -47,103 +55,171 @@ def initialize_history() -> list:
 
 def initialize_components() -> tuple:
     """
-    Initializes and sets up the components required for the application.
-    This function creates and configures the following components:
-    - VRChatOSC: Handles communication with VRChat using OSC protocol.
-    - WhisperTranscriber: Manages audio transcription.
-    - System prompt and history: Prepares the initial system prompt and
-    conversation history.
-    - LLM client: Configures either LM Studio or GenAI API client for generating responses.
-    - TextToSpeechManager: Manages text-to-speech functionality.
-    - VisionManager: Manages the vision system.
-    - HeadTracker: Manages avatar head movement.
+    Initialises and returns all application components.
+
     Returns:
-        tuple: A tuple containing the initialized components in the following
-        order:
-            - osc (VRChatOSC): The OSC communication handler.
-            - transcriber (WhisperTranscriber): The audio transcriber.
-            - history (list): The initial conversation history.
-            - client: The LLM client (LM Studio or GenAI).
-            - tts (TextToSpeechManager): The text-to-speech manager.
-            - vision_manager (VisionManager): The vision system manager.
-            - head_tracker (HeadTracker): The head tracking manager.
+        tuple: (osc, transcriber, history, client, tts, vision_manager,
+                head_tracker, movement_controller, sfx_manager,
+                personality_manager, idle_gaze_controller,
+                session_persistence_manager)
     """
-
-    # Use adapters to construct components so each feature is module-adapter backed.
     osc = adapters.initialize_osc()
-
     transcriber = adapters.create_transcriber()
-
     history = initialize_history()
 
-    # Try LM Studio first if enabled, otherwise fall back to GenAI
     client = adapters.create_lmstudio_client()
     if client is None:
         client = adapters.create_genai_client()
 
     tts = adapters.create_tts(osc)
-
-    # Initialize vision system via adapter
     vision_manager = adapters.create_vision_manager()
-
-    # Initialize head tracker via adapter
     head_tracker = adapters.create_head_tracker(osc)
 
-    return osc, transcriber, history, client, tts, vision_manager, head_tracker
+    # New Gabriel-feature components
+    movement_controller = adapters.create_movement_controller(osc)
+    sfx_manager = adapters.create_sfx_manager()
+    personality_manager = adapters.create_personality_manager()
+    idle_gaze_controller = adapters.create_idle_gaze_controller()
+    session_persistence_manager = adapters.create_session_persistence_manager()
+
+    return (
+        osc,
+        transcriber,
+        history,
+        client,
+        tts,
+        vision_manager,
+        head_tracker,
+        movement_controller,
+        sfx_manager,
+        personality_manager,
+        idle_gaze_controller,
+        session_persistence_manager,
+    )
 
 
 def chunk_text(text: Optional[str]) -> List[str]:
     """
+    Splits text into sentence-sized chunks for streaming TTS.
+
     Args:
-        text (string): The text to break down.
+        text (str): The text to split.
 
     Returns:
-        string: Text chunk.
-
-    Split the text by sentence-ending punctuation
+        List[str]: List of sentence chunks.
     """
-    # Guard against None or non-string inputs
     if not isinstance(text, str):
         return []
-
     text = text.strip()
     if not text:
         return []
+    return re.split(r"(?<=[.!?])\s+", text)
 
-    # Split on sentence-ending punctuation followed by whitespace (robust to newlines/tabs)
-    chunks = re.split(r"(?<=[.!?])\s+", text)
 
-    return chunks
+def generate_contents(history: list) -> list:
+    """
+    Converts chat-style history into the GenAI SDK 'contents' format.
+
+    Args:
+        history (list): List of {'role': ..., 'content': ...} dicts.
+
+    Returns:
+        list: List of genai.types.Content objects.
+    """
+    contents = []
+    for msg in history:
+        text = msg.get("content", "")
+        role = msg.get("role", "user")
+        if role != "user":
+            role = "model"
+        try:
+            part = genai.types.Part.from_text(text=text)
+            content = genai.types.Content(role=role, parts=[part])
+            contents.append(content)
+        except (AttributeError, TypeError) as exc:
+            print(
+                f"Warning: failed to build GenAI content for role '{role}': {exc}. "
+                "Appending raw text as fallback."
+            )
+            contents.append(text)
+    return contents
+
+
+def get_current_model(client: object, vision_manager: VisionManager) -> str:
+    """
+    Returns the model ID to use based on the active client type.
+
+    Args:
+        client: The LLM client (GenAI or LM Studio).
+        vision_manager: Unused; kept for API compatibility.
+
+    Returns:
+        str: Model identifier string from constants.
+    """
+    if hasattr(client, "chat"):
+        return constant.LMStudioConfig.MODEL
+    return constant.LanguageModel.MODEL_ID
+
+
+def generate_with_client(client, contents, current_model, config=None):
+    """
+    Unified generation that supports both LM Studio (OpenAI) and GenAI clients.
+
+    Args:
+        client: The LLM client instance.
+        contents: Conversation contents in the appropriate format.
+        current_model (str): Model identifier.
+        config: Optional GenAI GenerateContentConfig.
+
+    Returns:
+        Response object or streaming iterator.
+    """
+    if hasattr(client, "chat"):
+        # LM Studio / OpenAI-style client
+        messages = []
+        for content in contents:
+            if hasattr(content, "role") and hasattr(content, "parts"):
+                role = "assistant" if content.role == "model" else content.role
+                text = content.parts[0].text if content.parts else ""
+                messages.append({"role": role, "content": text})
+            elif isinstance(content, dict):
+                role = content.get("role", "user")
+                if role == "model":
+                    role = "assistant"
+                messages.append({"role": role, "content": content.get("content", "")})
+            else:
+                messages.append({"role": "user", "content": str(content)})
+
+        return client.chat.completions.create(
+            model=current_model,
+            messages=messages,
+            temperature=constant.LMStudioConfig.TEMPERATURE,
+            max_tokens=constant.LMStudioConfig.MAX_TOKENS,
+            stream=True,
+        )
+    else:
+        if config is None:
+            config = llm_tools.get_generate_config()
+        return client.models.generate_content(
+            model=current_model, contents=contents, config=config
+        )
 
 
 def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager) -> str:
     """
-    Processes a streaming completion response, extracts text chunks, and
-    handles output and text-to-speech functionality.
-    handles output and text-to-speech functionality.
+    Processes a streaming or single-shot completion response, queuing TTS
+    sentence by sentence.
+
     Args:
-        completion (iter): An iterable object containing streaming completion
-                            data. Each chunk is expected to have a `choices`
-                            attribute with a `delta.content` field containing
-                            the text.
-        osc (object): An object responsible for managing the typing indicator.
-                      It should have a `set_typing_indicator` method.
-        tts (object): An object responsible for text-to-speech functionality.
-                      It should have `add_to_queue` and `is_idle` methods.
+        completion: Streaming iterator or single response object.
+        osc (VRChatOSC): Used to set the typing indicator.
+        tts (TextToSpeechManager): TTS queue target.
+
     Returns:
-        str: The full response text generated from the completion.
+        str: The full response text.
     """
-
-    """
-    Accepts either a streaming iterator of chunks (SDK streaming) or a
-    completed response object containing `.text`. Handles extracting text,
-    splitting into sentence chunks, printing, and queuing TTS. Returns the
-    full response text.
-    """
-
     osc.set_typing_indicator(True)
 
-    # Helper to consume a plain text string and queue TTS
     def handle_text(text: str) -> str:
         full = ""
         for sentence in chunk_text(text):
@@ -154,21 +230,15 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
 
     full_response = ""
 
-    # If the completion is a single response object with .text, handle it
     if hasattr(completion, "text"):
         full_response = handle_text(completion.text)
     else:
-        # Otherwise attempt to iterate streaming-like chunks. Support both
-        # Google GenAI streaming chunks (chunk.text) and fallback to OpenAI
-        # style chunks (choices[0].delta.content) if present.
         buffer = ""
         for chunk in completion:
             text_piece = None
-            # google-genai streaming chunk
             if hasattr(chunk, "text") and chunk.text:
                 text_piece = chunk.text
             else:
-                # try OpenAI-like delta access (backwards-compat)
                 try:
                     text_piece = chunk.choices[0].delta.content
                 except (AttributeError, IndexError):
@@ -193,7 +263,6 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
             print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
             tts.add_to_queue(buffer)
 
-    # Wait until TTS finished speaking
     while not tts.is_idle():
         time.sleep(0.1)
 
@@ -202,130 +271,50 @@ def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechMa
 
 def add_vision_updates_to_history(history: list, vision_manager: VisionManager) -> list:
     """
-    Add any new vision updates to the conversation history.
+    Appends any pending vision updates to the conversation history.
 
     Args:
-        history (list): Current conversation history
-        vision_manager (VisionManager): The vision manager instance
+        history (list): Current history list.
+        vision_manager (VisionManager): Source of vision updates.
 
     Returns:
-        list: Updated history with vision updates added as system messages
+        list: Updated history.
     """
-    vision_updates = vision_manager.get_new_vision_updates()
-
-    for update in vision_updates:
-        vision_message = {"role": "system", "content": update}
-        history.append(vision_message)
-
+    for update in vision_manager.get_new_vision_updates():
+        history.append({"role": "system", "content": update})
         print(f"\033[96m[VISION]\033[0m \033[94m{update}\033[0m")
-
     return history
 
 
-def get_current_model(client: object, vision_manager: VisionManager) -> str:
+def run_main_loop(
+    osc: VRChatOSC,
+    history: list,
+    vision_manager: VisionManager,
+    client,
+    tts: TextToSpeechManager,
+    current_model: str,
+    transcriber,
+    head_tracker: Optional[HeadTracker] = None,
+    session_persistence_manager: Optional[SessionPersistenceManager] = None,
+) -> None:
     """
-    Returns the current language model to use based on the client type.
+    The primary conversation loop.
+
+    Generates an AI response, speaks it via TTS, waits for voice input,
+    then repeats.  History is periodically flushed to disk so it survives
+    unexpected shutdowns.
 
     Args:
-        client (object): The LLM client instance (GenAI or LM Studio).
-        vision_manager (object): The vision manager instance (for cleanup if needed).
-
-    Returns:
-        str: The ID of the selected language model from constants.
+        osc: VRChat OSC client.
+        history (list): Conversation history.
+        vision_manager: Vision subsystem.
+        client: LLM client.
+        tts: Text-to-speech manager.
+        current_model (str): Model ID string.
+        transcriber: Speech-to-text handler.
+        head_tracker (Optional[HeadTracker]): Head-movement controller.
+        session_persistence_manager: Optional session persistence manager.
     """
-    # Check if using LM Studio client
-    if hasattr(client, 'chat'):
-        return constant.LMStudioConfig.MODEL
-    
-    return constant.LanguageModel.MODEL_ID
-
-
-def generate_contents(history: list) -> list:
-    """
-    Converts the chat-style conversation history into the GenAI SDK `contents` format,
-    mapping roles appropriately for GenAI ('user' or 'model').
-
-    Args:
-        history (list): List of message dictionaries, each with 'role' and 'content' keys.
-
-    Returns:
-        list: List of GenAI Content objects (or raw text strings if construction fails),
-              with roles mapped to 'user' or 'model' as required by the SDK.
-    """
-    # Convert the existing chat-style `history` into the GenAI SDK
-    # `contents` format. Each history entry becomes a Content with a
-    # text Part so the SDK receives role-aware inputs.
-    contents = []
-    for msg in history:
-        text = msg.get("content", "")
-        # Map roles from chat format to GenAI allowed roles ('user' or 'model')
-        role = msg.get("role", "user")
-        if role != "user":
-            # GenAI accepts 'user' and 'model' for content.role; map everything
-            # that's not 'user' to 'model' (assistant/system -> model).
-            role = "model"
-
-        try:
-            part = genai.types.Part.from_text(text=text)
-            content = genai.types.Content(role=role, parts=[part])
-            contents.append(content)
-        except (AttributeError, TypeError) as e:
-            # Fallback: if types are unavailable or construction fails, log a warning and pass raw text
-            print(f"Warning: Failed to construct GenAI content object for role '{role}': {e}. Appending raw text as fallback.")
-            contents.append(text)
-
-    return contents
-
-
-def generate_with_client(client, contents, current_model, config=None):
-    """
-    Unified generation function that supports both LM Studio (OpenAI) and GenAI clients.
-    
-    Args:
-        client: Either an OpenAI client (LM Studio) or GenAI client
-        contents: The conversation contents/messages
-        current_model: The model ID to use
-        config: Optional generation config (for GenAI)
-    
-    Returns:
-        Response object with .text attribute or iterator for streaming
-    """
-    # Check if this is an LM Studio client (OpenAI style)
-    if hasattr(client, 'chat'):
-        # LM Studio / OpenAI client
-        messages = []
-        for content in contents:
-            if hasattr(content, 'role') and hasattr(content, 'parts'):
-                # GenAI Content object
-                role = 'assistant' if content.role == 'model' else content.role
-                text = content.parts[0].text if content.parts else ''
-                messages.append({"role": role, "content": text})
-            elif isinstance(content, dict):
-                role = content.get('role', 'user')
-                if role == 'model':
-                    role = 'assistant'
-                messages.append({"role": role, "content": content.get('content', '')})
-            else:
-                messages.append({"role": 'user', "content": str(content)})
-        
-        response = client.chat.completions.create(
-            model=current_model,
-            messages=messages,
-            temperature=constant.LMStudioConfig.TEMPERATURE,
-            max_tokens=constant.LMStudioConfig.MAX_TOKENS,
-            stream=True
-        )
-        return response
-    else:
-        # GenAI client
-        if config is None:
-            config = llm_tools.get_generate_config()
-        return client.models.generate_content(model=current_model, contents=contents, config=config)
-
-
-def run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber, head_tracker: Optional[HeadTracker] = None) -> None:
-
-    # Start head tracker if available
     if head_tracker:
         head_tracker.start()
 
@@ -336,34 +325,28 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
         if not history:
             history = initialize_history()
 
-        # Check for vision updates before generating response
         history = add_vision_updates_to_history(history, vision_manager)
 
         contents = generate_contents(history)
-
-        # Use unified generation that supports both LM Studio and GenAI
         config = llm_tools.get_generate_config()
         response = generate_with_client(client, contents, current_model, config)
 
-        # Create the new message and add it to the history
         new_message = {"role": "assistant", "content": ""}
         full_response = process_completion(response, osc, tts)
         new_message["content"] = full_response
         history.append(new_message)
 
-        # Get user speech input
+        # Get voice input
         user_speech = ""
         while not user_speech:
             osc.send_message("Listening")
             osc.set_typing_indicator(False)
             user_speech = transcriber.get_user_input(osc)
 
-        # Add user speech to history
         print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
-        user_speech = {"role": "user", "content": user_speech}
-        history.append(user_speech)
+        history.append({"role": "user", "content": user_speech})
 
-        # Update history
+        # Persist history to disk
         JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
         history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
 
@@ -372,16 +355,41 @@ def run_main_loop(osc, history, vision_manager, client, tts, current_model, tran
 
 
 def main() -> None:
-    # Initialise the components
+    """
+    Initialises all components and starts the main conversation loop.
+    """
     components = initialize_components()
-    osc, transcriber, history, client, tts, vision_manager, head_tracker = components
+    (
+        osc,
+        transcriber,
+        history,
+        client,
+        tts,
+        vision_manager,
+        head_tracker,
+        movement_controller,
+        sfx_manager,
+        personality_manager,
+        idle_gaze_controller,
+        session_persistence_manager,
+    ) = components
 
-    # Whip the old history file
+    # Wipe any stale history from a previous run
     JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
 
     current_model = get_current_model(client, vision_manager)
 
-    run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber, head_tracker)
+    run_main_loop(
+        osc,
+        history,
+        vision_manager,
+        client,
+        tts,
+        current_model,
+        transcriber,
+        head_tracker,
+        session_persistence_manager,
+    )
 
 
 if __name__ == "__main__":

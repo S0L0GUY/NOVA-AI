@@ -8,264 +8,147 @@ load_dotenv()
 
 
 class LLM_API:
-    """
-    LLM API configuration settings for Together AI.
-    """
+    """LLM API configuration settings for Together AI / GenAI."""
 
-    # Base URL for Together AI API
     BASE_URL = "https://api.together.xyz/v1"
-    # API key for Together AI
     API_KEY = os.getenv("LLM_API_KEY")
 
 
 class LMStudioConfig:
-    """
-    LM Studio local LLM configuration.
-    LM Studio provides an OpenAI-compatible API endpoint.
-    """
+    """LM Studio local LLM configuration."""
 
-    # Enable LM Studio integration
     ENABLED = os.getenv("LM_STUDIO_ENABLED", "false").lower() == "true"
-    # Base URL for LM Studio API (default local endpoint)
     BASE_URL = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")
-    # Model name to use (configured in LM Studio)
     MODEL = os.getenv("LM_STUDIO_MODEL", "local-model")
-    # API key (LM Studio doesn't require one by default)
     API_KEY = os.getenv("LM_STUDIO_API_KEY", "not-needed")
-    # Temperature for generation
     TEMPERATURE = float(os.getenv("LM_STUDIO_TEMPERATURE", "0.8"))
-    # Max tokens for generation
     MAX_TOKENS = int(os.getenv("LM_STUDIO_MAX_TOKENS", "10000"))
 
 
 class Vision_API:
-    """
-    Vision API configuration settings for Together AI.
-    """
+    """Vision API configuration settings."""
 
-    # Base URL for Together AI Vision API
     BASE_URL = "https://api.together.xyz/v1"
-    # API key for Together AI Vision
     API_KEY = os.getenv("VISION_API_KEY")
 
 
 class VRChatAPI:
-    """
-    Configuration settings for VRChat API integration.
-    """
+    """Configuration settings for VRChat API integration."""
 
-    # Master switch to enable/disable all VRChat API functionality
-    USING_API = False  # Set to True to enable API usage
-
-    # VRChat account credentials (loaded from environment variables)
+    USING_API = False
     USERNAME = os.getenv("VRCHAT_EMAIL")
     PASSWORD = os.getenv("VRCHAT_PASSWORD")
-
-    # User agent string as per VRChat Usage Policy
     USER_AGENT = f"NOVA-AI/2025.7.1 {os.getenv('VRCHAT_EMAIL')}"
-
-    # API check intervals (seconds)
-    FRIEND_REQUEST_CHECK_INTERVAL = 60  # 1 minute
-    NOTIFICATION_CHECK_INTERVAL = 120  # 2 minutes
-
-    # Rate limiting and cooldown settings
-    API_COOLDOWN = 30  # Seconds to wait between API calls
-
-    # Feature toggles
+    FRIEND_REQUEST_CHECK_INTERVAL = 60
+    NOTIFICATION_CHECK_INTERVAL = 120
+    API_COOLDOWN = 30
     AUTO_ACCEPT_FRIEND_REQUESTS = True
     ENABLE_NOTIFICATION_CHECKS = True
     ENABLE_FRIEND_REQUEST_CHECKS = True
-
-    # Connection timeout settings
     CONNECTION_TIMEOUT = 30
     REQUEST_TIMEOUT = 15
-
-    # Retry settings for failed operations
     MAX_RETRY_ATTEMPTS = 3
-    RETRY_DELAY = 5  # Seconds between retries
-
-    # Debug settings
-    VERBOSE_LOGGING = False  # Set to True for detailed API logs
+    RETRY_DELAY = 5
+    VERBOSE_LOGGING = False
 
 
 class LanguageModel:
-    """
-    A class representing configuration settings for a language model.
-    This class contains constant values that define the behavior and identity
-    of the language model being used.
-    Attributes:
-        MODEL_ID (str): The identifier for the specific language model being
-        used. Default is set to Meta-Llama 3.3 70B Instruct Turbo from
-        Together AI.
-    """
+    """Language model configuration."""
 
-    # Default to a Google GenAI (Gemini) model since the project uses
-    # `google-genai` by default. You can override this with the
-    # GENAI_MODEL environment variable if you want another model or
-    # a Together/other provider model name.
     MODEL_ID = "gemini-2.5-flash"
 
 
 class VisionSystem:
-    """
-    Configuration settings for the VRChat vision system.
-    """
+    """Configuration settings for the VRChat vision system."""
 
-    # Whether vision system is enabled
     ENABLED = False
-    # How often to analyze screenshots continuously (seconds)
     ANALYSIS_INTERVAL = 60
-    # Maximum image size for API calls (pixels)
     MAX_IMAGE_SIZE = 1024
-    # JPEG quality for screenshots (1-100)
     IMAGE_QUALITY = 85
-    # Vision state file path
     STATE_FILE = "json_files/vision_state.json"
-    # Vision log file path
     LOG_FILE = "json_files/vision_log.json"
-    # Vision prompt file path
     VISION_PROMPT_PATH = "prompts/vision_prompt.txt"
-    # Maximum number of vision updates to keep in log
     MAX_LOG_ENTRIES = 5
-    # VRChat window search keywords
     WINDOW_KEYWORDS = ["VRChat", "vrchat"]
-    # Vision model to use (cloud API model identifier)
     VISION_MODEL = "gemini-2.5-flash"
-    # Maximum tokens for vision API response
     MAX_VISION_TOKENS = 90
-    # Temperature for vision analysis
     VISION_TEMPERATURE = 0.3
 
 
 class Network:
-    """
-    Class representing network configuration parameters.
-    Attributes:
-        LOCAL_IP (str): The local IP address of the computer running the
-        application.
-        VRC_PORT (int): The port number used for VRChat communication. Default
-        is 9000.
-    """
+    """Network configuration parameters."""
 
     LOCAL_IP = socket.gethostbyname(socket.gethostname())
     VRC_PORT = 9000
 
 
 class Audio:
-    """
-    A class containing audio device configuration constants.
-    This class defines constants for audio input and output device indices,
-    specifically for VB-Audio Cable virtual audio devices.
-    Attributes:
-        AUDIO_OUTPUT_INDEX (int): The device index for audio output,
-            configured for VB-Audio Cable B Input
-        AUDIO_INPUT_INDEX (int): The device index for audio input,
-            configured for VB-Audio Cable A Output
-    """
+    """Audio device configuration constants."""
 
     AUDIO_OUTPUT_INDEX = 9
     AUDIO_INPUT_INDEX = 18
 
 
 class Voice:
-    """
-    A class that defines constants for voice-related configurations in
-    Text-to-Speech operations through edge-tts.
-    Attributes:
-        VOICE_NAME (str): The default voice name used for text-to-speech
-        synthesis.
-    """
+    """Voice configuration for edge-tts."""
 
     VOICE_NAME = "en-US-EmmaMultilingualNeural"
 
 
 class FilePaths:
-    """
-    A class containing file path constants used in the application.
-    Attributes:
-        HISTORY_PATH (str): The path to the JSON file storing history data.
-                           Default is "json_files/history.json"
-    """
+    """File path constants used throughout the application."""
 
     HISTORY_PATH = "json_files/history.json"
-
     NORMAL_SYSTEM_PROMPT_PATH = "prompts/normal_system_prompt.txt"
-
     MEMORY_FILE = "json_files/memory.json"
+    PERSONALITIES_FILE = "personalities.json"
+    SESSION_FILE = "json_files/last_session.json"
+    SFX_DIR = "sfx"
 
 
 class SpeechRecognitionConfig:
-    """
-    Configuration for speech recognition (Whisper and GenAI).
-    """
+    """Configuration for speech recognition (Whisper and GenAI)."""
 
-    # Whisper model size ("tiny", "base", "small", "medium", "large")
     MODEL_SIZE = "base"
-    # Sample rate for audio processing
     SAMPLE_RATE = 16000
-    # Frame duration in milliseconds for VAD
     FRAME_DURATION_MS = 30
-    # Number of padding frames for voice detection
     NUM_PADDING_FRAMES = 10
-    # Threshold ratio of voiced frames needed to start recording
     VOICE_THRESHOLD = 0.9
-    # Maximum recording duration in seconds
     MAX_RECORDING_DURATION = 30
-    # VAD aggressiveness level (0-3, higher = more aggressive)
     VAD_AGGRESSIVENESS = 1
-    # Model to use for queued transcription, can be [whisper|genai]
     QUEUED_MODEL = "whisper"
 
 
 class TTSSettings:
-    """
-    Text-to-Speech configuration settings.
-    """
+    """Text-to-Speech configuration settings."""
 
-    # Default TTS engine (edge-tts is currently the only supported engine)
     ENGINE = "edge-tts"
-    # Audio bit depth conversion factor for pydub
     AUDIO_CONVERSION_FACTOR = 2**15
-    # Sleep interval for queue processing (seconds)
     QUEUE_SLEEP_INTERVAL = 0.1
-    # Caches audio files to avoid re-generation
     ENABLE_CACHING = True
-    # Caching directory for TTS audio files
     CACHE_DIR = "tts_cache"
 
 
 class SystemMessages:
-    """
-    System status messages and startup text.
-    """
+    """System status messages and startup text."""
 
-    # Initial conversation starter
     INITIAL_USER_MESSAGE = "Hi"
-    # VRChat status messages
     SYSTEM_STARTING = "System Starting"
     THINKING_MESSAGE = "Thinking"
     LISTENING_MESSAGE = "Listening"
-    # Console status messages
     PROGRAM_STARTING = "Program Starting..."
 
 
 class NovaPlacement:
-    """
-    VRChat avatar movement and placement configuration.
-    """
+    """VRChat avatar movement and placement configuration."""
 
-    # Initial delay before starting placement (seconds)
     STARTUP_DELAY = 15
-    # Default movement speed
     DEFAULT_SPEED = 1
 
 
 class ConsoleColors:
-    """
-    ANSI color codes for console output.
-    """
+    """ANSI color codes for console output."""
 
-    # Text colors
     RED = "\033[91m"
     GREEN = "\033[92m"
     YELLOW = "\033[93m"
@@ -276,16 +159,109 @@ class ConsoleColors:
     GRAY = "\033[38;5;92m"
     RESET = "\033[0m"
 
-    # AI/Human conversation colors
     AI_LABEL = "\033[93m"
     AI_TEXT = "\033[92m"
     HUMAN_LABEL = "\033[93m"
     HUMAN_TEXT = "\033[92m"
 
-    # TTS status colors
     TTS_INFO = "\033[93m"
     TTS_WARNING = "\033[91m"
 
-    # System status colors
     SYSTEM_INFO = "\033[36m"
     ERROR = "\033[91m"
+
+
+class SupervisorConfig:
+    """
+    Configuration for the process supervisor that keeps NOVA alive on crashes.
+    """
+
+    # Seconds to wait before restarting a crashed process
+    RESTART_DELAY = 5
+    # Maximum restart attempts – None means unlimited
+    MAX_RESTART_ATTEMPTS = None
+    # Path to the supervisor log file
+    LOG_FILE = "supervisor.log"
+
+
+class SessionPersistenceConfig:
+    """
+    Configuration for persisting session handles across restarts so the
+    conversation context is not lost after an unexpected shutdown.
+    """
+
+    # Enable session persistence
+    ENABLED = True
+    # Seconds between periodic saves
+    SAVE_INTERVAL = 30
+
+
+class IdleGazeConfig:
+    """
+    Configuration for the idle-gaze behaviour – NOVA subtly tracks nearby
+    players when not actively speaking, using YOLO-based player detection.
+    """
+
+    # Enable idle gaze (requires a compatible vision back-end)
+    ENABLED = True
+    # Fraction of screen width treated as a no-turn deadzone
+    DEADZONE_FRACTION = 0.03
+    # Polling interval in seconds between frame checks
+    POLL_INTERVAL = 0.06
+    # Seconds after speech ends before idle gaze resumes
+    COOLDOWN_AFTER_SPEECH = 30.0
+
+
+class MovementConfig:
+    """
+    Configuration for full avatar movement via OSC inputs (ported from Gabriel).
+    Supports turning, walking, jumping, crouching, and crawling.
+    """
+
+    # Use axis-based turning instead of discrete left/right buttons
+    USE_AXIS = False
+    # Axis value intensity when turning (only used if USE_AXIS is True)
+    AXIS_TURN_VALUE = 1.0
+    # Default duration for a single look-turn (seconds)
+    TURN_DURATION_DEFAULT = 1.0
+    # Duration range for look-behind randomisation
+    LOOK_BEHIND_MIN = 0.3
+    LOOK_BEHIND_MAX = 0.3
+    # Randomise left/right direction on look-behind
+    RANDOMIZE_BACK_TURN = True
+    # Default movement duration in seconds
+    MOVE_DURATION_DEFAULT = 1.0
+    # Allow holding Run during moves
+    ALLOW_RUN = True
+    # Hold run by default when move_direction() is called without explicit run=
+    RUN_BY_DEFAULT = False
+    # Duration for keyboard tap actions such as crouch (C) and crawl (Z)
+    KEY_TAP_DURATION = 0.05
+
+
+class SFXConfig:
+    """
+    Configuration for the sound-effects subsystem.
+    NOVA scans the sfx/ directory and can play files on request.
+    """
+
+    # Enable SFX playback
+    ENABLED = True
+    # Default volume level (0.0 – 1.0)
+    DEFAULT_VOLUME = 0.7
+    # Supported audio file extensions
+    SUPPORTED_FORMATS = {".mp3", ".wav", ".ogg", ".m4a", ".aac", ".flac", ".wma"}
+    # Name of the on-disk cache index inside the SFX directory
+    CACHE_FILENAME = "sfx_cache.json"
+
+
+class PersonalityConfig:
+    """
+    Configuration for the dynamic personality switching system.
+    Personalities are stored in personalities.json and can be switched at runtime.
+    """
+
+    # Enable personality switching
+    ENABLED = True
+    # Default personality ID loaded on startup – empty string means none
+    DEFAULT_PERSONALITY = ""
