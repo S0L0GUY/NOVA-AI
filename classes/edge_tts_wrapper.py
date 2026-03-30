@@ -22,7 +22,6 @@ class TextToSpeechManager:
         self,
         voice_engine=constant.TTSSettings.ENGINE,
         voice=None,
-        device_index=None,
         VRChatOSC=None,
     ) -> None:
 
@@ -31,7 +30,6 @@ class TextToSpeechManager:
         self.tts_queue = queue.Queue()
         self.audio_queue = queue.Queue()
         self.is_playing = False
-        self.device_index = device_index
         self.initialize_tts_engine()
         self.osc = VRChatOSC
         self.lock = threading.Lock()
@@ -201,7 +199,7 @@ class TextToSpeechManager:
             else:
                 logging.error(f"Unsupported audio format: {filepath}")
                 return
-            sd.play(data, samplerate, device=self.device_index)
+            sd.play(data, samplerate)
             sd.wait()
         except Exception as e:
             logging.error(f"Error playing audio file: {e}")

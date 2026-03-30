@@ -122,12 +122,6 @@ pip install -r requirements.txt
 
 * **GenAI API auth error:** set `LLM_API_KEY` in `.env`
 
-* **Mic/audio issues:**
-
-  1. Run `python list_audio_devices.py`
-  2. Update `AUDIO_INPUT_INDEX` / `AUDIO_OUTPUT_INDEX` in `constants.py`
-  3. Check Windows microphone permissions
-
 * **ffmpeg warnings:** install ffmpeg and add `ffmpeg\bin` to PATH
 
 * **VRChat OSC not receiving messages:** enable OSC in VRChat, confirm VRChat is running, ensure `VRC_PORT` matches (default 9000)

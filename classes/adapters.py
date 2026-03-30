@@ -5,7 +5,7 @@ from typing import Optional, Union
 from google import genai
 
 import constants as constant
-from classes.edge_tts import TextToSpeechManager
+from classes.edge_tts_wrapper import TextToSpeechManager
 from classes.head_tracker import HeadTracker, create_head_tracker as _create_head_tracker
 from classes.osc import VRChatOSC
 from classes.speech_to_text import SpeechToTextHandler
@@ -78,7 +78,6 @@ def create_tts(osc: Optional[VRChatOSC]) -> Optional[TextToSpeechManager]:
     try:
         tts = TextToSpeechManager(
             voice=constant.Voice.VOICE_NAME,
-            device_index=constant.Audio.AUDIO_OUTPUT_INDEX,
             VRChatOSC=osc,
         )
         tts.initialize_tts_engine()

@@ -151,22 +151,6 @@ class Network:
     VRC_PORT = 9000
 
 
-class Audio:
-    """
-    A class containing audio device configuration constants.
-    This class defines constants for audio input and output device indices,
-    specifically for VB-Audio Cable virtual audio devices.
-    Attributes:
-        AUDIO_OUTPUT_INDEX (int): The device index for audio output,
-            configured for VB-Audio Cable B Input
-        AUDIO_INPUT_INDEX (int): The device index for audio input,
-            configured for VB-Audio Cable A Output
-    """
-
-    AUDIO_OUTPUT_INDEX = 9
-    AUDIO_INPUT_INDEX = 18
-
-
 class Voice:
     """
     A class that defines constants for voice-related configurations in

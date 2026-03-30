@@ -18,7 +18,7 @@ from google import genai
 
 import constants as constant
 from classes import adapters, llm_tools
-from classes.edge_tts import TextToSpeechManager
+from classes.edge_tts_wrapper import TextToSpeechManager
 from classes.head_tracker import HeadTracker
 from classes.json_wrapper import JsonWrapper
 from classes.osc import VRChatOSC

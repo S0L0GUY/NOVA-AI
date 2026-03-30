@@ -24,3 +24,6 @@ faster-whisper
 google-genai
 orjson
 openai>=1.0.0
+mss
+opencv-python
+pygetwindow

@@ -40,7 +40,6 @@ class SpeechToTextHandler:
             compute_type = "float16" if self.device == "cuda" else "float32"
             self.model = WhisperModel(
                 constant.SpeechRecognitionConfig.MODEL_SIZE,
-                device=self.device,
                 compute_type=compute_type,
             )
             print(f"\033[35mFaster-Whisper model loaded on {self.device} (compute_type={compute_type}).\033[0m")
@@ -51,8 +50,6 @@ class SpeechToTextHandler:
         self.prompt = "Generate a transcript of the speech."
         self.vad = webrtcvad.Vad(constant.SpeechRecognitionConfig.VAD_AGGRESSIVENESS)
         self.stream = None
-
-        self.audio_input_index = constant.Audio.AUDIO_INPUT_INDEX
 
     def get_voice_input(self, osc) -> str | None:
         """
@@ -97,7 +94,6 @@ class SpeechToTextHandler:
                 samplerate=sample_rate,
                 channels=1,
                 dtype="int16",
-                device=self.audio_input_index,
                 # Explicitly use default input device
                 latency="low",
             ) as stream:
