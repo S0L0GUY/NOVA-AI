@@ -6,7 +6,8 @@ from google import genai
 
 import constants as constant
 from classes.edge_tts_wrapper import TextToSpeechManager
-from classes.head_tracker import HeadTracker, create_head_tracker as _create_head_tracker
+from classes.head_tracker import HeadTracker
+from classes.head_tracker import create_head_tracker as _create_head_tracker
 from classes.osc import VRChatOSC
 from classes.speech_to_text import SpeechToTextHandler
 from classes.vision_manager import VisionManager
