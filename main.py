@@ -1,30 +1,137 @@
-import logging
+"""
+supervisor.py — starts a script and restarts it if it dies.
 
-import classes.adapters as adapters
-import nova
+Usage:
+    python supervisor.py <script.py> [--no-restart]
+"""
 
-# Set up logging configuration
-logging.basicConfig(level=logging.ERROR, format="%(asctime)s - %(levelname)s - %(message)s")
+import os
+import signal
+import subprocess
+import sys
+import threading
+import time
+from pathlib import Path
+
+_DIM    = "\033[2m"
+_RED    = "\033[91m"
+_YELLOW = "\033[93m"
+_RST    = "\033[0m"
+
+
+def _log(msg: str, color: str = _DIM) -> None:
+    print(f"  {color}>> {msg}{_RST}", flush=True)
+
+
+def _enable_ansi_windows() -> None:
+    """Enable ANSI escape codes on Windows terminals."""
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        handle   = kernel32.GetStdHandle(-11)
+        mode     = ctypes.c_ulong()
+        kernel32.GetConsoleMode(handle, ctypes.byref(mode))
+        kernel32.SetConsoleMode(handle, mode.value | 0x0004)
+    except Exception:
+        pass
+
+
+class Supervisor:
+    def __init__(self, script: str, restart: bool = True) -> None:
+        self.script  = script
+        self.restart = restart
+        self._proc: subprocess.Popen | None = None
+        self._alive  = True
+
+    def run(self) -> None:
+        """Block until the supervised process exits (and won't be restarted)."""
+        _enable_ansi_windows()
+        thread = threading.Thread(target=self._loop, daemon=True)
+        thread.start()
+        thread.join()
+
+    def stop(self) -> None:
+        """Gracefully stop the supervised process."""
+        self._alive = False
+        if self._proc and self._proc.poll() is None:
+            _log("Stopping process…")
+            self._proc.terminate()
+            try:
+                self._proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self._proc.kill()
+
+    def _loop(self) -> None:
+        python = self._resolve_python()
+
+        while self._alive:
+            _log(f"Starting  {self.script}")
+            exit_code = self._run_once(python)
+
+            if not self._alive:
+                break
+
+            if self.restart:
+                _log(f"Exited (code {exit_code}) — restarting…", _YELLOW)
+            else:
+                _log(f"Exited (code {exit_code})")
+                break
+
+    def _run_once(self, python: Path) -> int:
+        env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+        try:
+            self._proc = subprocess.Popen(
+                [str(python), self.script],
+                cwd=str(Path(self.script).parent.resolve()),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                bufsize=1,
+                env=env,
+            )
+            for line in self._proc.stdout:
+                sys.stdout.write(line)
+                sys.stdout.flush()
+            self._proc.wait()
+            return self._proc.returncode
+        except Exception as exc:
+            _log(f"Error: {exc}", _RED)
+            return -1
+
+    @staticmethod
+    def _resolve_python() -> Path:
+        """Prefer the venv interpreter if one exists alongside this script."""
+        root  = Path(__file__).parent
+        venv  = root / ".venv" / ("Scripts" if sys.platform == "win32" else "bin") / "python"
+        venv_exe = venv.with_suffix(".exe") if sys.platform == "win32" else venv
+        if venv_exe.exists():
+            return venv_exe
+        return Path(sys.executable)  # fall back to whatever Python is running this
 
 
 def main() -> None:
-    colors = ["\033[91m", "\033[93m", "\033[92m", "\033[96m", "\033[94m", "\033[95m"]
-    lines = [
-        "===========================================",
-        "|                NOVA-AI                  |",
-        "|          Developed by N O M A           |",
-        "===========================================",
-    ]
-    for line in lines:
-        colored_line = "".join(f"{colors[i % len(colors)]}{char}\033[0m" for i, char in enumerate(line))
-        print(colored_line)
+    import argparse
+    parser = argparse.ArgumentParser(description="Start and auto-restart a Python script.")
+    parser.add_argument("script",       help="Path to the script to supervise")
+    parser.add_argument("--no-restart", action="store_true", help="Don't restart on exit")
+    args = parser.parse_args()
 
-    print("\033[91mProgram Starting...\033[0m")
+    sup = Supervisor(script=args.script, restart=not args.no_restart)
 
-    adapters.initialize_osc()
-    adapters.create_vrchat_api_manager()
+    def _on_signal(sig, frame):
+        print()
+        _log("Shutting down…")
+        sup.stop()
+        sys.exit(0)
 
-    nova.main()
+    signal.signal(signal.SIGINT,  _on_signal)
+    signal.signal(signal.SIGTERM, _on_signal)
+
+    sup.run()
 
 
 if __name__ == "__main__":
