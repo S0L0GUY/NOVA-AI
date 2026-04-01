@@ -1,8 +1,8 @@
 """
-supervisor.py — starts a script and restarts it if it dies.
+main.py — starts a script and restarts it if it dies.
 
 Usage:
-    python supervisor.py <script.py> [--no-restart]
+    python main.py <script.py> [--no-restart]
 """
 
 import os
