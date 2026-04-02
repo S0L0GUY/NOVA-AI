@@ -3,15 +3,27 @@ import inspect
 import logging
 import traceback
 
-logger = logging.getLogger(__name__)
 from google import genai
 from google.genai import types
+
+from classes.config import DEFAULT_SYSTEM_PROMPT
+
+logger = logging.getLogger(__name__)
 
 class GeminiLive:
     """
     Handles the interaction with the Gemini Live API.
     """
-    def __init__(self, api_key, model, input_sample_rate, tools=None, tool_mapping=None):
+    def __init__(
+        self,
+        api_key,
+        model,
+        input_sample_rate,
+        system_instruction=None,
+        voice_name="Puck",
+        tools=None,
+        tool_mapping=None,
+    ):
         """
         Initializes the GeminiLive client.
 
@@ -19,12 +31,16 @@ class GeminiLive:
             api_key (str): The Gemini API Key.
             model (str): The model name to use.
             input_sample_rate (int): The sample rate for audio input.
+            system_instruction (str, optional): System prompt loaded from YAML.
+            voice_name (str, optional): Prebuilt voice to use for native audio.
             tools (list, optional): List of tools to enable. Defaults to None.
             tool_mapping (dict, optional): Mapping of tool names to functions. Defaults to None.
         """
         self.api_key = api_key
         self.model = model
         self.input_sample_rate = input_sample_rate
+        self.system_instruction = system_instruction or DEFAULT_SYSTEM_PROMPT
+        self.voice_name = voice_name or "Puck"
         self.client = genai.Client(api_key=api_key)
         self.tools = tools or []
         self.tool_mapping = tool_mapping or {}
@@ -35,16 +51,13 @@ class GeminiLive:
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name="Puck"
+                        voice_name=self.voice_name
                     )
                 )
             ),
-            system_instruction=types.Content(parts=[types.Part(text="You are a helpful AI assistant. Keep your responses concise. Speak in a friendly Irish accent. You can see the user's camera or screen which is shared as realtime input images with you.")]),
+            system_instruction=self.system_instruction,
             input_audio_transcription=types.AudioTranscriptionConfig(),
             output_audio_transcription=types.AudioTranscriptionConfig(),
-            realtime_input_config=types.RealtimeInputConfig(
-                turn_coverage="TURN_INCLUDES_ONLY_ACTIVITY",
-            ),
             tools=self.tools,
         )
         
@@ -96,7 +109,7 @@ class GeminiLive:
                     while True:
                         async for response in session.receive():
                             logger.debug(f"Received response from Gemini: {response}")
-                            
+
                             # Log the raw response type for debugging
                             if response.go_away:
                                 logger.warning(f"Received GoAway from Gemini: {response.go_away}")
