@@ -5,18 +5,18 @@ Usage:
     python main.py <script.py> [--no-restart]
 """
 
+import argparse
 import os
 import signal
 import subprocess
 import sys
 import threading
-import time
 from pathlib import Path
 
-_DIM    = "\033[2m"
-_RED    = "\033[91m"
+_DIM = "\033[2m"
+_RED = "\033[91m"
 _YELLOW = "\033[93m"
-_RST    = "\033[0m"
+_RST = "\033[0m"
 
 
 def _log(msg: str, color: str = _DIM) -> None:
@@ -30,8 +30,8 @@ def _enable_ansi_windows() -> None:
     try:
         import ctypes
         kernel32 = ctypes.windll.kernel32
-        handle   = kernel32.GetStdHandle(-11)
-        mode     = ctypes.c_ulong()
+        handle = kernel32.GetStdHandle(-11)
+        mode = ctypes.c_ulong()
         kernel32.GetConsoleMode(handle, ctypes.byref(mode))
         kernel32.SetConsoleMode(handle, mode.value | 0x0004)
     except Exception:
@@ -40,10 +40,10 @@ def _enable_ansi_windows() -> None:
 
 class Supervisor:
     def __init__(self, script: str, restart: bool = True) -> None:
-        self.script  = script
+        self.script = script
         self.restart = restart
         self._proc: subprocess.Popen | None = None
-        self._alive  = True
+        self._alive = True
 
     def run(self) -> None:
         """Block until the supervised process exits (and won't be restarted)."""
@@ -93,7 +93,7 @@ class Supervisor:
                 bufsize=1,
                 env=env,
             )
-            for line in self._proc.stdout:
+            for line in self._proc.stdout:  # type: ignore
                 sys.stdout.write(line)
                 sys.stdout.flush()
             self._proc.wait()
@@ -105,8 +105,8 @@ class Supervisor:
     @staticmethod
     def _resolve_python() -> Path:
         """Prefer the venv interpreter if one exists alongside this script."""
-        root  = Path(__file__).parent
-        venv  = root / ".venv" / ("Scripts" if sys.platform == "win32" else "bin") / "python"
+        root = Path(__file__).parent
+        venv = root / ".venv" / ("Scripts" if sys.platform == "win32" else "bin") / "python"
         venv_exe = venv.with_suffix(".exe") if sys.platform == "win32" else venv
         if venv_exe.exists():
             return venv_exe
@@ -114,13 +114,7 @@ class Supervisor:
 
 
 def main() -> None:
-    import argparse
-    parser = argparse.ArgumentParser(description="Start and auto-restart a Python script.")
-    parser.add_argument("script",       help="Path to the script to supervise")
-    parser.add_argument("--no-restart", action="store_true", help="Don't restart on exit")
-    args = parser.parse_args()
-
-    sup = Supervisor(script=args.script, restart=not args.no_restart)
+    sup = Supervisor(script="nova.py", restart=True)
 
     def _on_signal(sig, frame):
         print()
@@ -128,7 +122,7 @@ def main() -> None:
         sup.stop()
         sys.exit(0)
 
-    signal.signal(signal.SIGINT,  _on_signal)
+    signal.signal(signal.SIGINT, _on_signal)
     signal.signal(signal.SIGTERM, _on_signal)
 
     sup.run()

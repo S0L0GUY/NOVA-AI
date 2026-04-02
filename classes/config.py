@@ -9,11 +9,10 @@ PROMPTS_DIR = Path("prompt")
 
 
 class Config:
-    def __init__(self, path="config.yml"):
+    def __init__(self, path="config.yaml"):
         with open(path, "r", encoding="utf-8") as f:
             self._data = yaml.safe_load(f)
 
-    
     def get(self, *keys, default=None):
         val = self._data
         for k in keys:

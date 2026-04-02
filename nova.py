@@ -1,4 +1,16 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import asyncio
+from google import genai
+import classes.config as config
+import sounddevice as sd
+import numpy as np
+import mss
+import io
+from PIL import Image
+import base64
+import threading
+import queue
+from datetime import datetime
+
 
 def print_startup_logo() -> None:
     colors = ["\033[91m", "\033[93m", "\033[92m", "\033[96m", "\033[94m", "\033[95m"]
@@ -14,104 +26,154 @@ def print_startup_logo() -> None:
         print(colored_line)
 
 
-def main() -> None:
-    config = Config()
+class AudioProcessor:
+    def __init__(self, sample_rate=16000):
+        self.sample_rate = sample_rate
+        self.is_recording = False
+        self.audio_queue = queue.Queue()
 
-    GEMINI_API_KEY = config.get_gemini_api_key()
-    MODEL = config.get_gemini_model()
+    def audio_callback(self, indata, frames, time_info, status):
+        if status:
+            print(f"Audio status: {status}")
+        # Convert float32 to int16 PCM format
+        audio_data = (indata[:, 0] * 32767).astype(np.int16)
+        self.audio_queue.put(audio_data.tobytes())
 
-    app = FastAPI()
-
-    app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    )
-
-    # Serve static files
-    app.mount("/static", StaticFiles(directory="frontend"), name="static")
-
-
-    @app.get("/")
-    async def root():
-        return FileResponse("frontend/index.html")
-
-
-    @app.websocket("/ws")
-    async def websocket_endpoint(websocket: WebSocket):
-        """WebSocket endpoint for Gemini Live."""
-        await websocket.accept()
-
-        logger.info("WebSocket connection accepted")
-
-        audio_input_queue = asyncio.Queue()
-        video_input_queue = asyncio.Queue()
-        text_input_queue = asyncio.Queue()
-
-        gemini_client = GeminiLive(
-            api_key=GEMINI_API_KEY, model=MODEL, input_sample_rate=16000
+    def start_recording(self):
+        self.is_recording = True
+        self.stream = sd.InputStream(
+            channels=1,
+            samplerate=self.sample_rate,
+            callback=self.audio_callback,
+            blocksize=1024,
+            dtype=np.float32
         )
+        self.stream.start()
+        print("🎤 Recording started...")
 
-        async def audio_output_callback(data):
-            await websocket.send_bytes(data)
+    def stop_recording(self):
+        self.is_recording = False
+        if hasattr(self, 'stream'):
+            self.stream.stop()
+            self.stream.close()
+        print("🎤 Recording stopped")
 
-        async def audio_interrupt_callback():
-            # The event queue handles the JSON message, but we might want to do something else here
-            pass
+    def get_audio_chunk(self, timeout=0.1):
+        try:
+            return self.audio_queue.get(timeout=timeout)
+        except queue.Empty:
+            return None
 
-        async def receive_from_client():
-            try:
-                while True:
-                    message = await websocket.receive()
 
-                    if message.get("bytes"):
-                        await audio_input_queue.put(message["bytes"])
-                    elif message.get("text"):
-                        text = message["text"]
-                        try:
-                            payload = json.loads(text)
-                            if isinstance(payload, dict) and payload.get("type") == "image":
-                                logger.info(f"Received image chunk from client: {len(payload['data'])} base64 chars")
-                                image_data = base64.b64decode(payload["data"])
-                                await video_input_queue.put(image_data)
-                                continue
-                        except json.JSONDecodeError:
-                            pass
+def capture_screenshot():
+    """Capture the current screen and return as JPEG bytes."""
+    with mss.mss() as sct:
+        # Capture the primary monitor
+        monitor = sct.monitors[1]
+        screenshot = sct.grab(monitor)
 
-                        await text_input_queue.put(text)
-            except WebSocketDisconnect:
-                logger.info("WebSocket disconnected")
-            except Exception as e:
-                logger.error(f"Error receiving from client: {e}")
+        # Convert to PIL Image
+        img = Image.frombytes('RGB', screenshot.size, screenshot.rgb)
 
-        async def run_session():
-            async for event in gemini_client.start_session(
-                audio_input_queue=audio_input_queue,
-                video_input_queue=video_input_queue,
-                text_input_queue=text_input_queue,
-                audio_output_callback=audio_output_callback,
-                audio_interrupt_callback=audio_interrupt_callback,
-            ):
-                if event:
-                    # Forward events (transcriptions, etc) to client
-                    await websocket.send_json(event)
+        # Convert to JPEG bytes
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format='JPEG', quality=80)
+        return img_bytes.getvalue()
 
-        receive_task = asyncio.create_task(receive_from_client())
+
+async def play_audio_response(audio_data):
+    """Play audio response from the model."""
+    try:
+        audio_array = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32767
+        sd.play(audio_array, samplerate=16000, blocking=True)
+    except Exception as e:
+        print(f"Error playing audio: {e}")
+
+
+async def main() -> None:
+    print_startup_logo()
+
+    cfg = config.Config()
+    GEMINI_API_KEY = cfg.get_gemini_api_key
+    MODEL = cfg.get_gemini_model
+
+    if not GEMINI_API_KEY or not MODEL:
+        print("Error: Missing GEMINI_API_KEY or MODEL in config.yaml")
+        return
+
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    config_dict = {
+        "response_modalities": ["AUDIO"],
+        "system_instruction": "You are NOVA, a helpful AI assistant that can see the user's screen and hear their voice. Be concise and helpful."
+    }
+
+    print(f"Connecting to {MODEL}...")
+
+    audio_processor = AudioProcessor()
+
+    async with client.aio.live.connect(model=MODEL, config=config_dict) as session:
+        print("✅ Session started")
+        print("\n📋 Commands:")
+        print("  'screenshot' - Send current screen")
+        print("  'start' - Start recording audio")
+        print("  'stop' - Stop recording and send")
+        print("  'quit' - Exit\n")
 
         try:
-            await run_session()
-        except Exception as e:
-            import traceback
-            logger.error(f"Error in Gemini session: {type(e).__name__}: {e}\n{traceback.format_exc()}")
-        finally:
-            receive_task.cancel()
-            # Ensure websocket is closed if not already
-            try:
-                await websocket.close()
-            except:
-                pass
+            while True:
+                command = input("Enter command > ").strip().lower()
+
+                if command == "quit":
+                    print("Goodbye!")
+                    break
+
+                elif command == "screenshot":
+                    print("📸 Capturing screenshot...")
+                    screenshot_bytes = capture_screenshot()
+                    screenshot_b64 = base64.standard_b64encode(screenshot_bytes).decode()
+
+                    await session.send({
+                        "mime_type": "image/jpeg",
+                        "data": screenshot_b64
+                    })
+                    print("📸 Screenshot sent")
+
+                    # Get and play response
+                    response = await session.receive()
+                    if "data" in response:
+                        audio_frame = response["data"]
+                        await play_audio_response(base64.standard_b64decode(audio_frame))
+
+                elif command == "start":
+                    audio_processor.start_recording()
+
+                elif command == "stop":
+                    audio_processor.stop_recording()
+                    print("⏳ Processing audio...")
+
+                    # Send accumulated audio to API
+                    while not audio_processor.audio_queue.empty():
+                        audio_chunk = audio_processor.get_audio_chunk()
+                        if audio_chunk:
+                            await session.send({
+                                "mime_type": "audio/pcm",
+                                "data": base64.standard_b64encode(audio_chunk).decode()
+                            })
+
+                    # Get response
+                    response = await session.receive()
+                    if "data" in response:
+                        audio_frame = response["data"]
+                        await play_audio_response(base64.standard_b64decode(audio_frame))
+                    print("✅ Response complete")
+
+                else:
+                    print("Unknown command")
+
+        except KeyboardInterrupt:
+            print("\n\nSession ended")
+            audio_processor.stop_recording()
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
