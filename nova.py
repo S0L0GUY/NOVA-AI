@@ -50,16 +50,16 @@ def main() -> None:
         video_input_queue = asyncio.Queue()
         text_input_queue = asyncio.Queue()
 
+        gemini_client = GeminiLive(
+            api_key=GEMINI_API_KEY, model=MODEL, input_sample_rate=16000
+        )
+
         async def audio_output_callback(data):
             await websocket.send_bytes(data)
 
         async def audio_interrupt_callback():
             # The event queue handles the JSON message, but we might want to do something else here
             pass
-
-        gemini_client = GeminiLive(
-            api_key=GEMINI_API_KEY, model=MODEL, input_sample_rate=16000
-        )
 
         async def receive_from_client():
             try:
@@ -86,8 +86,6 @@ def main() -> None:
             except Exception as e:
                 logger.error(f"Error receiving from client: {e}")
 
-        receive_task = asyncio.create_task(receive_from_client())
-
         async def run_session():
             async for event in gemini_client.start_session(
                 audio_input_queue=audio_input_queue,
@@ -99,6 +97,8 @@ def main() -> None:
                 if event:
                     # Forward events (transcriptions, etc) to client
                     await websocket.send_json(event)
+
+        receive_task = asyncio.create_task(receive_from_client())
 
         try:
             await run_session()
