@@ -5,7 +5,7 @@ Usage:
     python main.py <script.py> [--no-restart]
 """
 
-import argparse
+import ctypes
 import os
 import signal
 import subprocess
@@ -20,6 +20,7 @@ _RST = "\033[0m"
 
 
 def _log(msg: str, color: str = _DIM) -> None:
+    """Print colored log message with standardized formatting."""
     print(f"  {color}>> {msg}{_RST}", flush=True)
 
 
@@ -28,7 +29,6 @@ def _enable_ansi_windows() -> None:
     if sys.platform != "win32":
         return
     try:
-        import ctypes
         kernel32 = ctypes.windll.kernel32
         handle = kernel32.GetStdHandle(-11)
         mode = ctypes.c_ulong()
@@ -116,7 +116,7 @@ class Supervisor:
 def main() -> None:
     sup = Supervisor(script="nova.py", restart=True)
 
-    def _on_signal(sig, frame):
+    def _on_signal(signum, frame) -> None:
         print()
         _log("Shutting down…")
         sup.stop()

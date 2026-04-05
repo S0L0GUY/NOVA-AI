@@ -1,3 +1,15 @@
+"""
+osc.py: VRChat OSC (Open Sound Control) integration.
+
+Handles bidirectional OSC communication with VRChat for:
+- Sending chatbox messages with rate limiting and pagination
+- Avatar movement and look controls
+- Input simulation (jump, grab, use, voice)
+- Receiving avatar parameters (velocity, grounded state)
+
+Provides methods for AI to control the avatar in VRChat.
+"""
+
 import asyncio
 import time
 import logging
@@ -18,9 +30,19 @@ _keyboard = KeyboardController()
 
 
 class VRChatOSC:
+    """
+    VRChat OSC control and communication manager.
+
+    Sends avatar control commands via OSC and receives avatar state updates.
+    Manages chatbox messages with rate limiting and pagination.
+    """
+
     def __init__(self, config):
         self.config = config
-        self.client = udp_client.SimpleUDPClient(config.osc_ip, config.osc_port)
+        self.client = udp_client.SimpleUDPClient(
+            getattr(config, "get_osc_ip", "127.0.0.1"),
+            getattr(config, "get_osc_port", 9000),
+        )
         self._typing = False
         self._last_chatbox_time = 0
         self._chatbox_queue = queue.Queue()
@@ -39,7 +61,7 @@ class VRChatOSC:
 
     def _start_osc_listener(self, config):
         """Start background OSC server to receive avatar parameters from VRChat."""
-        receive_port = getattr(config, "osc_receive_port", 9001)
+        receive_port = getattr(config, "get_osc_receive_port", 9001)
         dispatcher = Dispatcher()
         dispatcher.map("/avatar/parameters/VelocityZ", self._on_velocity_z)
         dispatcher.map("/avatar/parameters/VelocityX", self._on_velocity_x)
@@ -55,17 +77,21 @@ class VRChatOSC:
             logger.warning(f"OSC listener failed to start on port {receive_port}: {e}")
 
     def _on_velocity_z(self, address, value):
+        """Update forward/backward velocity from VRChat."""
         self.velocity_z = float(value)
         self.velocity_received = True
 
     def _on_velocity_x(self, address, value):
+        """Update lateral velocity from VRChat."""
         self.velocity_x = float(value)
         self.velocity_received = True
 
     def _on_velocity_y(self, address, value):
+        """Update vertical velocity from VRChat."""
         self.velocity_y = float(value)
 
     def _on_grounded(self, address, value):
+        """Update grounded state from VRChat."""
         self.grounded = bool(value)
 
     def _chatbox_worker(self):
@@ -73,21 +99,22 @@ class VRChatOSC:
         while True:
             try:
                 text = self._chatbox_queue.get()
-                
+
                 # Rate limit enforcement
                 now = time.time()
                 elapsed = now - self._last_chatbox_time
                 if elapsed < CHATBOX_RATE_LIMIT:
                     time.sleep(CHATBOX_RATE_LIMIT - elapsed)
-                
+
                 # Send the message
                 self.client.send_message("/chatbox/input", [text, True, False])
                 self._last_chatbox_time = time.time()
-                
+
             except Exception as e:
                 logger.error(f"Chatbox worker error: {e}")
 
     def set_typing(self, typing: bool):
+        """Set VRChat typing indicator on/off."""
         if self._typing != typing:
             self._typing = typing
             self.client.send_message("/chatbox/typing", typing)
@@ -95,23 +122,41 @@ class VRChatOSC:
     def send_chatbox(self, text: str):
         """Queue a chatbox message (non-blocking, sent by background thread)."""
         # Clear any pending messages and use the latest text
-        try:
-            while True:
-                self._chatbox_queue.get_nowait()
-        except queue.Empty:
-            pass
+        self._drain_chatbox_queue()
         self._chatbox_queue.put(text)
 
     def send_chatbox_paginated(self, text: str) -> list[str]:
+        """
+        Send long messages to chatbox with automatic pagination.
+
+        Splits text into pages that fit within VRChat chatbox limits.
+        Each page includes pagination indicator (e.g., "1/3").
+        """
         if len(text) <= CHATBOX_CHAR_LIMIT:
             self.send_chatbox(text)
             return [text]
         pages = self._paginate(text)
         if pages:
-            self.send_chatbox(pages[0])
+            self._drain_chatbox_queue()
+            for page in pages:
+                self._chatbox_queue.put(page)
         return pages
 
+    def _drain_chatbox_queue(self):
+        """Clear all pending messages from the queue."""
+        try:
+            while True:
+                self._chatbox_queue.get_nowait()
+        except queue.Empty:
+            pass
+
     def _paginate(self, text: str) -> list[str]:
+        """
+        Split text into pages for VRChat chatbox.
+
+        Respects character limit and word boundaries.
+        Adds pagination indicators to each page.
+        """
         words = text.split()
         if not words:
             return [text[:CHATBOX_CHAR_LIMIT]]
@@ -143,6 +188,7 @@ class VRChatOSC:
         self._chatbox_queue.put(text)
 
     async def display_pages(self, pages: list[str], delay: float = 3.0):
+        """Display paginated messages with delay between pages."""
         # Ensure delay is at least the rate limit
         actual_delay = max(delay, CHATBOX_RATE_LIMIT)
         for page in pages:
@@ -151,6 +197,7 @@ class VRChatOSC:
             await asyncio.sleep(actual_delay)
 
     def toggle_voice(self):
+        """Toggle voice input in VRChat."""
         self.client.send_message("/input/Voice", 1)
         time.sleep(0.05)
         self.client.send_message("/input/Voice", 0)
@@ -161,6 +208,7 @@ class VRChatOSC:
         self.client.send_message("/input/LookHorizontal", max(-1.0, min(1.0, horizontal)))
 
     def stop_movement(self):
+        """Stop all movement and looking."""
         self.client.send_message("/input/Vertical", 0.0)
         self.client.send_message("/input/LookHorizontal", 0.0)
         self.client.send_message("/input/Horizontal", 0.0)
@@ -179,10 +227,10 @@ class VRChatOSC:
         _keyboard.release('z')
         logger.info("Toggled crawl (Z key)")
 
-    # Manual movement methods for AI control
     def start_move(self, direction: str, speed: str = "normal"):
-        """Start moving in a direction with speed control.
-        
+        """
+        Start moving in a direction with speed control.
+
         direction: forward, backward, left (strafe), right (strafe)
         speed: 'slow' (0.5), 'normal' (0.8), 'fast' (1.0), 'sprint' (1.0 + Run)
         """
@@ -218,8 +266,9 @@ class VRChatOSC:
         logger.info("Jumped")
 
     def look(self, direction: str, duration: float, speed: str = "normal"):
-        """Smooth turn left or right, ramping up/down like the tracker system.
-        
+        """
+        Smooth turn left or right, ramping up/down like the tracker system.
+
         speed: 'slow' (0.3), 'normal' (0.6), 'fast' (1.0) - max axis value
         """
         speed_map = {"slow": 0.6, "normal": 0.8, "fast": 1.0}
@@ -308,3 +357,13 @@ class VRChatOSC:
         time.sleep(0.15)
         self.client.send_message("/input/UseRight", 0)
         logger.info("Used item (UseRight)")
+
+    def set_banner(self, text: str):
+        """Send banner text via chatbox when not talking."""
+        self.send_chatbox(text)
+        logger.info(f"Banner set: {text}")
+
+    def clear_banner(self):
+        """Clear pending banner from chatbox queue."""
+        self._drain_chatbox_queue()
+        logger.info("Banner cleared")

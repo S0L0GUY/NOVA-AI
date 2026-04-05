@@ -1,10 +1,23 @@
+"""
+vrchat_api.py: VRChat API client with authentication and session management.
+
+Provides async access to VRChat REST API for:
+- User authentication (login, 2FA verification)
+- Avatar control (select avatar, get current user)
+- World and instance queries
+- Friend list management with caching
+- User status updates
+
+Handles cookie-based auth persistence, auto-login with TOTP 2FA support.
+"""
+
 import json
 import logging
 import base64
-import asyncio
 from pathlib import Path
 from datetime import datetime, timezone
 from urllib.parse import quote
+import pyotp
 
 import aiohttp
 
@@ -18,8 +31,8 @@ USER_AGENT = "NOVA-AI/1.0"
 
 
 def _generate_totp(secret: str) -> str:
+    """Generate TOTP code from secret for 2FA authentication."""
     try:
-        import pyotp
         totp = pyotp.TOTP(secret)
         return totp.now()
     except ImportError:
@@ -31,6 +44,13 @@ def _generate_totp(secret: str) -> str:
 
 
 class VRChatAPI:
+    """
+    VRChat API client with authentication and state management.
+
+    Manages user login, avatar selection, friend queries, and API session.
+    Caches auth cookies on disk for session persistence.
+    Auto-handles 2FA with TOTP if secret is configured.
+    """
     def __init__(self, config):
         self._config = config
         self._auth_cookie = None

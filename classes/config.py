@@ -1,3 +1,10 @@
+"""
+config.py: Configuration management for NOVA-AI.
+
+Loads and manages configuration from config.yaml (API keys, OSC settings) and prompt.yaml
+(Gemini system instructions). Provides property accessors for all config values with defaults.
+"""
+
 import logging
 from pathlib import Path
 
@@ -14,6 +21,14 @@ DEFAULT_SYSTEM_PROMPT = (
 
 
 class Config:
+    """
+    Manages YAML-based configuration for NOVA-AI.
+
+    Loads config.yaml for API keys, OSC settings, and other parameters.
+    Loads prompt.yaml for Gemini system instructions.
+    Provides property accessors with sensible defaults.
+    """
+
     def __init__(self, path="config.yaml", prompt_path="prompt.yaml"):
         self.path = self._resolve_path(path)
         self.prompt_path = self._resolve_path(prompt_path)
@@ -30,12 +45,14 @@ class Config:
 
     @staticmethod
     def _resolve_path(path: str) -> Path:
+        """Resolve path relative to project root if not absolute."""
         candidate = Path(path)
         if candidate.is_absolute():
             return candidate
         return ROOT_DIR / candidate
 
     def get(self, *keys, default=None):
+        """Get nested config value by key path (e.g., cfg.get('gemini', 'API_key'))."""
         val = self._data
         for k in keys:
             if isinstance(val, dict):
@@ -46,18 +63,47 @@ class Config:
 
     @property
     def get_gemini_api_key(self):
+        """Get Gemini API key from config."""
         return self.get("gemini", "API_key", default=False)
 
     @property
     def get_gemini_model(self):
+        """Get Gemini model name (e.g., 'gemini-2.0-flash-exp')."""
         return self.get("gemini", "model", default=False)
 
     @property
     def get_gemini_voice(self):
+        """Get Gemini voice name for text-to-speech (default: 'Puck')."""
         return self.get("gemini", "voice", default="Puck")
 
     @property
+    def get_osc_enabled(self):
+        """Check if VRChat OSC integration is enabled."""
+        return self.get("osc", "enabled", default=False)
+
+    @property
+    def get_osc_ip(self):
+        """Get OSC server IP address for VRChat (default: localhost)."""
+        return self.get("osc", "ip", default="127.0.0.1")
+
+    @property
+    def get_osc_port(self):
+        """Get OSC server port for outgoing messages (default: 9000)."""
+        return self.get("osc", "port", default=9000)
+
+    @property
+    def get_osc_receive_port(self):
+        """Get OSC server port for incoming messages from VRChat (default: 9001)."""
+        return self.get("osc", "receive_port", default=9001)
+
+    @property
     def get_system_prompt(self):
+        """
+        Get Gemini system instruction prompt from prompt.yaml.
+
+        Supports multiple formats: string, list, or dict with text/prompt/content keys.
+        Falls back to DEFAULT_SYSTEM_PROMPT if not configured.
+        """
         prompt = self._prompt_data.get("system_instruction")
 
         if isinstance(prompt, str) and prompt.strip():

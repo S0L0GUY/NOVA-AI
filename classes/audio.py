@@ -1,4 +1,9 @@
-"""Audio I/O handling for NOVA."""
+"""
+audio.py: Audio device I/O management.
+
+Handles microphone input (16kHz) and speaker output (24kHz) using PyAudio.
+Uses a background thread for playback to avoid blocking on write operations.
+"""
 
 import queue
 import threading
@@ -7,11 +12,12 @@ import pyaudio
 
 
 class AudioManager:
-    """Manages microphone input and speaker output."""
+    """Manages microphone input and speaker output with background playback thread."""
 
-    SAMPLE_RATE_INPUT = 16000
-    SAMPLE_RATE_OUTPUT = 24000
-    CHUNK_SIZE = 1024
+    # Audio configuration constants
+    SAMPLE_RATE_INPUT = 16000   # Microphone sample rate for Gemini Live
+    SAMPLE_RATE_OUTPUT = 24000  # Speaker sample rate for Gemini Live output
+    CHUNK_SIZE = 1024           # Frames per buffer
 
     def __init__(self):
         self.p = pyaudio.PyAudio()
@@ -22,7 +28,7 @@ class AudioManager:
         self._playback_thread: threading.Thread | None = None
 
     def initialize(self) -> None:
-        """Initialize audio streams."""
+        """Open microphone and speaker streams, start playback thread."""
         self.input_stream = self.p.open(
             format=pyaudio.paInt16,
             channels=1,
@@ -43,10 +49,10 @@ class AudioManager:
         self._playback_thread = threading.Thread(target=self._playback_loop, daemon=True)
         self._playback_thread.start()
 
-        print("🎤 Microphone and speaker initialized")
+        print("Microphone and speaker initialized")
 
     def _playback_loop(self) -> None:
-        """Continuously play queued output audio."""
+        """Continuously dequeue and play audio chunks from the playback queue."""
         while not self._playback_stop.is_set():
             try:
                 chunk = self._playback_queue.get(timeout=0.1)
@@ -60,17 +66,17 @@ class AudioManager:
                 self._playback_queue.task_done()
 
     def read_audio_chunk(self) -> bytes:
-        """Read a chunk of audio from the microphone."""
+        """Read a audio frame from the microphone (blocking)."""
         return self.input_stream.read(self.CHUNK_SIZE, exception_on_overflow=False)
 
     def write_audio_chunk(self, data: bytes) -> None:
-        """Queue audio data for playback on the speaker."""
+        """Queue audio data for playback (non-blocking, processed by playback thread)."""
         if not data or self._playback_stop.is_set():
             return
         self._playback_queue.put(data)
 
     def interrupt_output(self) -> None:
-        """Stop any queued playback immediately."""
+        """Stop any currently queued audio playback immediately."""
         while True:
             try:
                 self._playback_queue.get_nowait()
@@ -80,7 +86,7 @@ class AudioManager:
                 self._playback_queue.task_done()
 
     def cleanup(self) -> None:
-        """Close audio streams."""
+        """Close audio streams and shut down playback thread."""
         self._playback_stop.set()
         self.interrupt_output()
 
@@ -94,4 +100,4 @@ class AudioManager:
             self.output_stream.stop_stream()
             self.output_stream.close()
         self.p.terminate()
-        print("✅ Audio streams closed")
+        print("Audio streams closed")

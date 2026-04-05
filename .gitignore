@@ -27,3 +27,4 @@ docs/_static/
 docs/_templates/
 *.yaml
 config.yaml
+*.pyc
