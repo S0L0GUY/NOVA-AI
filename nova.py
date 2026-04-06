@@ -73,6 +73,7 @@ async def main() -> None:
     # Initialize VRChat OSC integration if enabled
     vrchat_osc = VRChatOSC(cfg) if OSC_ENABLED else None
     gemini_response_chunks: list[str] = []
+    last_displayed_length = 0  # Track how much response we've already paginated and displayed
     is_talking = {"active": False}  # Track if NOVA is currently speaking
 
     # Start banner resend loop if OSC is enabled
@@ -96,23 +97,31 @@ async def main() -> None:
         ):
             handle_event(event)
 
-            # Collect Gemini response chunks
+            # Collect Gemini response chunks and display pages as they form
             if vrchat_osc and event.get("type") == "gemini":
                 text = event.get("text", "")
                 if text:
                     is_talking["active"] = True
                     gemini_response_chunks.append(text)
                     vrchat_osc.clear_banner()
-            # Send full response to VRChat chatbox when turn is complete
+
+                    # Check if we have enough text to paginate and display new pages
+                    full_response = "".join(gemini_response_chunks)
+                    if len(full_response) - last_displayed_length > 100:  # Display after every ~100 new chars
+                        pages = vrchat_osc.send_chatbox_paginated(full_response)
+                        if pages:
+                            await vrchat_osc.display_pages(pages)
+                            last_displayed_length = len(full_response)
+            # Send any remaining response to VRChat chatbox when turn is complete
             elif vrchat_osc and event.get("type") == "turn_complete":
                 is_talking["active"] = False
-                full_response = " ".join(chunk.strip() for chunk in gemini_response_chunks if chunk.strip()).strip()
+                full_response = "".join(gemini_response_chunks).strip()
                 gemini_response_chunks.clear()
-                if full_response:
-                    vrchat_osc.send_chatbox_paginated(full_response)
-            # Stop on error
-            if event.get("type") == "error":
-                break
+                if full_response and len(full_response) > last_displayed_length:
+                    pages = vrchat_osc.send_chatbox_paginated(full_response)
+                    if pages:
+                        await vrchat_osc.display_pages(pages)
+                last_displayed_length = 0
     except Exception as e:
         print(f"Session error: {e}")
         import traceback
