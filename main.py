@@ -16,12 +16,15 @@ from pathlib import Path
 _DIM = "\033[2m"
 _RED = "\033[91m"
 _YELLOW = "\033[93m"
+_BLUE = "\033[94m"
+_GREEN = "\033[92m"
 _RST = "\033[0m"
+_BOLD = "\033[1m"
 
 
-def _log(msg: str, color: str = _DIM) -> None:
+def _log(msg: str, color: str = _DIM, prefix: str = "●") -> None:
     """Print colored log message with standardized formatting."""
-    print(f"  {color}>> {msg}{_RST}", flush=True)
+    print(f"{color}{_BOLD}{prefix}{_RST} {color}{msg}{_RST}", flush=True)
 
 
 def _enable_ansi_windows() -> None:
@@ -56,7 +59,7 @@ class Supervisor:
         """Gracefully stop the supervised process."""
         self._alive = False
         if self._proc and self._proc.poll() is None:
-            _log("Stopping process…")
+            _log("Stopping process…", _YELLOW, prefix="⊚")
             self._proc.terminate()
             try:
                 self._proc.wait(timeout=5)
@@ -67,20 +70,24 @@ class Supervisor:
         python = self._resolve_python()
 
         while self._alive:
-            _log(f"Starting  {self.script}")
+            _log(f"Starting {self.script}", _BLUE, prefix="▶")
             exit_code = self._run_once(python)
 
             if not self._alive:
                 break
 
             if self.restart:
-                _log(f"Exited (code {exit_code}) — restarting…", _YELLOW)
+                _log(f"Exited with code {exit_code} — restarting…", _YELLOW, prefix="↻")
             else:
-                _log(f"Exited (code {exit_code})")
+                _log(f"Exited with code {exit_code}", _GREEN, prefix="◼")
                 break
 
     def _run_once(self, python: Path) -> int:
-        env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+        env = {
+            **os.environ,
+            "PYTHONIOENCODING": "utf-8",
+            "PYTHONUNBUFFERED": "1",  # Force unbuffered output
+        }
         try:
             self._proc = subprocess.Popen(
                 [str(python), self.script],
@@ -118,7 +125,7 @@ def main() -> None:
 
     def _on_signal(signum, frame) -> None:
         print()
-        _log("Shutting down…")
+        _log("Shutting down…", _RED, prefix="◆")
         sup.stop()
         sys.exit(0)
 

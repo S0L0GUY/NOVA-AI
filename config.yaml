@@ -1,3 +1,9 @@
 gemini:
-  API_key: "AIzaSyBf81EY3N_ckRljr4Yj90nj45kCARTwu_I"
+  API_key: "AIzaSyCoKmWURXI-C_LGOuTM33FGdnE8BMxUrjs"
   model: "gemini-3.1-flash-live-preview"
+  voice: "Kore"
+osc:
+  enabled: true
+  ip: "127.0.0.1"
+  port: 9000
+  receive_port: 9001

@@ -1,11 +1,19 @@
 import asyncio
+import os
+import sys
 
 import classes.config as config
 from classes.audio import AudioManager
 from classes.gemini_live import GeminiLive
 from classes.input_handler import InputHandler
 from classes.osc import VRChatOSC
-from classes.ui import print_startup_logo, handle_event
+from classes.ui import print_startup_logo, handle_event, log
+from classes.tool_definitions import get_tool_definitions, get_tool_mapping
+from classes.memory import MemoryManager
+
+# Force unbuffered output for real-time terminal updates
+os.environ["PYTHONUNBUFFERED"] = "1"
+sys.stdout = type(sys.stdout)(sys.stdout.buffer, encoding=sys.stdout.encoding, errors="replace", newline=None, write_through=True)
 
 
 async def _banner_resend_loop(vrchat_osc: "VRChatOSC", is_talking: dict) -> None:
@@ -18,7 +26,7 @@ async def _banner_resend_loop(vrchat_osc: "VRChatOSC", is_talking: dict) -> None
                 vrchat_osc.set_banner(banner_text)
             await asyncio.sleep(5.0)
         except Exception as e:
-            print(f"Banner resend error: {e}")
+            log(f"Banner resend error: {e}", "error")
             await asyncio.sleep(5.0)
 
 
@@ -46,7 +54,7 @@ async def main() -> None:
     OSC_ENABLED = cfg.get_osc_enabled
 
     if not GEMINI_API_KEY or not MODEL:
-        print("Error: Missing GEMINI_API_KEY or MODEL in config.yaml")
+        log("Missing GEMINI_API_KEY or MODEL in config.yaml", "error")
         return
 
     # Initialize audio
@@ -61,6 +69,19 @@ async def main() -> None:
     # Initialize input handler
     input_handler = InputHandler(audio_manager, audio_input_queue, text_input_queue)
 
+    # Initialize VRChat OSC integration if enabled
+    vrchat_osc = VRChatOSC(cfg) if OSC_ENABLED else None
+
+    # Initialize Memory Manager
+    memory_manager = MemoryManager()
+
+    # Prepare tools for Gemini if OSC is enabled
+    tools = None
+    tool_mapping = None
+    if vrchat_osc:
+        tools = get_tool_definitions()
+        tool_mapping = get_tool_mapping(vrchat_osc, memory_manager)
+
     # Initialize Gemini Live for multimodal AI interaction
     gemini_live = GeminiLive(
         api_key=GEMINI_API_KEY,
@@ -68,10 +89,9 @@ async def main() -> None:
         input_sample_rate=AudioManager.SAMPLE_RATE_INPUT,
         system_instruction=SYSTEM_PROMPT,
         voice_name=VOICE_NAME,
+        tools=tools,
+        tool_mapping=tool_mapping,
     )
-
-    # Initialize VRChat OSC integration if enabled
-    vrchat_osc = VRChatOSC(cfg) if OSC_ENABLED else None
     gemini_response_chunks: list[str] = []
     last_displayed_length = 0  # Track how much response we've already paginated and displayed
     is_talking = {"active": False}  # Track if NOVA is currently speaking
@@ -81,7 +101,7 @@ async def main() -> None:
     if vrchat_osc:
         banner_task = asyncio.create_task(_banner_resend_loop(vrchat_osc, is_talking))
 
-    print("Starting Gemini Live session...")
+    log("Starting Gemini Live session", "info")
 
     try:
         loop = asyncio.get_running_loop()
@@ -123,7 +143,7 @@ async def main() -> None:
                         await vrchat_osc.display_pages(pages)
                 last_displayed_length = 0
     except Exception as e:
-        print(f"Session error: {e}")
+        log(f"Session error: {e}", "error")
         import traceback
 
         traceback.print_exc()

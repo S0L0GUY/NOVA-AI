@@ -5,3 +5,5 @@ websockets
 python-dotenv
 python-multipart
 pynput
+streamlit
+pandas
