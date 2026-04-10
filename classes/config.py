@@ -7,6 +7,7 @@ Loads and manages configuration from config.yaml (API keys, OSC settings) and pr
 
 import logging
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -51,7 +52,7 @@ class Config:
             return candidate
         return ROOT_DIR / candidate
 
-    def get(self, *keys, default=None):
+    def get(self, *keys, default=None) -> Any:
         """Get nested config value by key path (e.g., cfg.get('gemini', 'API_key'))."""
         val = self._data
         for k in keys:
@@ -62,42 +63,42 @@ class Config:
         return val
 
     @property
-    def get_gemini_api_key(self):
+    def get_gemini_api_key(self) -> str | bool:
         """Get Gemini API key from config."""
         return self.get("gemini", "API_key", default=False)
 
     @property
-    def get_gemini_model(self):
+    def get_gemini_model(self) -> str | bool:
         """Get Gemini model name (e.g., 'gemini-2.0-flash-exp')."""
         return self.get("gemini", "model", default=False)
 
     @property
-    def get_gemini_voice(self):
+    def get_gemini_voice(self) -> str:
         """Get Gemini voice name for text-to-speech (default: 'Puck')."""
         return self.get("gemini", "voice", default="Puck")
 
     @property
-    def get_osc_enabled(self):
+    def get_osc_enabled(self) -> bool:
         """Check if VRChat OSC integration is enabled."""
         return self.get("osc", "enabled", default=False)
 
     @property
-    def get_osc_ip(self):
+    def get_osc_ip(self) -> str:
         """Get OSC server IP address for VRChat (default: localhost)."""
         return self.get("osc", "ip", default="127.0.0.1")
 
     @property
-    def get_osc_port(self):
+    def get_osc_port(self) -> int:
         """Get OSC server port for outgoing messages (default: 9000)."""
         return self.get("osc", "port", default=9000)
 
     @property
-    def get_osc_receive_port(self):
+    def get_osc_receive_port(self) -> int:
         """Get OSC server port for incoming messages from VRChat (default: 9001)."""
         return self.get("osc", "receive_port", default=9001)
 
     @property
-    def get_system_prompt(self):
+    def get_system_prompt(self) -> str:
         """
         Get Gemini system instruction prompt from prompt.yaml.
 

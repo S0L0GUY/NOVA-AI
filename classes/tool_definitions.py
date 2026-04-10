@@ -16,95 +16,85 @@ from classes.memory import MemoryManager, MemoryType
 # Tool Functions (Gemini will introspect these for tool schemas)
 # ==============================================================================
 
+# ==============================================================================
+# VRChat Control Tools (Avatar control via OSC)
+# ==============================================================================
+
+
 def toggle_voice():
-    """Toggle voice input in VRChat. Activates or deactivates voice capture."""
-    pass
-
-
-def set_movement(forward: float = 0.0, horizontal: float = 0.0):
     """
-    Set avatar movement axes. Use precise float values (-1 to 1) for smooth movement control.
-    
+    Toggles the voice chat state. Sends /input/Voice with value 1 to disable and 0 to enable.
+    """
+
+
+def look_left(seconds: float):
+    """
+    Sends a command to make the avatar look left for a specified duration.
+
     Args:
-        forward: Forward/backward axis (-1 to 1, negative is backward). Defaults to 0.
-        horizontal: Left/right axis (-1 to 1, negative is left). Defaults to 0.
+        seconds: The amount of time in seconds to look left.
     """
-    pass
 
 
-def stop_movement():
-    """Stop all movement and looking. Resets movement and look axes to zero."""
-    pass
-
-
-def toggle_crouch():
-    """Toggle crouch state in VRChat by pressing the C key."""
-    pass
-
-
-def toggle_crawl():
-    """Toggle crawl/prone state in VRChat by pressing the Z key."""
-    pass
-
-
-def start_move(direction: str, speed: str = "normal"):
+def look_right(seconds: float):
     """
-    Start moving the avatar in a specific direction with speed control.
-    
+    Sends a command to make the avatar look right for a specified duration.
+
     Args:
-        direction: Direction to move ('forward', 'backward', 'left', 'right').
-        speed: Speed of movement ('slow', 'normal', 'fast', 'sprint'). Defaults to 'normal'.
+        seconds: The amount of time in seconds to look right.
     """
-    pass
-
-
-def stop_all_movement():
-    """Immediately stop all avatar movement, looking, and running."""
-    pass
 
 
 def jump():
-    """Make the avatar jump."""
-    pass
-
-
-def look(direction: str, duration: float, speed: str = "normal"):
     """
-    Smoothly turn the avatar's head left or right with ramping up/down.
-    
+    Sends a command to make the avatar jump.
+    """
+
+
+def send_osc(address: str, value):
+    """
+    Sends a raw OSC message to the specified address.
+
     Args:
-        direction: Look direction ('left' or 'right').
-        duration: Duration in seconds to perform the look.
-        speed: Look speed ('slow', 'normal', 'fast'). Defaults to 'normal'.
+        address: The OSC address path.
+        value: The value(s) to send (can be single value or list).
     """
-    pass
 
 
-def look_vertical(direction: str, duration: float, speed: str = "normal"):
+def move_forward(seconds: float):
     """
-    Smoothly look up or down with ramping behavior similar to horizontal look.
-    
+    Sends a command to make the avatar move forward for a specified duration.
+
     Args:
-        direction: Look direction ('up' or 'down').
-        duration: Duration in seconds to perform the look.
-        speed: Look speed ('slow', 'normal', 'fast'). Defaults to 'normal'.
+        seconds: The amount of time in seconds to move forward.
     """
-    pass
 
 
-def grab():
-    """Grab and hold an item in front of the avatar. Item stays held until drop() is called."""
-    pass
+def move_backward(seconds: float):
+    """
+    Sends a command to make the avatar move backward for a specified duration.
+
+    Args:
+        seconds: The amount of time in seconds to move backward.
+    """
 
 
-def drop():
-    """Release the item currently held in the avatar's right hand."""
-    pass
+def move_left(seconds: float):
+    """
+    Sends a command to make the avatar strafe left for a specified duration.
+
+    Args:
+        seconds: The amount of time in seconds to strafe left.
+    """
 
 
-def use():
-    """Use or interact with the item in front of the avatar using the right hand."""
-    pass
+def move_right(seconds: float):
+    """
+    Sends a command to make the avatar strafe right for a specified duration.
+
+    Args:
+        seconds: The amount of time in seconds to strafe right.
+    """
 
 
 # ==============================================================================
@@ -119,7 +109,6 @@ def save_short_term_memory(content: str, tags: list[str] = None):
         content: The memory content to store.
         tags: Optional list of tags for organization (e.g., ['user', 'preference']).
     """
-    pass
 
 
 def save_long_term_memory(content: str, tags: list[str] = None, importance: int = 1):
@@ -131,7 +120,6 @@ def save_long_term_memory(content: str, tags: list[str] = None, importance: int 
         tags: Optional list of tags for organization (e.g., ['fact', 'rule']).
         importance: Importance level 1-5 (default 1).
     """
-    pass
 
 
 def save_quick_note(content: str, tags: list[str] = None):
@@ -142,7 +130,6 @@ def save_quick_note(content: str, tags: list[str] = None):
         content: The quick note content.
         tags: Optional list of tags (e.g., ['reminder', 'todo']).
     """
-    pass
 
 
 def fetch_all_memories():
@@ -150,22 +137,18 @@ def fetch_all_memories():
     Fetch all stored memories across all types (short-term, long-term, quick notes).
     Returns a JSON summary of all memories for reference and context building.
     """
-    pass
 
 
 def fetch_short_term_memories():
     """Fetch all short-term memories. Use to recall session-specific information."""
-    pass
 
 
 def fetch_long_term_memories():
     """Fetch all long-term memories. Use to recall important persistent information."""
-    pass
 
 
 def fetch_quick_notes():
     """Fetch all quick notes. Use to recall recent quick reminders and thoughts."""
-    pass
 
 
 def update_memory(memory_id: int, content: str = None, tags: list[str] = None, importance: int = None):
@@ -178,7 +161,6 @@ def update_memory(memory_id: int, content: str = None, tags: list[str] = None, i
         tags: New tags (optional).
         importance: New importance level 1-5 (optional, only for long-term).
     """
-    pass
 
 
 def delete_memory(memory_id: int):
@@ -188,7 +170,6 @@ def delete_memory(memory_id: int):
     Args:
         memory_id: The ID of the memory to delete.
     """
-    pass
 
 
 def search_memories(query: str):
@@ -198,7 +179,13 @@ def search_memories(query: str):
     Args:
         query: Search term to find in content or tags.
     """
-    pass
+
+
+def capture_screenshot():
+    """
+    Captures and analyzes the current VRChat window screenshot.
+    Use this to see what's currently happening in VRChat.
+    """
 
 
 # ==============================================================================
@@ -213,22 +200,18 @@ def get_tool_definitions():
     automatically from their signatures and docstrings.
 
     Returns:
-        list: List of tool functions to pass to Gemini
+        list: List of tool functions t to Gemini
     """
     return [
         toggle_voice,
-        set_movement,
-        stop_movement,
-        toggle_crouch,
-        toggle_crawl,
-        start_move,
-        stop_all_movement,
+        look_left,
+        look_right,
         jump,
-        look,
-        look_vertical,
-        grab,
-        drop,
-        use,
+        move_forward,
+        move_backward,
+        move_left,
+        move_right,
+        capture_screenshot,
         save_short_term_memory,
         save_long_term_memory,
         save_quick_note,
@@ -277,20 +260,25 @@ def get_tool_mapping(vrchat_osc, memory_manager=None):
             indent=2,
         )
 
+    def _capture_screenshot_impl():
+        """Implementation of screenshot capture."""
+        from classes.screenshot import ScreenshotManager
+        screenshot_manager = ScreenshotManager(target_window_name="VRChat")
+        jpeg_data = screenshot_manager.capture_screenshot()
+        if jpeg_data:
+            return f"Screenshot captured: {len(jpeg_data)} bytes"
+        return "Failed to capture screenshot"
+
     return {
         "toggle_voice": vrchat_osc.toggle_voice,
-        "set_movement": lambda forward=0.0, horizontal=0.0: vrchat_osc.set_movement(forward, horizontal),
-        "stop_movement": vrchat_osc.stop_movement,
-        "toggle_crouch": vrchat_osc.toggle_crouch,
-        "toggle_crawl": vrchat_osc.toggle_crawl,
-        "start_move": lambda direction, speed="normal": vrchat_osc.start_move(direction, speed),
-        "stop_all_movement": vrchat_osc.stop_all_movement,
+        "look_left": vrchat_osc.look_left,
+        "look_right": vrchat_osc.look_right,
         "jump": vrchat_osc.jump,
-        "look": lambda direction, duration, speed="normal": vrchat_osc.look(direction, duration, speed),
-        "look_vertical": lambda direction, duration, speed="normal": vrchat_osc.look_vertical(direction, duration, speed),
-        "grab": vrchat_osc.grab,
-        "drop": vrchat_osc.drop,
-        "use": vrchat_osc.use,
+        "move_forward": vrchat_osc.move_forward,
+        "move_backward": vrchat_osc.move_backward,
+        "move_left": vrchat_osc.move_left,
+        "move_right": vrchat_osc.move_right,
+        "capture_screenshot": _capture_screenshot_impl,
         "save_short_term_memory": lambda content, tags=None: memory_manager.store_memory(
             content, MemoryType.SHORT_TERM, tags
         ),

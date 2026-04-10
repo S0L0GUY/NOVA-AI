@@ -13,17 +13,26 @@ from classes.memory import MemoryManager
 
 # Force unbuffered output for real-time terminal updates
 os.environ["PYTHONUNBUFFERED"] = "1"
-sys.stdout = type(sys.stdout)(sys.stdout.buffer, encoding=sys.stdout.encoding, errors="replace", newline=None, write_through=True)
+sys.stdout = type(sys.stdout)(
+    sys.stdout.buffer,
+    encoding=sys.stdout.encoding,
+    errors="replace", newline=None,
+    write_through=True
+)
 
 
 async def _banner_resend_loop(vrchat_osc: "VRChatOSC", is_talking: dict) -> None:
     """Periodically resend banner every 5 seconds when not talking (VRChat OSC compliance)."""
-    banner_text = "-----------------------\nCome talk to me!\n-----------------------\nVRChat AI Assistant\n-----------------------"
+    banner_text = "-----------------------"
+    banner_text += "\nCome talk to me!"
+    banner_text += "\n-----------------------"
+    banner_text += "\nVRChat AI Assistant"
+    banner_text += "\n-----------------------"
 
     while True:
         try:
             if not is_talking["active"]:
-                vrchat_osc.set_banner(banner_text)
+                vrchat_osc.send_message(banner_text)
             await asyncio.sleep(5.0)
         except Exception as e:
             log(f"Banner resend error: {e}", "error")
@@ -66,11 +75,11 @@ async def main() -> None:
     text_input_queue = asyncio.Queue()
     video_input_queue = asyncio.Queue()
 
-    # Initialize input handler
-    input_handler = InputHandler(audio_manager, audio_input_queue, text_input_queue)
+    # Initialize input handler with video queue for screenshots
+    input_handler = InputHandler(audio_manager, audio_input_queue, text_input_queue, video_input_queue)
 
     # Initialize VRChat OSC integration if enabled
-    vrchat_osc = VRChatOSC(cfg) if OSC_ENABLED else None
+    vrchat_osc = VRChatOSC(cfg.get_osc_ip, cfg.get_osc_port) if OSC_ENABLED else None
 
     # Initialize Memory Manager
     memory_manager = MemoryManager()
@@ -123,7 +132,6 @@ async def main() -> None:
                 if text:
                     is_talking["active"] = True
                     gemini_response_chunks.append(text)
-                    vrchat_osc.clear_banner()
 
                     # Check if we have enough text to paginate and display new pages
                     full_response = "".join(gemini_response_chunks)

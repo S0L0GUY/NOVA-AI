@@ -7,3 +7,5 @@ python-multipart
 pynput
 streamlit
 pandas
+mss
+Pillow
