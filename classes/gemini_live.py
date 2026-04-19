@@ -20,6 +20,7 @@ from classes.config import DEFAULT_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
+
 class GeminiLive:
     """
     Manages real-time interaction with the Gemini Live API.
@@ -78,7 +79,7 @@ class GeminiLive:
             tools=self.tools,
         )
         
-        logger.info(f"Connecting to Gemini Live with model={self.model}")
+        logger.info("Connecting to Gemini Live with model=%s", self.model)
         try:
             async with self.client.aio.live.connect(model=self.model, config=config) as session:
                 logger.info("Gemini Live session opened successfully")
@@ -87,43 +88,102 @@ class GeminiLive:
                     try:
                         while True:
                             chunk = await audio_input_queue.get()
-                            await session.send_realtime_input(
-                                audio=types.Blob(data=chunk, mime_type=f"audio/pcm;rate={self.input_sample_rate}")
-                            )
+                            if chunk is None:
+                                logger.info("send_audio: received None chunk, skipping")
+                                continue
+                            # Normalize memoryview/bytearray to bytes
+                            if isinstance(chunk, memoryview):
+                                chunk = chunk.tobytes()
+                            if isinstance(chunk, bytearray):
+                                chunk = bytes(chunk)
+
+                            if not isinstance(chunk, bytes):
+                                logger.info(
+                                    "send_audio: unsupported chunk type %s, skipping",
+                                    type(chunk),
+                                )
+                                continue
+
+                            try:
+                                await session.send_realtime_input(
+                                    audio=types.Blob(data=chunk, mime_type=f"audio/pcm;rate={self.input_sample_rate}")
+                                )
+                            except Exception as e:
+                                logger.info(
+                                    "send_audio: failed to send chunk (len=%s type=%s): %s",
+                                    len(chunk) if hasattr(chunk, '__len__') else 'n/a',
+                                    type(chunk),
+                                    e,
+                                )
+                                # Don't raise — drop the chunk and continue streaming
+                                continue
                     except asyncio.CancelledError:
-                        logger.debug("send_audio task cancelled")
+                        logger.info("send_audio task cancelled")
                     except ConnectionClosedOK:
                         logger.info("send_audio stopped: Gemini Live connection closed normally")
                     except Exception as e:
-                        logger.error(f"send_audio error: {e}\n{traceback.format_exc()}")
+                        logger.info("send_audio error: %s\n%s", e, traceback.format_exc())
 
                 async def send_video():
                     try:
                         while True:
                             chunk = await video_input_queue.get()
-                            logger.info(f"Sending video frame to Gemini: {len(chunk)} bytes")
-                            await session.send_realtime_input(
-                                video=types.Blob(data=chunk, mime_type="image/jpeg")
-                            )
+                            logger.info("Sending video frame to Gemini: %s bytes", len(chunk))
+                            if chunk is None:
+                                logger.info("send_video: received None chunk, skipping")
+                                continue
+                            if isinstance(chunk, memoryview):
+                                chunk = chunk.tobytes()
+                            if isinstance(chunk, bytearray):
+                                chunk = bytes(chunk)
+                            if not isinstance(chunk, (bytes,)):
+                                logger.info(
+                                    "send_video: unsupported chunk type %s, skipping",
+                                    type(chunk),
+                                )
+                                continue
+                            try:
+                                await session.send_realtime_input(
+                                    video=types.Blob(data=chunk, mime_type="image/jpeg")
+                                )
+                            except Exception as e:
+                                logger.info(
+                                    "send_video: failed to send frame (len=%s): %s",
+                                    len(chunk),
+                                    e,
+                                )
+                                continue
                     except asyncio.CancelledError:
-                        logger.debug("send_video task cancelled")
+                        logger.info("send_video task cancelled")
                     except ConnectionClosedOK:
                         logger.info("send_video stopped: Gemini Live connection closed normally")
                     except Exception as e:
-                        logger.error(f"send_video error: {e}\n{traceback.format_exc()}")
+                        logger.info("send_video error: %s\n%s", e, traceback.format_exc())
 
                 async def send_text():
                     try:
                         while True:
                             text = await text_input_queue.get()
-                            logger.info(f"Sending text to Gemini: {text}")
-                            await session.send_realtime_input(text=text)
+                            logger.info("Sending text to Gemini: %s", text)
+                            if text is None:
+                                continue
+                            if not isinstance(text, str):
+                                try:
+                                    text = str(text)
+                                except Exception:
+                                    logger.info("send_text: could not coerce text to string, skipping")
+                                    continue
+                            try:
+                                await session.send_realtime_input(text=text)
+                            except Exception as e:
+                                logger.info("send_text: failed to send text: %s", e)
+                                continue
                     except asyncio.CancelledError:
-                        logger.debug("send_text task cancelled")
+                        logger.info("send_text task cancelled")
                     except ConnectionClosedOK:
                         logger.info("send_text stopped: Gemini Live connection closed normally")
                     except Exception as e:
-                        logger.error(f"send_text error: {e}\n{traceback.format_exc()}")
+                        logger.info("send_text error: %s\n%s", e, traceback.format_exc())
 
                 event_queue = asyncio.Queue()
 
@@ -131,13 +191,13 @@ class GeminiLive:
                     try:
                         while True:
                             async for response in session.receive():
-                                logger.debug(f"Received response from Gemini: {response}")
+                                logger.info("Received response from Gemini: %s", response)
 
                                 # Log the raw response type for debugging
                                 if response.go_away:
-                                    logger.warning(f"Received GoAway from Gemini: {response.go_away}")
+                                    logger.info("Received GoAway from Gemini: %s", response.go_away)
                                 if response.session_resumption_update:
-                                    logger.info(f"Session resumption update: {response.session_resumption_update}")
+                                    logger.info("Session resumption update: %s", response.session_resumption_update)
                                 
                                 server_content = response.server_content
                                 tool_call = response.tool_call
@@ -195,20 +255,20 @@ class GeminiLive:
                                     await session.send_tool_response(function_responses=function_responses)
                             
                             # session.receive() iterator ended (e.g. after turn_complete) — re-enter to keep listening
-                            logger.debug("Gemini receive iterator completed, re-entering receive loop")
+                            logger.info("Gemini receive iterator completed, re-entering receive loop")
 
                     except asyncio.CancelledError:
-                        logger.debug("receive_loop task cancelled")
+                        logger.info("receive_loop task cancelled")
                     except APIError as e:
                         if getattr(e, "code", None) == 1000:
                             logger.info("receive_loop stopped: Gemini Live connection closed normally (1000)")
                         else:
-                            logger.error(f"receive_loop error: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+                            logger.info("receive_loop error: %s: %s\n%s", type(e).__name__, e, traceback.format_exc())
                             await event_queue.put({"type": "error", "error": f"{type(e).__name__}: {e}"})
                     except ConnectionClosedOK:
                         logger.info("receive_loop stopped: Gemini Live connection closed normally")
                     except Exception as e:
-                        logger.error(f"receive_loop error: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+                        logger.info("receive_loop error: %s: %s\n%s", type(e).__name__, e, traceback.format_exc())
                         await event_queue.put({"type": "error", "error": f"{type(e).__name__}: {e}"})
                     finally:
                         logger.info("receive_loop exiting")
@@ -231,12 +291,21 @@ class GeminiLive:
                         yield event
                 finally:
                     logger.info("Cleaning up Gemini Live session tasks")
-                    send_audio_task.cancel()
-                    send_video_task.cancel()
-                    send_text_task.cancel()
-                    receive_task.cancel()
+                    # Cancel and await tasks to ensure clean shutdown
+                    for t in (send_audio_task, send_video_task, send_text_task, receive_task):
+                        t.cancel()
+                    try:
+                        await asyncio.gather(
+                            send_audio_task,
+                            send_video_task,
+                            send_text_task,
+                            receive_task,
+                            return_exceptions=True,
+                        )
+                    except Exception:
+                        logger.info("Error while awaiting cancelled tasks", exc_info=True)
         except Exception as e:
-            logger.error(f"Gemini Live session error: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+            logger.info("Gemini Live session error: %s: %s\n%s", type(e).__name__, e, traceback.format_exc())
             raise
         finally:
             logger.info("Gemini Live session closed")

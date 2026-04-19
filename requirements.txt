@@ -9,3 +9,8 @@ streamlit
 pandas
 mss
 Pillow
+vrchatapi
+pyaudio
+PyYAML
+python-osc
+pysqlite3

@@ -104,6 +104,7 @@ async def main() -> None:
     gemini_response_chunks: list[str] = []
     last_displayed_length = 0  # Track how much response we've already paginated and displayed
     is_talking = {"active": False}  # Track if NOVA is currently speaking
+    is_typing = False  # Track if typing indicator is active
 
     # Start banner resend loop if OSC is enabled
     banner_task = None
@@ -131,6 +132,13 @@ async def main() -> None:
                 text = event.get("text", "")
                 if text:
                     is_talking["active"] = True
+                    # Turn on VRChat typing indicator while the model is generating
+                    try:
+                        if not is_typing:
+                            vrchat_osc.set_typing_indicator(True)
+                            is_typing = True
+                    except Exception:
+                        pass
                     gemini_response_chunks.append(text)
 
                     # Check if we have enough text to paginate and display new pages
@@ -143,6 +151,13 @@ async def main() -> None:
             # Send any remaining response to VRChat chatbox when turn is complete
             elif vrchat_osc and event.get("type") == "turn_complete":
                 is_talking["active"] = False
+                # Turn off typing indicator when the turn completes
+                try:
+                    if is_typing:
+                        vrchat_osc.set_typing_indicator(False)
+                        is_typing = False
+                except Exception:
+                    pass
                 full_response = "".join(gemini_response_chunks).strip()
                 gemini_response_chunks.clear()
                 if full_response and len(full_response) > last_displayed_length:

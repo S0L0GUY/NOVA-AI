@@ -42,7 +42,7 @@ class Config:
             with open(self.prompt_path, "r", encoding="utf-8") as f:
                 self._prompt_data = yaml.safe_load(f) or {}
         else:
-            logger.warning("Prompt file not found at %s; using built-in default prompt", self.prompt_path)
+            logger.info("Prompt file not found at %s; using built-in default prompt", self.prompt_path)
 
     @staticmethod
     def _resolve_path(path: str) -> Path:
@@ -98,6 +98,11 @@ class Config:
         return self.get("osc", "receive_port", default=9001)
 
     @property
+    def get_prompt_name(self) -> str:
+        """Get the name of the system prompt to use from config (default: 'system_instruction')."""
+        return self.get("prompt", "name", default="system_instruction")
+
+    @property
     def get_system_prompt(self) -> str:
         """
         Get Gemini system instruction prompt from prompt.yaml.
@@ -105,7 +110,7 @@ class Config:
         Supports multiple formats: string, list, or dict with text/prompt/content keys.
         Falls back to DEFAULT_SYSTEM_PROMPT if not configured.
         """
-        prompt = self._prompt_data.get("system_instruction")
+        prompt = self._prompt_data.get(self.get_prompt_name)
 
         if isinstance(prompt, str) and prompt.strip():
             return prompt.strip()
@@ -121,5 +126,5 @@ class Config:
                 if isinstance(value, str) and value.strip():
                     return value.strip()
 
-        logger.warning("prompt.yaml is empty or missing system_instruction; falling back to the built-in prompt")
+        logger.info("prompt.yaml is empty or missing system_instruction; falling back to the built-in prompt")
         return DEFAULT_SYSTEM_PROMPT

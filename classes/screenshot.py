@@ -4,11 +4,10 @@ screenshot.py: Screenshot capture for video input to Gemini Live.
 Captures screenshots of the screen or specific windows and converts them
 to JPEG format for sending to the Gemini Live video input queue.
 """
-
-import mss
-import io
-from PIL import Image
 import ctypes
+import io
+import mss
+from PIL import Image
 
 
 class ScreenshotManager:
@@ -25,7 +24,6 @@ class ScreenshotManager:
         """
         self.target_window_name = target_window_name
         self.quality = quality
-        self.sct = mss.mss()
         self._window_hwnd = None
 
     def get_window_handle(self):
@@ -62,8 +60,9 @@ class ScreenshotManager:
                     window_title = buf.value
                     if name.lower() in window_title.lower():
                         windows.append(hwnd)
-            except:
-                pass
+            except Exception as e:
+                print(f"Error enumerating window {hwnd}: {e}")
+
             return True
 
         try:
@@ -71,8 +70,8 @@ class ScreenshotManager:
                 ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)(enum_windows),
                 None
             )
-        except:
-            pass
+        except Exception as e:
+            print(f"Error enumerating windows: {e}")
 
         return windows
 
@@ -87,7 +86,8 @@ class ScreenshotManager:
                 "width": rect.right - rect.left,
                 "height": rect.bottom - rect.top,
             }
-        except Exception:
+        except Exception as e:
+            print(f"Error getting window bounds for {hwnd}: {e}")
             return None
 
     def capture_screenshot(self):
@@ -98,33 +98,34 @@ class ScreenshotManager:
             bytes: JPEG-encoded screenshot data, or None on failure
         """
         try:
-            # Try to capture specific window if name provided
-            if self.target_window_name:
-                hwnd = self.get_window_handle()
-                if hwnd:
-                    bounds = self.get_window_bounds(hwnd)
-                    if bounds and bounds["width"] > 0 and bounds["height"] > 0:
-                        # Capture window region
-                        region = {
-                            "left": bounds["left"],
-                            "top": bounds["top"],
-                            "width": bounds["width"],
-                            "height": bounds["height"],
-                        }
-                        screenshot = self.sct.grab(region)
-                        return self._convert_to_jpeg(screenshot)
+            with mss.mss() as sct:
+                # Try to capture specific window if name provided
+                if self.target_window_name:
+                    hwnd = self.get_window_handle()
+                    if hwnd:
+                        bounds = self.get_window_bounds(hwnd)
+                        if bounds and bounds["width"] > 0 and bounds["height"] > 0:
+                            # Capture window region
+                            region = {
+                                "left": bounds["left"],
+                                "top": bounds["top"],
+                                "width": bounds["width"],
+                                "height": bounds["height"],
+                            }
+                            screenshot = sct.grab(region)
+                            return self._convert_to_jpeg(screenshot, self.quality)
 
-            # Fall back to primary monitor
-            monitor = self.sct.monitors[1]  # Primary monitor
-            screenshot = self.sct.grab(monitor)
-            return self._convert_to_jpeg(screenshot)
+                # Fall back to primary monitor
+                monitor = sct.monitors[1]  # Primary monitor
+                screenshot = sct.grab(monitor)
+                return self._convert_to_jpeg(screenshot, self.quality)
 
         except Exception as e:
             print(f"Screenshot error: {e}")
             return None
 
     @staticmethod
-    def _convert_to_jpeg(mss_screenshot):
+    def _convert_to_jpeg(mss_screenshot, quality):
         """Convert mss screenshot to JPEG bytes."""
         try:
             # mss returns PIL-compatible format
@@ -136,7 +137,7 @@ class ScreenshotManager:
 
             # Convert to JPEG and return bytes
             jpeg_buffer = io.BytesIO()
-            img.save(jpeg_buffer, format="JPEG", quality=80)
+            img.save(jpeg_buffer, format="JPEG", quality=quality)
             return jpeg_buffer.getvalue()
         except Exception as e:
             print(f"JPEG conversion error: {e}")
