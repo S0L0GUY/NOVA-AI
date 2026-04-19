@@ -1,5 +1,5 @@
 gemini:
-  API_key: "AIzaSyCoKmWURXI-C_LGOuTM33FGdnE8BMxUrjs"
+  API_key: ""
   model: "gemini-3.1-flash-live-preview"
   voice: "Kore"
 osc:
@@ -7,3 +7,8 @@ osc:
   ip: "127.0.0.1"
   port: 9000
   receive_port: 9001
+vrchat:
+  username: ""
+  password: ""
+prompt:
+  name: "therapeutic_prompt"
