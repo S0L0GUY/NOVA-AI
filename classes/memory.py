@@ -28,8 +28,7 @@ class MemoryManager:
     def _init_db(self) -> None:
         """Initialize database schema if it doesn't exist."""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS memories (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     type TEXT NOT NULL CHECK(type IN ('short_term', 'long_term', 'quick_note')),
@@ -39,8 +38,7 @@ class MemoryManager:
                     updated_at TEXT NOT NULL,
                     importance INTEGER DEFAULT 1
                 )
-            """
-            )
+            """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_type ON memories(type)")
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_created ON memories(created_at)"

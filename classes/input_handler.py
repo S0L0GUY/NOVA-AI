@@ -8,6 +8,7 @@ data for async processing via asyncio.run_coroutine_threadsafe().
 import asyncio
 import threading
 import time
+
 from classes.screenshot import ScreenshotManager
 
 
