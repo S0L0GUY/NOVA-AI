@@ -8,7 +8,6 @@ data for async processing via asyncio.run_coroutine_threadsafe().
 import asyncio
 import threading
 import time
- 
 from classes.screenshot import ScreenshotManager
 
 
@@ -51,7 +50,9 @@ class InputHandler:
         text_thread.start()
 
         if self.screenshot_manager and self.video_input_queue:
-            screenshot_thread = threading.Thread(target=self._capture_screenshots, daemon=True)
+            screenshot_thread = threading.Thread(
+                target=self._capture_screenshots, daemon=True
+            )
             screenshot_thread.start()
 
     def _read_microphone(self) -> None:
@@ -60,7 +61,9 @@ class InputHandler:
             while True:
                 data = self.audio_manager.read_audio_chunk()
                 if self.loop:
-                    asyncio.run_coroutine_threadsafe(self.audio_input_queue.put(data), self.loop)
+                    asyncio.run_coroutine_threadsafe(
+                        self.audio_input_queue.put(data), self.loop
+                    )
         except Exception as e:
             print(f"Microphone error: {e}")
 
@@ -70,7 +73,9 @@ class InputHandler:
             while True:
                 user_input = input()
                 if user_input.strip() and self.loop:
-                    asyncio.run_coroutine_threadsafe(self.text_input_queue.put(user_input), self.loop)
+                    asyncio.run_coroutine_threadsafe(
+                        self.text_input_queue.put(user_input), self.loop
+                    )
         except EOFError:
             pass
         except Exception as e:
@@ -88,7 +93,9 @@ class InputHandler:
             while True:
                 jpeg_data = screenshot_manager.capture_screenshot()
                 if jpeg_data and self.loop:
-                    asyncio.run_coroutine_threadsafe(video_input_queue.put(jpeg_data), self.loop)
+                    asyncio.run_coroutine_threadsafe(
+                        video_input_queue.put(jpeg_data), self.loop
+                    )
                 time.sleep(self.screenshot_interval)
         except Exception as e:
             print(f"Screenshot error: {e}")

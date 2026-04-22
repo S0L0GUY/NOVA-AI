@@ -44,7 +44,9 @@ def print_startup_logo() -> None:
     ]
 
     for line in lines:
-        colored_line = "".join(f"{colors[i % len(colors)]}{char}{_RST}" for i, char in enumerate(line))
+        colored_line = "".join(
+            f"{colors[i % len(colors)]}{char}{_RST}" for i, char in enumerate(line)
+        )
         print(colored_line, flush=True)
 
 
@@ -61,10 +63,6 @@ def handle_event(event: dict) -> None:
     elif event_type == "interrupted":
         log("Response interrupted", "warning", prefix="├───")
     elif event_type == "tool_call":
-        log(
-            f"Tool: {event.get('name')} → {event.get('result')}",
-            "info",
-            prefix="├───"
-        )
+        log(f"Tool: {event.get('name')} → {event.get('result')}", "info", prefix="├───")
     elif event_type == "error":
         log(f"Error: {event.get('error')}", "error")

@@ -17,8 +17,9 @@ os.environ["PYTHONUNBUFFERED"] = "1"
 sys.stdout = type(sys.stdout)(
     sys.stdout.buffer,  # type: ignore
     encoding=sys.stdout.encoding,
-    errors="replace", newline=None,
-    write_through=True
+    errors="replace",
+    newline=None,
+    write_through=True,
 )
 
 
@@ -157,7 +158,9 @@ async def _on_turn_complete(
 def _try_play_startup_sound() -> None:
     """Play the startup SFX if present, swallow errors."""
     try:
-        startup_mp3 = os.path.join(os.path.dirname(__file__), "sfx", "startup_sound.mp3")
+        startup_mp3 = os.path.join(
+            os.path.dirname(__file__), "sfx", "startup_sound.mp3"
+        )
         if os.path.exists(startup_mp3):
             play_sound_async(startup_mp3)
     except Exception:
@@ -169,7 +172,9 @@ def _init_resources(cfg: config.Config) -> dict:
 
     Returns a map with keys: `vrchat_osc`, `memory_manager`, `tools`, `tool_mapping`.
     """
-    vrchat_osc = VRChatOSC(cfg.get_osc_ip, cfg.get_osc_port) if cfg.get_osc_enabled else None
+    vrchat_osc = (
+        VRChatOSC(cfg.get_osc_ip, cfg.get_osc_port) if cfg.get_osc_enabled else None
+    )
     memory_manager = MemoryManager()
     tools = None
     tool_mapping = None
@@ -218,7 +223,9 @@ async def main() -> None:
     video_input_queue = asyncio.Queue()
 
     # Initialize input handler with video queue for screenshots
-    input_handler = InputHandler(audio_manager, audio_input_queue, text_input_queue, video_input_queue)
+    input_handler = InputHandler(
+        audio_manager, audio_input_queue, text_input_queue, video_input_queue
+    )
 
     # Initialize optional resources (OSC, memory, tools)
     resources = _init_resources(cfg)
@@ -249,7 +256,9 @@ async def main() -> None:
     # Start banner resend loop if OSC is enabled
     banner_task = None
     if vrchat_osc:
-        banner_task = asyncio.create_task(_banner_resend_loop(vrchat_osc, context["is_talking"]))
+        banner_task = asyncio.create_task(
+            _banner_resend_loop(vrchat_osc, context["is_talking"])
+        )
 
     log("Starting Gemini Live session", "info")
 
@@ -265,7 +274,9 @@ async def main() -> None:
         log(f"Session error: {e}", "error")
         # Play error sound if available (non-blocking)
         try:
-            error_mp3 = os.path.join(os.path.dirname(__file__), "sfx", "error_sound.mp3")
+            error_mp3 = os.path.join(
+                os.path.dirname(__file__), "sfx", "error_sound.mp3"
+            )
             if os.path.exists(error_mp3):
                 play_sound_async(error_mp3)
         except Exception:

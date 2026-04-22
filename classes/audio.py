@@ -15,9 +15,9 @@ class AudioManager:
     """Manages microphone input and speaker output with background playback thread."""
 
     # Audio configuration constants
-    SAMPLE_RATE_INPUT = 16000   # Microphone sample rate for Gemini Live
+    SAMPLE_RATE_INPUT = 16000  # Microphone sample rate for Gemini Live
     SAMPLE_RATE_OUTPUT = 24000  # Speaker sample rate for Gemini Live output
-    CHUNK_SIZE = 1024           # Frames per buffer
+    CHUNK_SIZE = 1024  # Frames per buffer
 
     def __init__(self):
         self.p = pyaudio.PyAudio()
@@ -46,7 +46,9 @@ class AudioManager:
         )
 
         self._playback_stop.clear()
-        self._playback_thread = threading.Thread(target=self._playback_loop, daemon=True)
+        self._playback_thread = threading.Thread(
+            target=self._playback_loop, daemon=True
+        )
         self._playback_thread.start()
 
         print("Microphone and speaker initialized")

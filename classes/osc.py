@@ -59,7 +59,9 @@ class VRChatOSC:
             break_on_hyphens=False,
         )
 
-    async def display_pages(self, pages: list[str], delay_seconds: float = 0.35) -> None:
+    async def display_pages(
+        self, pages: list[str], delay_seconds: float = 0.35
+    ) -> None:
         """Send paginated chatbox pages in sequence with a short delay."""
 
         for page in pages:

@@ -42,7 +42,10 @@ class Config:
             with open(self.prompt_path, "r", encoding="utf-8") as f:
                 self._prompt_data = yaml.safe_load(f) or {}
         else:
-            logger.info("Prompt file not found at %s; using built-in default prompt", self.prompt_path)
+            logger.info(
+                "Prompt file not found at %s; using built-in default prompt",
+                self.prompt_path,
+            )
 
     @staticmethod
     def _resolve_path(path: str) -> Path:
@@ -126,5 +129,7 @@ class Config:
                 if isinstance(value, str) and value.strip():
                     return value.strip()
 
-        logger.info("prompt.yaml is empty or missing system_instruction; falling back to the built-in prompt")
+        logger.info(
+            "prompt.yaml is empty or missing system_instruction; falling back to the built-in prompt"
+        )
         return DEFAULT_SYSTEM_PROMPT

@@ -4,10 +4,11 @@ screenshot.py: Screenshot capture for video input to Gemini Live.
 Captures screenshots of the screen or specific windows and converts them
 to JPEG format for sending to the Gemini Live video input queue.
 """
+
 import ctypes
 import ctypes.wintypes
 import io
- 
+
 import mss
 from PIL import Image
 
@@ -69,8 +70,10 @@ class ScreenshotManager:
 
         try:
             ctypes.windll.user32.EnumWindows(
-                ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)(enum_windows),
-                None
+                ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)(
+                    enum_windows
+                ),
+                None,
             )
         except Exception as e:
             print(f"Error enumerating windows: {e}")

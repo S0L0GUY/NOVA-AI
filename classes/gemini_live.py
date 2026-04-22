@@ -32,6 +32,7 @@ class GeminiLive:
     - Real-time audio output via callback
     - Optional tool/function calling
     """
+
     def __init__(
         self,
         api_key,
@@ -94,7 +95,10 @@ class GeminiLive:
 
                 try:
                     await session.send_realtime_input(
-                        audio=types.Blob(data=chunk, mime_type=f"audio/pcm;rate={self.input_sample_rate}")
+                        audio=types.Blob(
+                            data=chunk,
+                            mime_type=f"audio/pcm;rate={self.input_sample_rate}",
+                        )
                     )
                 except Exception as e:
                     logger.info(
@@ -121,7 +125,9 @@ class GeminiLive:
 
                 chunk = self._normalize_chunk(chunk)
                 if chunk is None:
-                    logger.info("send_video: unsupported chunk type %s, skipping", type(chunk))
+                    logger.info(
+                        "send_video: unsupported chunk type %s, skipping", type(chunk)
+                    )
                     continue
 
                 logger.info("Sending video frame to Gemini: %s bytes", len(chunk))
@@ -201,21 +207,41 @@ class GeminiLive:
                     response={"result": result},
                 )
             )
-            await event_queue.put({"type": "tool_call", "name": func_name, "args": args, "result": result})
+            await event_queue.put(
+                {"type": "tool_call", "name": func_name, "args": args, "result": result}
+            )
 
         await session.send_tool_response(function_responses=function_responses)
 
-    async def _emit_server_content_events(self, server_content, audio_output_callback, audio_interrupt_callback, event_queue):
+    async def _emit_server_content_events(
+        self,
+        server_content,
+        audio_output_callback,
+        audio_interrupt_callback,
+        event_queue,
+    ):
         if server_content.model_turn:
             for part in server_content.model_turn.parts:
                 if part.inline_data:
-                    await self._invoke_callback(audio_output_callback, part.inline_data.data)
+                    await self._invoke_callback(
+                        audio_output_callback, part.inline_data.data
+                    )
 
-        if server_content.input_transcription and server_content.input_transcription.text:
-            await event_queue.put({"type": "user", "text": server_content.input_transcription.text})
+        if (
+            server_content.input_transcription
+            and server_content.input_transcription.text
+        ):
+            await event_queue.put(
+                {"type": "user", "text": server_content.input_transcription.text}
+            )
 
-        if server_content.output_transcription and server_content.output_transcription.text:
-            await event_queue.put({"type": "gemini", "text": server_content.output_transcription.text})
+        if (
+            server_content.output_transcription
+            and server_content.output_transcription.text
+        ):
+            await event_queue.put(
+                {"type": "gemini", "text": server_content.output_transcription.text}
+            )
 
         if server_content.turn_complete:
             await event_queue.put({"type": "turn_complete"})
@@ -225,12 +251,12 @@ class GeminiLive:
             await event_queue.put({"type": "interrupted"})
 
     async def _process_received_response(
-            self,
-            session,
-            response,
-            audio_output_callback,
-            audio_interrupt_callback,
-            event_queue
+        self,
+        session,
+        response,
+        audio_output_callback,
+        audio_interrupt_callback,
+        event_queue,
     ):
         logger.info("Received response from Gemini: %s", response)
 
@@ -238,7 +264,9 @@ class GeminiLive:
         if response.go_away:
             logger.info("Received GoAway from Gemini: %s", response.go_away)
         if response.session_resumption_update:
-            logger.info("Session resumption update: %s", response.session_resumption_update)
+            logger.info(
+                "Session resumption update: %s", response.session_resumption_update
+            )
 
         server_content = response.server_content
         if server_content:
@@ -255,13 +283,24 @@ class GeminiLive:
 
     async def _handle_receive_error(self, event_queue, error):
         if getattr(error, "code", None) == 1000:
-            logger.info("receive_loop stopped: Gemini Live connection closed normally (1000)")
+            logger.info(
+                "receive_loop stopped: Gemini Live connection closed normally (1000)"
+            )
             return
 
-        logger.info("receive_loop error: %s: %s\n%s", type(error).__name__, error, traceback.format_exc())
-        await event_queue.put({"type": "error", "error": f"{type(error).__name__}: {error}"})
+        logger.info(
+            "receive_loop error: %s: %s\n%s",
+            type(error).__name__,
+            error,
+            traceback.format_exc(),
+        )
+        await event_queue.put(
+            {"type": "error", "error": f"{type(error).__name__}: {error}"}
+        )
 
-    async def _receive_loop(self, session, audio_output_callback, audio_interrupt_callback, event_queue):
+    async def _receive_loop(
+        self, session, audio_output_callback, audio_interrupt_callback, event_queue
+    ):
         try:
             while True:
                 async for response in session.receive():
@@ -274,7 +313,9 @@ class GeminiLive:
                     )
 
                 # session.receive() iterator ended (e.g. after turn_complete) — re-enter to keep listening
-                logger.info("Gemini receive iterator completed, re-entering receive loop")
+                logger.info(
+                    "Gemini receive iterator completed, re-entering receive loop"
+                )
 
         except asyncio.CancelledError:
             logger.info("receive_loop task cancelled")
@@ -283,19 +324,26 @@ class GeminiLive:
         except ConnectionClosedOK:
             logger.info("receive_loop stopped: Gemini Live connection closed normally")
         except Exception as e:
-            logger.info("receive_loop error: %s: %s\n%s", type(e).__name__, e, traceback.format_exc())
-            await event_queue.put({"type": "error", "error": f"{type(e).__name__}: {e}"})
+            logger.info(
+                "receive_loop error: %s: %s\n%s",
+                type(e).__name__,
+                e,
+                traceback.format_exc(),
+            )
+            await event_queue.put(
+                {"type": "error", "error": f"{type(e).__name__}: {e}"}
+            )
         finally:
             logger.info("receive_loop exiting")
             await event_queue.put(None)
 
     async def start_session(
-            self,
-            audio_input_queue,
-            video_input_queue,
-            text_input_queue,
-            audio_output_callback,
-            audio_interrupt_callback=None
+        self,
+        audio_input_queue,
+        video_input_queue,
+        text_input_queue,
+        audio_output_callback,
+        audio_interrupt_callback=None,
     ):
         config = types.LiveConnectConfig(
             response_modalities=[types.Modality.AUDIO],
@@ -314,14 +362,22 @@ class GeminiLive:
 
         logger.info("Connecting to Gemini Live with model=%s", self.model)
         try:
-            async with self.client.aio.live.connect(model=self.model, config=config) as session:
+            async with self.client.aio.live.connect(
+                model=self.model, config=config
+            ) as session:
                 logger.info("Gemini Live session opened successfully")
 
                 event_queue = asyncio.Queue()
                 tasks = [
-                    asyncio.create_task(self._send_audio_loop(session, audio_input_queue)),
-                    asyncio.create_task(self._send_video_loop(session, video_input_queue)),
-                    asyncio.create_task(self._send_text_loop(session, text_input_queue)),
+                    asyncio.create_task(
+                        self._send_audio_loop(session, audio_input_queue)
+                    ),
+                    asyncio.create_task(
+                        self._send_video_loop(session, video_input_queue)
+                    ),
+                    asyncio.create_task(
+                        self._send_text_loop(session, text_input_queue)
+                    ),
                     asyncio.create_task(
                         self._receive_loop(
                             session,
@@ -349,9 +405,16 @@ class GeminiLive:
                     try:
                         await asyncio.gather(*tasks, return_exceptions=True)
                     except Exception:
-                        logger.info("Error while awaiting cancelled tasks", exc_info=True)
+                        logger.info(
+                            "Error while awaiting cancelled tasks", exc_info=True
+                        )
         except Exception as e:
-            logger.info("Gemini Live session error: %s: %s\n%s", type(e).__name__, e, traceback.format_exc())
+            logger.info(
+                "Gemini Live session error: %s: %s\n%s",
+                type(e).__name__,
+                e,
+                traceback.format_exc(),
+            )
             raise
         finally:
             logger.info("Gemini Live session closed")

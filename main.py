@@ -51,7 +51,13 @@ def _enable_ansi_windows() -> None:
 
 
 class Supervisor:
-    def __init__(self, script: str, restart: bool = True, python: Path | None = None, cwd: Path | None = None) -> None:
+    def __init__(
+        self,
+        script: str,
+        restart: bool = True,
+        python: Path | None = None,
+        cwd: Path | None = None,
+    ) -> None:
         self.script = script
         self.restart = restart
         self._proc: subprocess.Popen | None = None
@@ -124,7 +130,12 @@ class Supervisor:
     def _resolve_python() -> Path:
         """Prefer the venv interpreter if one exists alongside this script."""
         root = Path(__file__).parent
-        venv = root / ".venv" / ("Scripts" if sys.platform == "win32" else "bin") / "python"
+        venv = (
+            root
+            / ".venv"
+            / ("Scripts" if sys.platform == "win32" else "bin")
+            / "python"
+        )
         venv_exe = venv.with_suffix(".exe") if sys.platform == "win32" else venv
         if venv_exe.exists():
             return venv_exe
@@ -137,11 +148,31 @@ def main() -> None:
         description="Start and (optionally) restart a script when it exits.",
         epilog="Examples:\n  python main.py nova.py --no-restart\n  python main.py app.py --python C:/Python39/python.exe",
     )
-    parser.add_argument("script", nargs="?", default="nova.py", help="Script to supervise (default: nova.py)")
-    parser.add_argument("--no-restart", action="store_true", help="Don't restart the script after it exits")
-    parser.add_argument("--python", "-p", dest="python", help="Path to the Python interpreter to run the script with")
-    parser.add_argument("--cwd", dest="cwd", help="Working directory to run the script in (defaults to script's folder)")
-    parser.add_argument("--no-color", action="store_true", help="Disable colored log output")
+    parser.add_argument(
+        "script",
+        nargs="?",
+        default="nova.py",
+        help="Script to supervise (default: nova.py)",
+    )
+    parser.add_argument(
+        "--no-restart",
+        action="store_true",
+        help="Don't restart the script after it exits",
+    )
+    parser.add_argument(
+        "--python",
+        "-p",
+        dest="python",
+        help="Path to the Python interpreter to run the script with",
+    )
+    parser.add_argument(
+        "--cwd",
+        dest="cwd",
+        help="Working directory to run the script in (defaults to script's folder)",
+    )
+    parser.add_argument(
+        "--no-color", action="store_true", help="Disable colored log output"
+    )
 
     args = parser.parse_args()
 
@@ -152,7 +183,9 @@ def main() -> None:
     python_path = Path(args.python) if args.python else None
     cwd = Path(args.cwd).resolve() if args.cwd else None
 
-    sup = Supervisor(script=args.script, restart=not args.no_restart, python=python_path, cwd=cwd)
+    sup = Supervisor(
+        script=args.script, restart=not args.no_restart, python=python_path, cwd=cwd
+    )
 
     def _on_signal(signum, frame) -> None:
         print()

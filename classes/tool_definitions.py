@@ -8,15 +8,14 @@ The google-genai SDK introspects function signatures to generate tool schemas,
 so we define actual Python functions with proper signatures and docstrings.
 """
 
+# Standard library
 import json
 
 from classes.memory import MemoryManager, MemoryType
 
-
 # ==============================================================================
 # Tool Functions (Gemini will introspect these for tool schemas)
 # ==============================================================================
-
 # ==============================================================================
 # VRChat Control Tools (Avatar control via OSC)
 # ==============================================================================
@@ -102,6 +101,7 @@ def move_right(seconds: float):
 # Memory Tools (AI-controlled memory management)
 # ==============================================================================
 
+
 def save_short_term_memory(content: str, tags: list[str] = None):
     """
     Save a short-term memory (temporary, 1-7 days). Use for session-specific info.
@@ -152,7 +152,9 @@ def fetch_quick_notes():
     """Fetch all quick notes. Use to recall recent quick reminders and thoughts."""
 
 
-def update_memory(memory_id: int, content: str = None, tags: list[str] = None, importance: int = None):
+def update_memory(
+    memory_id: int, content: str = None, tags: list[str] = None, importance: int = None
+):
     """
     Update an existing memory.
 
@@ -192,6 +194,7 @@ def capture_screenshot():
 # ==============================================================================
 # Tool Definitions and Mapping
 # ==============================================================================
+
 
 def get_tool_definitions():
     """
@@ -264,6 +267,7 @@ def get_tool_mapping(vrchat_osc, memory_manager=None):
     def _capture_screenshot_impl():
         """Implementation of screenshot capture."""
         from classes.screenshot import ScreenshotManager
+
         screenshot_manager = ScreenshotManager(target_window_name="VRChat")
         jpeg_data = screenshot_manager.capture_screenshot()
         if jpeg_data:
@@ -289,7 +293,9 @@ def get_tool_mapping(vrchat_osc, memory_manager=None):
         "save_quick_note": lambda content, tags=None: memory_manager.store_memory(
             content, MemoryType.QUICK_NOTE, tags
         ),
-        "fetch_all_memories": lambda: _format_memories(memory_manager.fetch_all_memories()),
+        "fetch_all_memories": lambda: _format_memories(
+            memory_manager.fetch_all_memories()
+        ),
         "fetch_short_term_memories": lambda: _format_memories(
             memory_manager.fetch_memories(MemoryType.SHORT_TERM)
         ),
@@ -303,5 +309,7 @@ def get_tool_mapping(vrchat_osc, memory_manager=None):
             memory_id, content, tags, importance
         ),
         "delete_memory": lambda memory_id: memory_manager.delete_memory(memory_id),
-        "search_memories": lambda query: _format_memories(memory_manager.search_memories(query)),
+        "search_memories": lambda query: _format_memories(
+            memory_manager.search_memories(query)
+        ),
     }

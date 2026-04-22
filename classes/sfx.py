@@ -5,6 +5,7 @@ Plays an MP3 at startup. On Windows this uses the WinMM MCI API via
 `mciSendStringW` so no extra dependency is required. Playback runs in a
 background thread so it won't block initialization.
 """
+
 from __future__ import annotations
 
 import ctypes
@@ -29,8 +30,8 @@ def _play_mp3_win32(path: str) -> None:
     abs_path = str(Path(path).resolve())
     # Open, play (wait) and close to ensure resources are freed
     _mci_send(f'open "{abs_path}" type MPEGVideo alias {alias}')
-    _mci_send(f'play {alias} wait')
-    _mci_send(f'close {alias}')
+    _mci_send(f"play {alias} wait")
+    _mci_send(f"close {alias}")
 
 
 def _play_via_start(path: str) -> None:

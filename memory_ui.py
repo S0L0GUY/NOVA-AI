@@ -3,6 +3,7 @@
 from datetime import datetime
 
 import streamlit as st
+
 from classes.memory import MemoryManager, MemoryType
 
 st.set_page_config(page_title="Memory Dashboard", layout="wide")
@@ -21,7 +22,14 @@ manager = get_memory_manager()
 st.sidebar.title("Navigation")
 tab = st.sidebar.radio(
     "Select View",
-    ["Overview", "Short-Term Memories", "Long-Term Memories", "Quick Notes", "Search", "Statistics"],
+    [
+        "Overview",
+        "Short-Term Memories",
+        "Long-Term Memories",
+        "Quick Notes",
+        "Search",
+        "Statistics",
+    ],
 )
 
 st.sidebar.markdown("---")
@@ -45,7 +53,9 @@ if add_form.form_submit_button("➕ Save Memory"):
         "long_term": MemoryType.LONG_TERM,
         "quick_note": MemoryType.QUICK_NOTE,
     }
-    mem_id = manager.store_memory(mem_content, memory_type_map[mem_type], tags, mem_importance)
+    mem_id = manager.store_memory(
+        mem_content, memory_type_map[mem_type], tags, mem_importance
+    )
     st.sidebar.success(f"✅ Memory saved (ID: {mem_id})")
     st.rerun()
 
@@ -56,7 +66,9 @@ def display_memory(memory, col=None):
     with container.container(border=True):
         row1, row2 = st.columns([3, 1])
         with row1:
-            st.subheader(f"#{memory['id']} - {memory['type'].replace('_', ' ').title()}")
+            st.subheader(
+                f"#{memory['id']} - {memory['type'].replace('_', ' ').title()}"
+            )
         with row2:
             if memory.get("importance"):
                 st.caption(f"⭐ {'★' * memory['importance']}")
@@ -69,9 +81,13 @@ def display_memory(memory, col=None):
 
         col1, col2, col3 = st.columns([2, 2, 1])
         with col1:
-            st.caption(f"Created: {datetime.fromisoformat(memory['created_at']).strftime('%Y-%m-%d %H:%M')}")
+            st.caption(
+                f"Created: {datetime.fromisoformat(memory['created_at']).strftime('%Y-%m-%d %H:%M')}"
+            )
         with col2:
-            st.caption(f"Updated: {datetime.fromisoformat(memory['updated_at']).strftime('%Y-%m-%d %H:%M')}")
+            st.caption(
+                f"Updated: {datetime.fromisoformat(memory['updated_at']).strftime('%Y-%m-%d %H:%M')}"
+            )
         with col3:
             if st.button("🗑️ Delete", key=f"delete_{memory['id']}"):
                 if manager.delete_memory(memory["id"]):
@@ -85,7 +101,7 @@ def render_memory_grid(memories, empty_message):
     if memories:
         col1, col2 = st.columns(2)
         for idx, memory in enumerate(memories):
-            with (col1 if idx % 2 == 0 else col2):
+            with col1 if idx % 2 == 0 else col2:
                 display_memory(memory)
     else:
         st.info(empty_message)
@@ -124,7 +140,9 @@ def render_short_term():
 
 def render_long_term():
     st.header("📕 Long-Term Memories (Persistent)")
-    memories = manager.fetch_memories(MemoryType.LONG_TERM, order_by="importance DESC, updated_at DESC")
+    memories = manager.fetch_memories(
+        MemoryType.LONG_TERM, order_by="importance DESC, updated_at DESC"
+    )
     render_memory_grid(memories, "No long-term memories")
 
 

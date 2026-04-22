@@ -10,9 +10,10 @@ from typing import Optional
 
 class MemoryType(Enum):
     """Memory type classifications."""
-    SHORT_TERM = "short_term"      # Temporary, session-specific (1-7 days)
-    LONG_TERM = "long_term"        # Persistent, important (indefinite)
-    QUICK_NOTE = "quick_note"      # Quick thoughts/reminders (1-3 days)
+
+    SHORT_TERM = "short_term"  # Temporary, session-specific (1-7 days)
+    LONG_TERM = "long_term"  # Persistent, important (indefinite)
+    QUICK_NOTE = "quick_note"  # Quick thoughts/reminders (1-3 days)
 
 
 class MemoryManager:
@@ -27,7 +28,8 @@ class MemoryManager:
     def _init_db(self) -> None:
         """Initialize database schema if it doesn't exist."""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS memories (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     type TEXT NOT NULL CHECK(type IN ('short_term', 'long_term', 'quick_note')),
@@ -37,10 +39,15 @@ class MemoryManager:
                     updated_at TEXT NOT NULL,
                     importance INTEGER DEFAULT 1
                 )
-            """)
+            """
+            )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_type ON memories(type)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_created ON memories(created_at)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_importance ON memories(importance)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_created ON memories(created_at)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_importance ON memories(importance)"
+            )
             conn.commit()
 
     def store_memory(
@@ -84,7 +91,7 @@ class MemoryManager:
             # Simple tag matching (any tag present)
             for tag in tags:
                 query += " AND tags LIKE ?"
-                params.append(f'%{tag}%')
+                params.append(f"%{tag}%")
 
         query += f" ORDER BY {order_by}"
 
@@ -113,9 +120,7 @@ class MemoryManager:
         """Fetch all memories of all types."""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
-            cursor = conn.execute(
-                "SELECT * FROM memories ORDER BY updated_at DESC"
-            )
+            cursor = conn.execute("SELECT * FROM memories ORDER BY updated_at DESC")
             rows = cursor.fetchall()
 
         return [
@@ -180,9 +185,7 @@ class MemoryManager:
         """Get a specific memory by ID."""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
-            cursor = conn.execute(
-                "SELECT * FROM memories WHERE id = ?", (memory_id,)
-            )
+            cursor = conn.execute("SELECT * FROM memories WHERE id = ?", (memory_id,))
             row = cursor.fetchone()
 
         if not row:
