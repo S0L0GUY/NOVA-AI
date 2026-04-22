@@ -1,7 +1,8 @@
 """Memory Dashboard UI - Live view and management of AI memories."""
 
-import streamlit as st
 from datetime import datetime
+
+import streamlit as st
 from classes.memory import MemoryManager, MemoryType
 
 st.set_page_config(page_title="Memory Dashboard", layout="wide")

@@ -6,11 +6,11 @@ import classes.config as config
 from classes.audio import AudioManager
 from classes.gemini_live import GeminiLive
 from classes.input_handler import InputHandler
-from classes.osc import VRChatOSC
-from classes.ui import print_startup_logo, handle_event, log
-from classes.tool_definitions import get_tool_definitions, get_tool_mapping
 from classes.memory import MemoryManager
+from classes.osc import VRChatOSC
 from classes.sfx import play_sound_async, wait_for_all
+from classes.tool_definitions import get_tool_definitions, get_tool_mapping
+from classes.ui import handle_event, log, print_startup_logo
 
 # Force unbuffered output for real-time terminal updates
 os.environ["PYTHONUNBUFFERED"] = "1"

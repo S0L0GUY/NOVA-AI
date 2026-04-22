@@ -7,6 +7,7 @@ to JPEG format for sending to the Gemini Live video input queue.
 import ctypes
 import ctypes.wintypes
 import io
+ 
 import mss
 from PIL import Image
 

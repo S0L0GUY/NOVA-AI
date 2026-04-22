@@ -8,6 +8,7 @@ data for async processing via asyncio.run_coroutine_threadsafe().
 import asyncio
 import threading
 import time
+ 
 from classes.screenshot import ScreenshotManager
 
 
@@ -19,13 +20,24 @@ class InputHandler:
     thread-safely queues data into the async event loop for processing.
     """
 
-    def __init__(self, audio_manager, audio_input_queue, text_input_queue, video_input_queue=None, screenshot_interval=1.5):
+    def __init__(
+        self,
+        audio_manager,
+        audio_input_queue,
+        text_input_queue,
+        video_input_queue=None,
+        screenshot_interval=1.5,
+    ):
         self.audio_manager = audio_manager
         self.audio_input_queue = audio_input_queue
         self.text_input_queue = text_input_queue
         self.video_input_queue = video_input_queue
         self.screenshot_interval = screenshot_interval
-        self.screenshot_manager = ScreenshotManager(target_window_name="VRChat") if video_input_queue else None
+        self.screenshot_manager = (
+            ScreenshotManager(target_window_name="VRChat")
+            if video_input_queue
+            else None
+        )
         self.loop: asyncio.AbstractEventLoop | None = None
 
     def start(self, loop: asyncio.AbstractEventLoop) -> None:
@@ -56,7 +68,7 @@ class InputHandler:
         """Read user text input in a loop and queue it for async processing."""
         try:
             while True:
-                user_input = input("\n╰───── › ")
+                user_input = input()
                 if user_input.strip() and self.loop:
                     asyncio.run_coroutine_threadsafe(self.text_input_queue.put(user_input), self.loop)
         except EOFError:

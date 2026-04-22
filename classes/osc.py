@@ -1,6 +1,6 @@
 import asyncio
-import time
 import textwrap
+import time
 
 from pythonosc import udp_client
 

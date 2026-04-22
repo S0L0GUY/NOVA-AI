@@ -1,11 +1,11 @@
 """Multi-level memory system with SQLite backend."""
 
-import sqlite3
 import json
+import sqlite3
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Optional
-from enum import Enum
 
 
 class MemoryType(Enum):

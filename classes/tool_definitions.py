@@ -9,6 +9,7 @@ so we define actual Python functions with proper signatures and docstrings.
 """
 
 import json
+
 from classes.memory import MemoryManager, MemoryType
 
 

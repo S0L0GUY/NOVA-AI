@@ -18,13 +18,13 @@ _BOLD = "\033[1m"
 def log(msg: str, level: str = "info", prefix: str = "") -> None:
     """Print colored log message with standardized formatting."""
     level_symbol = {
-        "info": ("● ├────", _BLUE),
-        "success": ("✓ ├────", _GREEN),
-        "warning": ("⚠ ├────", _YELLOW),
-        "error": ("✗ ├────", _RED),
+        "info": ("├────", _BLUE),
+        "success": ("├────", _GREEN),
+        "warning": ("├────", _YELLOW),
+        "error": ("├────", _RED),
         "user": ("╰───── ›", _CYAN),
-        "gemini": ("● NOVA├─", _GREEN),
-    }.get(level, ("● ├─", _DIM))
+        "gemini": ("├─", _GREEN),
+    }.get(level, ("├─", _DIM))
 
     symbol, color = level_symbol
     if prefix:
@@ -57,14 +57,14 @@ def handle_event(event: dict) -> None:
     elif event_type == "gemini":
         log(f"{event.get('text')}", "gemini")
     elif event_type == "turn_complete":
-        log("Turn complete", "success", prefix="├───↻")
+        log("Turn complete", "success", prefix="├───")
     elif event_type == "interrupted":
-        log("Response interrupted", "warning", prefix="├───⊚")
+        log("Response interrupted", "warning", prefix="├───")
     elif event_type == "tool_call":
         log(
             f"Tool: {event.get('name')} → {event.get('result')}",
             "info",
-            prefix="├───⚙"
+            prefix="├───"
         )
     elif event_type == "error":
         log(f"Error: {event.get('error')}", "error")
