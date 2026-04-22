@@ -1,3 +1,5 @@
+[![](https://dcbadge.limes.pink/api/server/vSxGKpfK8j?style=flat)](https://discord.gg/vSxGKpfK8j)
+
 # NOVA-AI
 
 NOVA-AI is a local-first personal assistant framework that integrates memory, vision, audio, and simple tools to enable rapid experimentation with conversational agents. It includes components for audio I/O, SQLite-backed memory storage, screenshot capture, and simple UI utilities.
