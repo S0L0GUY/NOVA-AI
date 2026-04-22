@@ -1,189 +1,112 @@
-[![](https://dcbadge.limes.pink/api/server/vSxGKpfK8j?style=flat)](https://discord.gg/vSxGKpfK8j)
-# NOVA AI
+# NOVA-AI
 
-/ˈnōvə/ — VRChat AI companion
+NOVA-AI is a local-first personal assistant framework that integrates memory, vision, audio, and simple tools to enable rapid experimentation with conversational agents. It includes components for audio I/O, SQLite-backed memory storage, screenshot capture, and simple UI utilities.
 
-NOVA is a lightweight VRChat assistant that:
+Features
 
-* Listens via **Whisper || GenAI**
-* Uses **GenAI** for language
-* Speaks using **Edge TTS**
-* Supports **multilingual speech, OSC integration**, and **customizable personalities** via prompt files
+- Local memory system persisted in SQLite (`memories.db`)
+- Audio input and output support
+- Screenshot and basic vision logging
+- Simple UI and command-line entry points
 
----
+Requirements
 
-## Table of Contents
+- Python 3.11.9 recomended
+- Dependencies listed in `requirements.txt`
 
-* [Quick Start](#quick-start-windows--powershell)
-* [Configuration](#configuration)
-* [Common Issues & Quick Fixes](#common-issues--quick-fixes)
-* [Advanced Usage](#advanced-usage)
-* [Troubleshooting Tips](#troubleshooting-tips)
-* [Contributing](#contributing)
-* [Contributors](#contributors)
-* [License](#license)
-* [Support](#support)
+Installation
 
----
+1. Clone the repository and change into the project folder.
 
-## Quick Start (Windows / PowerShell)
+```bash
+git clone https://github.com/S0L0GUY/NOVA-AI
+cd NOVA-AI
+```
 
-Recommended: Python 3.11 (create the virtual environment with 3.11 for best compatibility).
+2. Create and activate a virtual environment.
 
-1. **Create & activate virtual environment**
+On Windows (PowerShell):
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 ```
 
-2. **Install dependencies**
+On macOS or Linux:
 
-```powershell
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+3. Install Python dependencies.
+
+```bash
 pip install -r requirements.txt
 ```
 
-3. **Copy & edit environment file**
+Configuration
 
-```powershell
-copy .env.example .env
-# Edit .env and set at least: LLM_API_KEY=your-genai-api-key
-```
+- Copy `config.yaml.example` to `config.yaml` and adjust settings as needed.
+- Configure any API keys or local paths in `config.yaml`.
+- Existing modules load from the `models/`, `sfx/`, and `tts_cache/` folders when applicable.
+- The memory system persists data in a SQLite database file named `memories.db`, which is created in the project/runtime directory when memory is used.
 
-4. *(Optional)* Detect audio devices
+Usage
 
-```powershell
-python list_audio_devices.py
-```
+- Run the main application:
 
-5. **Run NOVA**
-
-```powershell
+```bash
 python main.py
 ```
 
-6. *(Optional)* Run a quick smoke test to verify core components
-
-```powershell
-python smoke_test.py
-```
-
----
-
-## Configuration
-
-- **Runtime options:** `constants.py` (audio indices, `VRC_PORT`, voice, Whisper model, toggles)
-- **Prompt files:**
-
-  * `prompts/normal_system_prompt.txt`
-  * `prompts/vision_prompt.txt`
-
-  Add additional prompt files to the `prompts/` directory to create new
-  personalities or system prompts. Only the files present in the `prompts/`
-  folder are loaded by default.
-- **Whisper model:** `WhisperSettings.MODEL_SIZE` (`tiny|base|small|medium|large`)
-- **TTS voice:** `Voice.VOICE_NAME` (list available voices if needed)
-
-### LM Studio Support (Local LLM)
-
-NOVA AI now supports running with local LLMs via [LM Studio](https://lmstudio.ai/):
-
-1. **Download and install LM Studio** from https://lmstudio.ai/
-2. **Start LM Studio** and load your preferred model
-3. **Enable the API server** in LM Studio (default: http://localhost:1234/v1)
-4. **Configure NOVA** by setting in your `.env` file:
+- Launch the alternative entry point:
 
 ```bash
-LM_STUDIO_ENABLED=true
-LM_STUDIO_BASE_URL=http://localhost:1234/v1
-LM_STUDIO_MODEL=your-loaded-model-name
-LM_STUDIO_TEMPERATURE=0.7
-LM_STUDIO_MAX_TOKENS=4096
+python nova.py
 ```
 
-**Note:** When LM Studio is enabled, NOVA will use your local model instead of GenAI/Together AI. This requires the `openai` package (installed via `requirements.txt`).
+- For a simple memory UI (if available):
 
-**Benefits:**
-- No API costs - runs entirely locally
-- Privacy - data never leaves your machine
-- Customizable models - use any model supported by LM Studio
-- Works offline
-
----
-
-## Common Issues & Quick Fixes
-
-* **No module error:**
-
-```powershell
-pip install --upgrade pip
-pip install -r requirements.txt
+```bash
+python memory_ui.py
 ```
 
-* **GenAI API auth error:** set `LLM_API_KEY` in `.env`
+Project layout
 
-* **ffmpeg warnings:** install ffmpeg and add `ffmpeg\bin` to PATH
+```
+.
+├── classes/            # Core modules: audio, memory, UI, tools
+├── json_files/         # JSON-based state and logs used by some modules
+├── memories.db         # SQLite database used for persistent memory storage
+├── models/             # Model files (not included)
+├── sfx/                # Sound effects used by the app
+├── tts_cache/          # Cached TTS audio
+├── main.py             # Primary entry point
+├── nova.py             # Alternate entry point
+├── memory_ui.py        # Simple memory inspector UI
+├── config.yaml         # Runtime configuration (not committed)
+└── requirements.txt    # Python dependencies
+```
 
-* **VRChat OSC not receiving messages:** enable OSC in VRChat, confirm VRChat is running, ensure `VRC_PORT` matches (default 9000)
+Contributing
 
-* **TTS / language issues:** verify voice name, terminal UTF-8 encoding, try larger Whisper model, or tweak VAD/threshold
+Contributions are welcome. To contribute:
 
-* **Vision features not working:** ensure `VisionSystem.ENABLED = True` and GenAI key is valid
+1. Open an issue to discuss major changes.
+2. Create a feature branch from `main`.
+3. Submit a pull request with a clear description of changes.
 
----
+If you add new dependencies, update `requirements.txt` and include a brief note in the PR.
 
-## Advanced Usage
+License
 
-* **Virtual audio routing:** [use VB-Audio Virtual Cable](https://vb-audio.com/Cable/), update indices in `constants.py`
-* **Multi-instance:** separate project folders & OSC ports, set unique `VRC_PORT`
-* **Development:** follow PEP8, run tests, consider `flake8`. Modular code lives under `classes/`
+Specify the project license in this section, for example MIT. Add a `LICENSE` file in the repository root.
 
-**Branch / Feature Notes**
+Support
 
-This repository may contain feature branches that add or change behavior
-(for example, an audio-generation caching feature). If you're using a
-non-main branch, review the branch/PR notes for any special runtime
-requirements before filing issues.
+Report issues on the repository issue tracker or contact the maintainers listed in the project metadata.
 
----
+Maintainers
 
-## Troubleshooting Tips
-
-1. Check console output for detailed errors
-2. Verify `.env` and API keys
-3. Test components individually (audio list script, minimal config)
-4. Review `constants.py` for misconfig or syntax errors
-
----
-
-## Contributing
-
-1. Fork → create branch → implement → test
-2. Commit & push → open a pull request
-3. Follow PEP8, document changes, add tests
-
----
-
-## Contributors
-
-* **Evan Grinnell** — Project Lead & Core Developer
-* **Duck Song** — Core Contributor
-* **Viscrimson** — Core Contributor
-
----
-
-## License
-
-MIT — see LICENSE
-
----
-
-## Support
-
-
-Star the repo, report issues, suggest features, or open PRs for fixes and improvements, join the discord
-
-
-
-
-
+- Evan Grinnell (S0L0GUY)

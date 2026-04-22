@@ -1,388 +1,300 @@
-"""
-Main module for running the application logic.
-This module initializes various components such as the VRChat OSC,
-WhisperTranscriber, and Together AI client. It sends a startup message to
-VRChat, sets up the system prompt and history, and enters a loop to
-continuously process user speech input and generate AI responses.
+import asyncio
+import os
+import sys
 
-Note: The vision system now runs asynchronously in the background and
-continuously monitors VRChat without waiting for the AI to stop thinking.
-"""
-
-import datetime
-import re
-import time
-from typing import Iterator, List, Optional
-
-from google import genai
-
-import constants as constant
-from classes import adapters, llm_tools
-from classes.edge_tts_wrapper import TextToSpeechManager
-from classes.head_tracker import HeadTracker
-from classes.json_wrapper import JsonWrapper
+import classes.config as config
+from classes.audio import AudioManager
+from classes.gemini_live import GeminiLive
+from classes.input_handler import InputHandler
+from classes.memory import MemoryManager
 from classes.osc import VRChatOSC
-from classes.system_prompt import SystemPrompt
-from classes.vision_manager import VisionManager
+from classes.sfx import play_sound_async, wait_for_all
+from classes.tool_definitions import get_tool_definitions, get_tool_mapping
+from classes.ui import handle_event, log, print_startup_logo
+
+# Force unbuffered output for real-time terminal updates
+os.environ["PYTHONUNBUFFERED"] = "1"
+sys.stdout = type(sys.stdout)(
+    sys.stdout.buffer,  # type: ignore
+    encoding=sys.stdout.encoding,
+    errors="replace",
+    newline=None,
+    write_through=True,
+)
 
 
-def initialize_history() -> list:
-    system_prompt = SystemPrompt.get_full_prompt()
-    now = datetime.datetime.now()
-    history = []
-    memories = JsonWrapper().read_dict(file_path=constant.FilePaths.MEMORY_FILE)
-
-    # Load recent memories into history
-    if memories:
-        recent_memories = list(memories.items())[-20:]
-        for key, value in recent_memories:
-            history.append({"role": "system", "content": f"{key}: {value}"})
-
-    history.append({"role": "system", "content": system_prompt})
-    history.append({"role": "system", "content": f"Today is {now.strftime('%Y-%m-%d')}"})
-    history.append({"role": "user", "content": constant.SystemMessages.INITIAL_USER_MESSAGE})
-
-    return history
-
-
-def initialize_components() -> tuple:
-    """
-    Initializes and sets up the components required for the application.
-    This function creates and configures the following components:
-    - VRChatOSC: Handles communication with VRChat using OSC protocol.
-    - WhisperTranscriber: Manages audio transcription.
-    - System prompt and history: Prepares the initial system prompt and
-    conversation history.
-    - LLM client: Configures either LM Studio or GenAI API client for generating responses.
-    - TextToSpeechManager: Manages text-to-speech functionality.
-    - VisionManager: Manages the vision system.
-    - HeadTracker: Manages avatar head movement.
-    Returns:
-        tuple: A tuple containing the initialized components in the following
-        order:
-            - osc (VRChatOSC): The OSC communication handler.
-            - transcriber (WhisperTranscriber): The audio transcriber.
-            - history (list): The initial conversation history.
-            - client: The LLM client (LM Studio or GenAI).
-            - tts (TextToSpeechManager): The text-to-speech manager.
-            - vision_manager (VisionManager): The vision system manager.
-            - head_tracker (HeadTracker): The head tracking manager.
-    """
-
-    # Use adapters to construct components so each feature is module-adapter backed.
-    osc = adapters.initialize_osc()
-
-    transcriber = adapters.create_transcriber()
-
-    history = initialize_history()
-
-    # Try LM Studio first if enabled, otherwise fall back to GenAI
-    client = adapters.create_lmstudio_client()
-    if client is None:
-        client = adapters.create_genai_client()
-
-    tts = adapters.create_tts(osc)
-
-    # Initialize vision system via adapter
-    vision_manager = adapters.create_vision_manager()
-
-    # Initialize head tracker via adapter
-    head_tracker = adapters.create_head_tracker(osc)
-
-    return osc, transcriber, history, client, tts, vision_manager, head_tracker
-
-
-def chunk_text(text: Optional[str]) -> List[str]:
-    """
-    Args:
-        text (string): The text to break down.
-
-    Returns:
-        string: Text chunk.
-
-    Split the text by sentence-ending punctuation
-    """
-    # Guard against None or non-string inputs
-    if not isinstance(text, str):
-        return []
-
-    text = text.strip()
-    if not text:
-        return []
-
-    # Split on sentence-ending punctuation followed by whitespace (robust to newlines/tabs)
-    chunks = re.split(r"(?<=[.!?])\s+", text)
-
-    return chunks
-
-
-def process_completion(completion: Iterator, osc: VRChatOSC, tts: TextToSpeechManager) -> str:
-    """
-    Processes a streaming completion response, extracts text chunks, and
-    handles output and text-to-speech functionality.
-    handles output and text-to-speech functionality.
-    Args:
-        completion (iter): An iterable object containing streaming completion
-                            data. Each chunk is expected to have a `choices`
-                            attribute with a `delta.content` field containing
-                            the text.
-        osc (object): An object responsible for managing the typing indicator.
-                      It should have a `set_typing_indicator` method.
-        tts (object): An object responsible for text-to-speech functionality.
-                      It should have `add_to_queue` and `is_idle` methods.
-    Returns:
-        str: The full response text generated from the completion.
-    """
-
-    """
-    Accepts either a streaming iterator of chunks (SDK streaming) or a
-    completed response object containing `.text`. Handles extracting text,
-    splitting into sentence chunks, printing, and queuing TTS. Returns the
-    full response text.
-    """
-
-    osc.set_typing_indicator(True)
-
-    # Helper to consume a plain text string and queue TTS
-    def handle_text(text: str) -> str:
-        full = ""
-        for sentence in chunk_text(text):
-            full += f" {sentence}"
-            print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
-            tts.add_to_queue(sentence)
-        return full
-
-    full_response = ""
-
-    # If the completion is a single response object with .text, handle it
-    if hasattr(completion, "text"):
-        full_response = handle_text(completion.text)
-    else:
-        # Otherwise attempt to iterate streaming-like chunks. Support both
-        # Google GenAI streaming chunks (chunk.text) and fallback to OpenAI
-        # style chunks (choices[0].delta.content) if present.
-        buffer = ""
-        for chunk in completion:
-            text_piece = None
-            # google-genai streaming chunk
-            if hasattr(chunk, "text") and chunk.text:
-                text_piece = chunk.text
-            else:
-                # try OpenAI-like delta access (backwards-compat)
-                try:
-                    text_piece = chunk.choices[0].delta.content
-                except (AttributeError, IndexError):
-                    text_piece = None
-
-            if not text_piece:
-                continue
-
-            buffer += text_piece
-            sentence_chunks = chunk_text(buffer)
-
-            while len(sentence_chunks) > 1:
-                sentence = sentence_chunks.pop(0)
-                full_response += f" {sentence}"
-                print(f"\033[93mAI:\033[0m \033[92m{sentence}\033[0m")
-                tts.add_to_queue(sentence)
-
-            buffer = sentence_chunks[0] if sentence_chunks else ""
-
-        if buffer:
-            full_response += f" {buffer}"
-            print(f"\033[93mAI:\033[0m \033[92m{buffer}\033[0m")
-            tts.add_to_queue(buffer)
-
-    # Wait until TTS finished speaking
-    while not tts.is_idle():
-        time.sleep(0.1)
-
-    return full_response
-
-
-def add_vision_updates_to_history(history: list, vision_manager: VisionManager) -> list:
-    """
-    Add any new vision updates to the conversation history.
-
-    Args:
-        history (list): Current conversation history
-        vision_manager (VisionManager): The vision manager instance
-
-    Returns:
-        list: Updated history with vision updates added as system messages
-    """
-    vision_updates = vision_manager.get_new_vision_updates()
-
-    for update in vision_updates:
-        vision_message = {"role": "system", "content": update}
-        history.append(vision_message)
-
-        print(f"\033[96m[VISION]\033[0m \033[94m{update}\033[0m")
-
-    return history
-
-
-def get_current_model(client: object, vision_manager: VisionManager) -> str:
-    """
-    Returns the current language model to use based on the client type.
-
-    Args:
-        client (object): The LLM client instance (GenAI or LM Studio).
-        vision_manager (object): The vision manager instance (for cleanup if needed).
-
-    Returns:
-        str: The ID of the selected language model from constants.
-    """
-    # Check if using LM Studio client
-    if hasattr(client, 'chat'):
-        return constant.LMStudioConfig.MODEL
-    
-    return constant.LanguageModel.MODEL_ID
-
-
-def generate_contents(history: list) -> list:
-    """
-    Converts the chat-style conversation history into the GenAI SDK `contents` format,
-    mapping roles appropriately for GenAI ('user' or 'model').
-
-    Args:
-        history (list): List of message dictionaries, each with 'role' and 'content' keys.
-
-    Returns:
-        list: List of GenAI Content objects (or raw text strings if construction fails),
-              with roles mapped to 'user' or 'model' as required by the SDK.
-    """
-    # Convert the existing chat-style `history` into the GenAI SDK
-    # `contents` format. Each history entry becomes a Content with a
-    # text Part so the SDK receives role-aware inputs.
-    contents = []
-    for msg in history:
-        text = msg.get("content", "")
-        # Map roles from chat format to GenAI allowed roles ('user' or 'model')
-        role = msg.get("role", "user")
-        if role != "user":
-            # GenAI accepts 'user' and 'model' for content.role; map everything
-            # that's not 'user' to 'model' (assistant/system -> model).
-            role = "model"
-
-        try:
-            part = genai.types.Part.from_text(text=text)
-            content = genai.types.Content(role=role, parts=[part])
-            contents.append(content)
-        except (AttributeError, TypeError) as e:
-            # Fallback: if types are unavailable or construction fails, log a warning and pass raw text
-            print(f"Warning: Failed to construct GenAI content object for role '{role}': {e}. Appending raw text as fallback.")
-            contents.append(text)
-
-    return contents
-
-
-def generate_with_client(client, contents, current_model, config=None):
-    """
-    Unified generation function that supports both LM Studio (OpenAI) and GenAI clients.
-    
-    Args:
-        client: Either an OpenAI client (LM Studio) or GenAI client
-        contents: The conversation contents/messages
-        current_model: The model ID to use
-        config: Optional generation config (for GenAI)
-    
-    Returns:
-        Response object with .text attribute or iterator for streaming
-    """
-    # Check if this is an LM Studio client (OpenAI style)
-    if hasattr(client, 'chat'):
-        # LM Studio / OpenAI client
-        messages = []
-        for content in contents:
-            if hasattr(content, 'role') and hasattr(content, 'parts'):
-                # GenAI Content object
-                role = 'assistant' if content.role == 'model' else content.role
-                text = content.parts[0].text if content.parts else ''
-                messages.append({"role": role, "content": text})
-            elif isinstance(content, dict):
-                role = content.get('role', 'user')
-                if role == 'model':
-                    role = 'assistant'
-                messages.append({"role": role, "content": content.get('content', '')})
-            else:
-                messages.append({"role": 'user', "content": str(content)})
-        
-        response = client.chat.completions.create(
-            model=current_model,
-            messages=messages,
-            temperature=constant.LMStudioConfig.TEMPERATURE,
-            max_tokens=constant.LMStudioConfig.MAX_TOKENS,
-            stream=True
-        )
-        return response
-    else:
-        # GenAI client
-        if config is None:
-            config = llm_tools.get_generate_config()
-        return client.models.generate_content(model=current_model, contents=contents, config=config)
-
-
-def run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber, head_tracker: Optional[HeadTracker] = None) -> None:
-
-    # Start head tracker if available
-    if head_tracker:
-        head_tracker.start()
+async def _banner_resend_loop(vrchat_osc: "VRChatOSC", is_talking: dict) -> None:
+    """Periodically resend banner every 5 seconds when not talking (VRChat OSC compliance)."""
+    banner_text = "-----------------------"
+    banner_text += "\nCome talk to me!"
+    banner_text += "\n-----------------------"
+    banner_text += "\nVRChat AI Assistant"
+    banner_text += "\n-----------------------"
 
     while True:
-        osc.send_message("Thinking")
-        osc.set_typing_indicator(True)
-
-        if not history:
-            history = initialize_history()
-
-        # Check for vision updates before generating response
-        history = add_vision_updates_to_history(history, vision_manager)
-
-        contents = generate_contents(history)
-
-        # Use unified generation that supports both LM Studio and GenAI
-        config = llm_tools.get_generate_config()
-        response = generate_with_client(client, contents, current_model, config)
-
-        # Create the new message and add it to the history
-        new_message = {"role": "assistant", "content": ""}
-        full_response = process_completion(response, osc, tts)
-        new_message["content"] = full_response
-        history.append(new_message)
-
-        # Get user speech input
-        user_speech = ""
-        while not user_speech:
-            osc.send_message("Listening")
-            osc.set_typing_indicator(False)
-            user_speech = transcriber.get_user_input(osc)
-
-        # Add user speech to history
-        print(f"\033[93mHUMAN:\033[0m \033[92m{user_speech}\033[0m")
-        user_speech = {"role": "user", "content": user_speech}
-        history.append(user_speech)
-
-        # Update history
-        JsonWrapper.write(constant.FilePaths.HISTORY_PATH, history)
-        history = JsonWrapper.read_json(constant.FilePaths.HISTORY_PATH)
-
-        osc.send_message("Thinking")
-        osc.set_typing_indicator(True)
+        try:
+            if not is_talking["active"]:
+                vrchat_osc.send_message(banner_text)
+            await asyncio.sleep(5.0)
+        except Exception as e:
+            log(f"Banner resend error: {e}", "error")
+            await asyncio.sleep(5.0)
 
 
-def main() -> None:
-    # Initialise the components
-    components = initialize_components()
-    osc, transcriber, history, client, tts, vision_manager, head_tracker = components
+async def _run_gemini_session(
+    gemini_live,
+    audio_manager,
+    input_handler,
+    vrchat_osc,
+    context: dict,
+) -> None:
+    """Run the Gemini Live event loop and route outputs to VRChat/Audio.
 
-    # Whip the old history file
-    JsonWrapper.wipe_json(constant.FilePaths.HISTORY_PATH)
+    This helper keeps the main entrypoint small so linting tools flag
+    fewer complexity issues.
+    """
+    gemini_response_chunks: list[str] = []
+    last_displayed_length = 0
+    is_typing = False
 
-    current_model = get_current_model(client, vision_manager)
+    loop = asyncio.get_running_loop()
+    input_handler.start(loop)
 
-    run_main_loop(osc, history, vision_manager, client, tts, current_model, transcriber, head_tracker)
+    queues = {
+        "audio": context.get("audio_input_queue"),
+        "video": context.get("video_input_queue"),
+        "text": context.get("text_input_queue"),
+    }
+
+    async for event in gemini_live.start_session(
+        audio_input_queue=queues["audio"],
+        video_input_queue=queues["video"],
+        text_input_queue=queues["text"],
+        audio_output_callback=audio_manager.write_audio_chunk,
+        audio_interrupt_callback=audio_manager.interrupt_output,
+    ):
+        handle_event(event)
+
+        if not vrchat_osc:
+            continue
+
+        if event.get("type") == "gemini":
+            text = event.get("text", "")
+            if not text:
+                continue
+
+            context["is_talking"]["active"] = True
+            last_displayed_length, is_typing = await _on_gemini_text(
+                text,
+                gemini_response_chunks,
+                last_displayed_length,
+                vrchat_osc,
+                is_typing,
+            )
+
+        elif event.get("type") == "turn_complete":
+            await _on_turn_complete(
+                gemini_response_chunks,
+                vrchat_osc,
+                last_displayed_length,
+                context,
+            )
+            last_displayed_length = 0
+
+
+async def _on_gemini_text(
+    text: str,
+    gemini_response_chunks: list[str],
+    last_displayed_length: int,
+    vrchat_osc: "VRChatOSC",
+    is_typing: bool,
+) -> tuple[int, bool]:
+    """Handle incoming text chunks from Gemini and paginate to VRChat."""
+    try:
+        if not is_typing:
+            try:
+                vrchat_osc.set_typing_indicator(True)
+                is_typing = True
+            except Exception:
+                pass
+
+        gemini_response_chunks.append(text)
+        full_response = "".join(gemini_response_chunks)
+        if len(full_response) - last_displayed_length > 100:
+            pages = vrchat_osc.send_chatbox_paginated(full_response)
+            if pages:
+                await vrchat_osc.display_pages(pages)
+                last_displayed_length = len(full_response)
+    except Exception:
+        pass
+
+    return last_displayed_length, is_typing
+
+
+async def _on_turn_complete(
+    gemini_response_chunks: list[str],
+    vrchat_osc: "VRChatOSC",
+    last_displayed_length: int,
+    context: dict,
+) -> None:
+    """Handle end-of-turn cleanup and final pagination to VRChat."""
+    try:
+        try:
+            vrchat_osc.set_typing_indicator(False)
+            context["is_typing"] = False
+        except Exception:
+            pass
+
+        full_response = "".join(gemini_response_chunks).strip()
+        gemini_response_chunks.clear()
+        if full_response and len(full_response) > last_displayed_length:
+            pages = vrchat_osc.send_chatbox_paginated(full_response)
+            if pages:
+                await vrchat_osc.display_pages(pages)
+    finally:
+        context["is_talking"]["active"] = False
+
+
+def _try_play_startup_sound() -> None:
+    """Play the startup SFX if present, swallow errors."""
+    try:
+        startup_mp3 = os.path.join(
+            os.path.dirname(__file__), "sfx", "startup_sound.mp3"
+        )
+        if os.path.exists(startup_mp3):
+            play_sound_async(startup_mp3)
+    except Exception:
+        log("Startup sound error", "warning")
+
+
+def _init_resources(cfg: config.Config) -> dict:
+    """Initialize optional resources (OSC, memory, tools) and return as a dict.
+
+    Returns a map with keys: `vrchat_osc`, `memory_manager`, `tools`, `tool_mapping`.
+    """
+    vrchat_osc = (
+        VRChatOSC(cfg.get_osc_ip, cfg.get_osc_port) if cfg.get_osc_enabled else None
+    )
+    memory_manager = MemoryManager()
+    tools = None
+    tool_mapping = None
+    if vrchat_osc:
+        tools = get_tool_definitions()
+        tool_mapping = get_tool_mapping(vrchat_osc, memory_manager)
+    return {
+        "vrchat_osc": vrchat_osc,
+        "memory_manager": memory_manager,
+        "tools": tools,
+        "tool_mapping": tool_mapping,
+    }
+
+
+async def main() -> None:
+    """
+    Main entry point for NOVA-AI.
+
+    Orchestrates the initialization of all components:
+    - Config loading from YAML files
+    - Audio input/output management
+    - Gemini Live session for multimodal AI interaction
+    - VRChat OSC integration for avatar control and chatbox
+    - Input handling for keyboard/microphone input
+
+    Processes Gemini Live events and routes responses to VRChat chatbox.
+    """
+    print_startup_logo()
+
+    # Load configuration
+    cfg = config.Config()
+    if not cfg.get_gemini_api_key or not cfg.get_gemini_model:
+        log("Missing GEMINI_API_KEY or MODEL in config.yaml", "error")
+        return
+
+    # Initialize audio
+    audio_manager = AudioManager()
+    audio_manager.initialize()
+
+    # Play startup sound (non-blocking) if present in the `sfx/` folder
+    _try_play_startup_sound()
+
+    # Create communication queues for different input types
+    audio_input_queue = asyncio.Queue()
+    text_input_queue = asyncio.Queue()
+    video_input_queue = asyncio.Queue()
+
+    # Initialize input handler with video queue for screenshots
+    input_handler = InputHandler(
+        audio_manager, audio_input_queue, text_input_queue, video_input_queue
+    )
+
+    # Initialize optional resources (OSC, memory, tools)
+    resources = _init_resources(cfg)
+    vrchat_osc = resources["vrchat_osc"]
+
+    # Initialize Gemini Live for multimodal AI interaction
+    gemini_live = GeminiLive(
+        api_key=cfg.get_gemini_api_key,
+        model=cfg.get_gemini_model,
+        input_sample_rate=AudioManager.SAMPLE_RATE_INPUT,
+        system_instruction=cfg.get_system_prompt,
+        voice_name=cfg.get_gemini_voice,
+        tools=resources["tools"],
+        tool_mapping=resources["tool_mapping"],
+    )
+    # The heavy event-processing logic is moved to a helper to reduce
+    # complexity of `main` for linting and readability.
+
+    # Shared runtime context used by helper functions
+    context = {
+        "audio_input_queue": audio_input_queue,
+        "video_input_queue": video_input_queue,
+        "text_input_queue": text_input_queue,
+        "is_talking": {"active": False},
+        "is_typing": False,
+    }
+
+    # Start banner resend loop if OSC is enabled
+    banner_task = None
+    if vrchat_osc:
+        banner_task = asyncio.create_task(
+            _banner_resend_loop(vrchat_osc, context["is_talking"])
+        )
+
+    log("Starting Gemini Live session", "info")
+
+    try:
+        await _run_gemini_session(
+            gemini_live=gemini_live,
+            audio_manager=audio_manager,
+            input_handler=input_handler,
+            vrchat_osc=vrchat_osc,
+            context=context,
+        )
+    except Exception as e:
+        log(f"Session error: {e}", "error")
+        # Play error sound if available (non-blocking)
+        try:
+            error_mp3 = os.path.join(
+                os.path.dirname(__file__), "sfx", "error_sound.mp3"
+            )
+            if os.path.exists(error_mp3):
+                play_sound_async(error_mp3)
+        except Exception:
+            pass
+        import traceback
+
+        traceback.print_exc()
+    finally:
+        audio_manager.cleanup()
+        # Wait briefly for any outstanding SFX playback to finish so
+        # daemon/thread shutdown races don't trigger interpreter errors.
+        try:
+            wait_for_all(timeout=3.0)
+        except Exception:
+            pass
+        if banner_task:
+            banner_task.cancel()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
