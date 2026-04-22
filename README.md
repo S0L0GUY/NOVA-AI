@@ -1,10 +1,10 @@
 # NOVA-AI
 
-NOVA-AI is a local-first personal assistant framework that integrates memory, vision, audio, and simple tools to enable rapid experimentation with conversational agents. It includes components for audio I/O, memory storage, screenshot capture, and simple UI utilities.
+NOVA-AI is a local-first personal assistant framework that integrates memory, vision, audio, and simple tools to enable rapid experimentation with conversational agents. It includes components for audio I/O, SQLite-backed memory storage, screenshot capture, and simple UI utilities.
 
 Features
 
-- Local memory system with JSON storage
+- Local memory system persisted in SQLite (`memories.db`)
 - Audio input and output support
 - Screenshot and basic vision logging
 - Simple UI and command-line entry points
@@ -50,6 +50,7 @@ Configuration
 - Copy `config.yaml.example` to `config.yaml` and adjust settings as needed.
 - Configure any API keys or local paths in `config.yaml`.
 - Existing modules load from the `models/`, `sfx/`, and `tts_cache/` folders when applicable.
+- The memory system persists data in a SQLite database file named `memories.db`, which is created in the project/runtime directory when memory is used.
 
 Usage
 
@@ -76,7 +77,8 @@ Project layout
 ```
 .
 ├── classes/            # Core modules: audio, memory, UI, tools
-├── json_files/         # Persistent JSON state and logs
+├── json_files/         # JSON-based state and logs used by some modules
+├── memories.db         # SQLite database used for persistent memory storage
 ├── models/             # Model files (not included)
 ├── sfx/                # Sound effects used by the app
 ├── tts_cache/          # Cached TTS audio
