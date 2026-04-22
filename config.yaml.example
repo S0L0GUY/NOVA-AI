@@ -1,0 +1,11 @@
+gemini:
+  API_key: "YOUR_GOOGLE_API_KEY"
+  model: "gemini-3.1-flash-live-preview"
+  voice: "Leda" # Leda Despina
+osc:
+  enabled: true
+  ip: "127.0.0.1"
+  port: 9000
+  receive_port: 9001
+prompt:
+  name: "therapeutic_prompt" # Set to your prompt of choice in the prompt.yaml file

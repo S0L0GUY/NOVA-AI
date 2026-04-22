@@ -1,79 +1,110 @@
-# Project Name
+# NOVA-AI
 
-Brief description of what your project does.
+NOVA-AI is a local-first personal assistant framework that integrates memory, vision, audio, and simple tools to enable rapid experimentation with conversational agents. It includes components for audio I/O, memory storage, screenshot capture, and simple UI utilities.
 
-## Features
+Features
 
-- Feature 1
-- Feature 2
-- Feature 3
+- Local memory system with JSON storage
+- Audio input and output support
+- Screenshot and basic vision logging
+- Simple UI and command-line entry points
 
-## Requirements
+Requirements
 
-- Python 3.11
-- Other dependencies listed here
+- Python 3.11.9 recomended
+- Dependencies listed in `requirements.txt`
 
-## Installation
+Installation
+
+1. Clone the repository and change into the project folder.
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd <project-directory>
+git clone https://github.com/S0L0GUY/NOVA-AI
+cd NOVA-AI
+```
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+2. Create and activate a virtual environment.
 
-# Install dependencies
+On Windows (PowerShell):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+On macOS or Linux:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+3. Install Python dependencies.
+
+```bash
 pip install -r requirements.txt
 ```
 
-## Configuration
+Configuration
 
-Describe any configuration steps or files needed. For example:
+- Copy `config.yaml.example` to `config.yaml` and adjust settings as needed.
+- Configure any API keys or local paths in `config.yaml`.
+- Existing modules load from the `models/`, `sfx/`, and `tts_cache/` folders when applicable.
 
-- Copy `config.yaml.example` to `config.yaml`
-- Set environment variables
-- API key setup
+Usage
 
-## Usage
-
-Provide examples of how to use the project:
+- Run the main application:
 
 ```bash
 python main.py
 ```
 
-Or with options:
+- Launch the alternative entry point:
 
 ```bash
-python main.py --option value
+python nova.py
 ```
 
-## Project Structure
+- For a simple memory UI (if available):
+
+```bash
+python memory_ui.py
+```
+
+Project layout
 
 ```
 .
-├── classes/          # Core classes and modules
-├── main.py          # Entry point
-├── config.yaml      # Configuration file
-├── requirements.txt # Python dependencies
-└── README.md        # This file
+├── classes/            # Core modules: audio, memory, UI, tools
+├── json_files/         # Persistent JSON state and logs
+├── models/             # Model files (not included)
+├── sfx/                # Sound effects used by the app
+├── tts_cache/          # Cached TTS audio
+├── main.py             # Primary entry point
+├── nova.py             # Alternate entry point
+├── memory_ui.py        # Simple memory inspector UI
+├── config.yaml         # Runtime configuration (not committed)
+└── requirements.txt    # Python dependencies
 ```
 
-## Contributors
+Contributing
 
-    1. Evan Grinnell (S0L0GUY)
-    2. BarricadeBandit
+Contributions are welcome. To contribute:
 
-## Contributing
+1. Open an issue to discuss major changes.
+2. Create a feature branch from `main`.
+3. Submit a pull request with a clear description of changes.
 
-Guidelines for contributing to this project.
+If you add new dependencies, update `requirements.txt` and include a brief note in the PR.
 
-## License
+License
 
-Specify the license (e.g., MIT, Apache 2.0, etc.)
+Specify the project license in this section, for example MIT. Add a `LICENSE` file in the repository root.
 
-## Support
+Support
 
-How to get help or report issues.
+Report issues on the repository issue tracker or contact the maintainers listed in the project metadata.
+
+Maintainers
+
+- Evan Grinnell (S0L0GUY)
