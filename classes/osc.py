@@ -66,7 +66,7 @@ class VRChatOSC:
             self.send_message(page)
             await asyncio.sleep(delay_seconds)
 
-    def look_left(self, seconds: float):
+    async def look_left(self, seconds: float):
         """
         Sends a command to make the avatar look left by a specified angle.
         Args:
@@ -74,10 +74,10 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/LookLeft", 1)
-        time.sleep(seconds)
+        await asyncio.sleep(seconds)
         self.client.send_message("/input/LookLeft", 0)
 
-    def look_right(self, seconds: float):
+    async def look_right(self, seconds: float):
         """
         Sends a command to make the avatar look right by a specified angle.
         Args:
@@ -85,16 +85,16 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/LookRight", 1)
-        time.sleep(seconds)
+        await asyncio.sleep(seconds)
         self.client.send_message("/input/LookRight", 0)
 
-    def jump(self):
+    async def jump(self):
         """
         Sends a command to make the avatar jump.
         """
 
         self.client.send_message("/input/Jump", 1)
-        time.sleep(0.1)
+        await asyncio.sleep(0.1)
         self.client.send_message("/input/Jump", 0)
 
     def send_osc(self, address: str, value):
@@ -106,7 +106,7 @@ class VRChatOSC:
         """
         self.client.send_message(address, value)
 
-    def move_forward(self, seconds: float):
+    async def move_forward(self, seconds: float):
         """
         Sends a command to make the avatar move forward.
         Args:
@@ -114,10 +114,10 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/MoveForward", 1)
-        time.sleep(seconds)
+        await asyncio.sleep(seconds)
         self.client.send_message("/input/MoveForward", 0)
 
-    def move_backward(self, seconds: float):
+    async def move_backward(self, seconds: float):
         """
         Sends a command to make the avatar move backward.
         Args:
@@ -125,7 +125,7 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/MoveBackward", 1)
-        time.sleep(seconds)
+        await asyncio.sleep(seconds)
         self.client.send_message("/input/MoveBackward", 0)
 
     def move_left(self, seconds: float):
@@ -139,7 +139,7 @@ class VRChatOSC:
         time.sleep(seconds)
         self.client.send_message("/input/MoveLeft", 0)
 
-    def move_right(self, seconds: float):
+    async def move_right(self, seconds: float):
         """
         Sends a command to make the avatar strafe right.
         Args:

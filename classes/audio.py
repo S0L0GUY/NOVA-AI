@@ -67,6 +67,9 @@ class AudioManager:
 
     def read_audio_chunk(self) -> bytes:
         """Read a audio frame from the microphone (blocking)."""
+        if self.input_stream is None:
+            raise RuntimeError("Input stream not initialized. Call initialize() first.")
+
         return self.input_stream.read(self.CHUNK_SIZE, exception_on_overflow=False)
 
     def write_audio_chunk(self, data: bytes) -> None:

@@ -5,6 +5,7 @@ Captures screenshots of the screen or specific windows and converts them
 to JPEG format for sending to the Gemini Live video input queue.
 """
 import ctypes
+import ctypes.wintypes
 import io
 import mss
 from PIL import Image
@@ -142,4 +143,3 @@ class ScreenshotManager:
         except Exception as e:
             print(f"JPEG conversion error: {e}")
             return None
-

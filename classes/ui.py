@@ -4,8 +4,6 @@ ui.py: Terminal UI and event display handling.
 Provides visual feedback in the terminal about conversation events and NOVA status.
 """
 
-import sys
-
 _DIM = "\033[2m"
 _RED = "\033[91m"
 _YELLOW = "\033[93m"
@@ -20,18 +18,18 @@ _BOLD = "\033[1m"
 def log(msg: str, level: str = "info", prefix: str = "") -> None:
     """Print colored log message with standardized formatting."""
     level_symbol = {
-        "info": ("●", _BLUE),
-        "success": ("✓", _GREEN),
-        "warning": ("⚠", _YELLOW),
-        "error": ("✗", _RED),
-        "user": ("▶", _CYAN),
-        "gemini": ("◇", _GREEN),
-    }.get(level, ("●", _DIM))
-    
+        "info": ("● ├────", _BLUE),
+        "success": ("✓ ├────", _GREEN),
+        "warning": ("⚠ ├────", _YELLOW),
+        "error": ("✗ ├────", _RED),
+        "user": ("╰───── ›", _CYAN),
+        "gemini": ("● NOVA├─", _GREEN),
+    }.get(level, ("● ├─", _DIM))
+
     symbol, color = level_symbol
     if prefix:
         symbol = prefix
-    
+
     print(f"{color}{_BOLD}{symbol}{_RST} {color}{msg}{_RST}", flush=True)
 
 
@@ -57,16 +55,16 @@ def handle_event(event: dict) -> None:
     if event_type == "user":
         log(f"User: {event.get('text')}", "user")
     elif event_type == "gemini":
-        log(f"NOVA: {event.get('text')}", "gemini")
+        log(f"{event.get('text')}", "gemini")
     elif event_type == "turn_complete":
-        log("Turn complete", "success", prefix="↻")
+        log("Turn complete", "success", prefix="├───↻")
     elif event_type == "interrupted":
-        log("Response interrupted", "warning", prefix="⊚")
+        log("Response interrupted", "warning", prefix="├───⊚")
     elif event_type == "tool_call":
         log(
             f"Tool: {event.get('name')} → {event.get('result')}",
             "info",
-            prefix="⚙"
+            prefix="├───⚙"
         )
     elif event_type == "error":
         log(f"Error: {event.get('error')}", "error")

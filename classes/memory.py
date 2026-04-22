@@ -63,7 +63,7 @@ class MemoryManager:
                 (memory_type.value, content, tags_json, now, now, importance),
             )
             conn.commit()
-            return cursor.lastrowid
+            return cursor.lastrowid  # type: ignore
 
     def fetch_memories(
         self,
@@ -83,7 +83,7 @@ class MemoryManager:
         if tags:
             # Simple tag matching (any tag present)
             for tag in tags:
-                query += f" AND tags LIKE ?"
+                query += " AND tags LIKE ?"
                 params.append(f'%{tag}%')
 
         query += f" ORDER BY {order_by}"

@@ -3,10 +3,10 @@
 import streamlit as st
 from datetime import datetime
 from classes.memory import MemoryManager, MemoryType
-import json
 
 st.set_page_config(page_title="Memory Dashboard", layout="wide")
 st.title("🧠 AI Memory Dashboard")
+
 
 # Initialize memory manager
 @st.cache_resource
@@ -79,7 +79,18 @@ def display_memory(memory, col=None):
 
 
 # Main content area
-if tab == "Overview":
+def render_memory_grid(memories, empty_message):
+    """Render memories in a two-column responsive grid."""
+    if memories:
+        col1, col2 = st.columns(2)
+        for idx, memory in enumerate(memories):
+            with (col1 if idx % 2 == 0 else col2):
+                display_memory(memory)
+    else:
+        st.info(empty_message)
+
+
+def render_overview():
     st.header("Memory Overview")
 
     stats = manager.get_stats()
@@ -103,43 +114,26 @@ if tab == "Overview":
     else:
         st.info("No memories yet. Start by adding one!")
 
-elif tab == "Short-Term Memories":
+
+def render_short_term():
     st.header("📗 Short-Term Memories (1-7 days)")
     memories = manager.fetch_memories(MemoryType.SHORT_TERM)
+    render_memory_grid(memories, "No short-term memories")
 
-    if memories:
-        col1, col2 = st.columns(2)
-        for idx, memory in enumerate(memories):
-            with (col1 if idx % 2 == 0 else col2):
-                display_memory(memory)
-    else:
-        st.info("No short-term memories")
 
-elif tab == "Long-Term Memories":
+def render_long_term():
     st.header("📕 Long-Term Memories (Persistent)")
     memories = manager.fetch_memories(MemoryType.LONG_TERM, order_by="importance DESC, updated_at DESC")
+    render_memory_grid(memories, "No long-term memories")
 
-    if memories:
-        col1, col2 = st.columns(2)
-        for idx, memory in enumerate(memories):
-            with (col1 if idx % 2 == 0 else col2):
-                display_memory(memory)
-    else:
-        st.info("No long-term memories")
 
-elif tab == "Quick Notes":
+def render_quick_notes():
     st.header("📙 Quick Notes (1-3 days)")
     memories = manager.fetch_memories(MemoryType.QUICK_NOTE)
+    render_memory_grid(memories, "No quick notes")
 
-    if memories:
-        col1, col2 = st.columns(2)
-        for idx, memory in enumerate(memories):
-            with (col1 if idx % 2 == 0 else col2):
-                display_memory(memory)
-    else:
-        st.info("No quick notes")
 
-elif tab == "Search":
+def render_search():
     st.header("🔍 Search Memories")
     query = st.text_input("Search by content or tags")
 
@@ -153,7 +147,8 @@ elif tab == "Search":
         else:
             st.warning("No memories found matching your search")
 
-elif tab == "Statistics":
+
+def render_statistics():
     st.header("📊 Memory Statistics")
 
     stats = manager.get_stats()
@@ -185,3 +180,19 @@ elif tab == "Statistics":
         st.markdown("---")
         st.subheader("📝 All Memories (JSON Export)")
         st.json(all_memories)
+
+
+TAB_RENDERERS = {
+    "Overview": render_overview,
+    "Short-Term Memories": render_short_term,
+    "Long-Term Memories": render_long_term,
+    "Quick Notes": render_quick_notes,
+    "Search": render_search,
+    "Statistics": render_statistics,
+}
+
+render_tab = TAB_RENDERERS.get(tab)
+if render_tab:
+    render_tab()
+else:
+    st.error("Unknown view selected.")
