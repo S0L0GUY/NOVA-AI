@@ -130,7 +130,7 @@ class VRChatOSC:
         await asyncio.sleep(seconds)
         self.client.send_message("/input/MoveBackward", 0)
 
-    def move_left(self, seconds: float):
+    async def move_left(self, seconds: float):
         """
         Sends a command to make the avatar strafe left.
         Args:
@@ -138,7 +138,7 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/MoveLeft", 1)
-        time.sleep(seconds)
+        await asyncio.sleep(seconds)
         self.client.send_message("/input/MoveLeft", 0)
 
     async def move_right(self, seconds: float):
@@ -149,5 +149,5 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/MoveRight", 1)
-        time.sleep(seconds)
+        await asyncio.sleep(seconds)
         self.client.send_message("/input/MoveRight", 0)
