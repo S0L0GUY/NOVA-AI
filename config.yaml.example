@@ -8,4 +8,4 @@ osc:
   port: 9000
   receive_port: 9001
 prompt:
-  name: "therapeutic_prompt" # Set to your prompt of choice in the prompt.yaml file
+  name: "regular_prompt" # Set to your prompt of choice in the prompt.yaml file

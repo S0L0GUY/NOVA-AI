@@ -50,9 +50,10 @@ pip install -r requirements.txt
 Configuration
 
 - Copy `config.yaml.example` to `config.yaml` and adjust settings as needed.
+- Copy `prompt.yaml.example` to `prompt.yaml` and adjust wording as needed.
 - Configure any API keys or local paths in `config.yaml`.
 - Existing modules load from the `models/`, `sfx/`, and `tts_cache/` folders when applicable.
-- The memory system persists data in a SQLite database file named `memories.db`, which is created in the project/runtime directory when memory is used.
+- The memory system persists data in a SQLite database at the configured `db_path`; by default, this is `memories.db` in the project root when memory is used.
 
 Usage
 
