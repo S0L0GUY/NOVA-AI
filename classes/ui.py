@@ -4,6 +4,8 @@ ui.py: Terminal UI and event display handling.
 Provides visual feedback in the terminal about conversation events and NOVA status.
 """
 
+import logging
+
 _DIM = "\033[2m"
 _RED = "\033[91m"
 _YELLOW = "\033[93m"
@@ -13,6 +15,8 @@ _CYAN = "\033[96m"
 _MAGENTA = "\033[95m"
 _RST = "\033[0m"
 _BOLD = "\033[1m"
+
+logger = logging.getLogger(__name__)
 
 
 def log(msg: str, level: str = "info", prefix: str = "") -> None:
@@ -24,6 +28,7 @@ def log(msg: str, level: str = "info", prefix: str = "") -> None:
         "error": ("├────", _RED),
         "user": ("╰───── ›", _CYAN),
         "gemini": ("├─", _GREEN),
+        "thinking": ("├─", _DIM),
     }.get(level, ("├─", _DIM))
 
     symbol, color = level_symbol
@@ -58,6 +63,15 @@ def handle_event(event: dict) -> None:
         log(f"User: {event.get('text')}", "user")
     elif event_type == "gemini":
         log(f"{event.get('text')}", "gemini")
+    elif event_type == "thinking":
+        status = event.get("status", "start")
+        if status == "start":
+            # Print a dim/grey thinking indicator
+            log("Thinking...", "thinking")
+            logger.info("Thinking state: start")
+        # On 'stop' we don't need to explicitly clear the line; the next output will follow.
+        else:
+            logger.info("Thinking state: stop")
     elif event_type == "turn_complete":
         log("Turn complete", "success", prefix="├───")
     elif event_type == "interrupted":

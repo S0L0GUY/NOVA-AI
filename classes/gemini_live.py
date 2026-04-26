@@ -213,13 +213,31 @@ class GeminiLive:
 
         await session.send_tool_response(function_responses=function_responses)
 
-    async def _emit_server_content_events(
-        self,
-        server_content,
-        audio_output_callback,
-        audio_interrupt_callback,
-        event_queue,
-    ):
+    def _extract_thinking_status(self, thinking_val):
+        """Extract and normalize thinking status from various formats."""
+        if thinking_val is None:
+            return None
+
+        status = None
+        if isinstance(thinking_val, bool):
+            status = "start" if thinking_val else "stop"
+        elif isinstance(thinking_val, str):
+            sval = thinking_val.lower()
+            if sval in ("start", "thinking", "true", "1"):
+                status = "start"
+            else:
+                status = "stop"
+        elif isinstance(thinking_val, dict):
+            status = thinking_val.get("status", "start")
+        elif hasattr(thinking_val, "status"):
+            status = getattr(thinking_val, "status")
+
+        if status:
+            return "start" if str(status).lower().startswith("s") else "stop"
+        return None
+
+    async def _emit_model_turn(self, server_content, audio_output_callback):
+        """Emit audio from model turn if present."""
         if server_content.model_turn:
             for part in server_content.model_turn.parts:
                 if part.inline_data:
@@ -227,6 +245,8 @@ class GeminiLive:
                         audio_output_callback, part.inline_data.data
                     )
 
+    async def _emit_transcriptions(self, server_content, event_queue):
+        """Emit input and output transcription events."""
         if (
             server_content.input_transcription
             and server_content.input_transcription.text
@@ -243,12 +263,60 @@ class GeminiLive:
                 {"type": "gemini", "text": server_content.output_transcription.text}
             )
 
+    async def _emit_thinking_status(self, server_content, event_queue):
+        """Detect and emit thinking status events."""
+        try:
+            thinking_val = getattr(server_content, "thinking", None)
+        except Exception:
+            thinking_val = None
+
+        status = self._extract_thinking_status(thinking_val)
+        if status:
+            logger.info("Thinking event from server_content: %s", status)
+            await event_queue.put({"type": "thinking", "status": status})
+
+    async def _emit_server_content_events(
+        self,
+        server_content,
+        audio_output_callback,
+        audio_interrupt_callback,
+        event_queue,
+    ):
+        await self._emit_model_turn(server_content, audio_output_callback)
+        await self._emit_transcriptions(server_content, event_queue)
+
         if server_content.turn_complete:
             await event_queue.put({"type": "turn_complete"})
 
         if server_content.interrupted:
             await self._invoke_callback(audio_interrupt_callback)
             await event_queue.put({"type": "interrupted"})
+
+        await self._emit_thinking_status(server_content, event_queue)
+
+    async def _emit_response_thinking(self, response, event_queue):
+        """Emit top-level thinking events from a Gemini response."""
+        try:
+            thinking_top = getattr(response, "thinking", None)
+        except Exception:
+            thinking_top = None
+
+        status = self._extract_thinking_status(thinking_top)
+        if status:
+            logger.info("Thinking event from response: %s", status)
+            await event_queue.put({"type": "thinking", "status": status})
+
+    def _log_response_metadata(self, response):
+        """Log non-content response metadata for debugging."""
+        go_away = getattr(response, "go_away", None)
+        if go_away:
+            logger.info("Received GoAway from Gemini: %s", go_away)
+
+        session_resumption_update = getattr(response, "session_resumption_update", None)
+        if session_resumption_update:
+            logger.info(
+                "Session resumption update: %s", session_resumption_update
+            )
 
     async def _process_received_response(
         self,
@@ -260,15 +328,14 @@ class GeminiLive:
     ):
         logger.info("Received response from Gemini: %s", response)
 
-        # Log the raw response type for debugging
-        if response.go_away:
-            logger.info("Received GoAway from Gemini: %s", response.go_away)
-        if response.session_resumption_update:
-            logger.info(
-                "Session resumption update: %s", response.session_resumption_update
-            )
+        # Some Live responses include top-level thinking indicators — surface them to the
+        # event stream and the logger so the UI and any logging handlers see thinking.
+        await self._emit_response_thinking(response, event_queue)
 
-        server_content = response.server_content
+        # Log the raw response type for debugging
+        self._log_response_metadata(response)
+
+        server_content = getattr(response, "server_content", None)
         if server_content:
             await self._emit_server_content_events(
                 server_content,
@@ -277,7 +344,7 @@ class GeminiLive:
                 event_queue,
             )
 
-        tool_call = response.tool_call
+        tool_call = getattr(response, "tool_call", None)
         if tool_call:
             await self._handle_tool_call(session, tool_call, event_queue)
 
@@ -347,6 +414,9 @@ class GeminiLive:
     ):
         config = types.LiveConnectConfig(
             response_modalities=[types.Modality.AUDIO],
+            thinking_config=types.ThinkingConfig(
+                thinking_level=types.ThinkingLevel.LOW,
+            ),
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
