@@ -23,13 +23,13 @@ from classes.memory import MemoryManager, MemoryType
 
 def toggle_voice():
     """
-    Toggles the voice chat state. Sends /input/Voice with value 1 to disable and 0 to enable.
+    Toggles the voice chat state. Only use when the user explicitly asks you to mute/unmute your mic.
     """
 
 
 def look_left(seconds: float):
     """
-    Sends a command to make the avatar look left for a specified duration.
+    Sends a command to make your avatar look left for a specified duration.
 
     Args:
         seconds: The amount of time in seconds to look left.
@@ -38,7 +38,7 @@ def look_left(seconds: float):
 
 def look_right(seconds: float):
     """
-    Sends a command to make the avatar look right for a specified duration.
+    Sends a command to make your avatar look right for a specified duration.
 
     Args:
         seconds: The amount of time in seconds to look right.
@@ -47,7 +47,7 @@ def look_right(seconds: float):
 
 def jump():
     """
-    Sends a command to make the avatar jump.
+    Sends a command to make your avatar jump.
     """
 
 
@@ -63,7 +63,7 @@ def send_osc(address: str, value):
 
 def move_forward(seconds: float):
     """
-    Sends a command to make the avatar move forward for a specified duration.
+    Sends a command to make your avatar move forward for a specified duration.
 
     Args:
         seconds: The amount of time in seconds to move forward.
@@ -72,7 +72,7 @@ def move_forward(seconds: float):
 
 def move_backward(seconds: float):
     """
-    Sends a command to make the avatar move backward for a specified duration.
+    Sends a command to make your avatar move backward for a specified duration.
 
     Args:
         seconds: The amount of time in seconds to move backward.
@@ -81,7 +81,7 @@ def move_backward(seconds: float):
 
 def move_left(seconds: float):
     """
-    Sends a command to make the avatar strafe left for a specified duration.
+    Sends a command to make your avatar strafe left for a specified duration.
 
     Args:
         seconds: The amount of time in seconds to strafe left.
@@ -90,7 +90,7 @@ def move_left(seconds: float):
 
 def move_right(seconds: float):
     """
-    Sends a command to make the avatar strafe right for a specified duration.
+    Sends a command to make your avatar strafe right for a specified duration.
 
     Args:
         seconds: The amount of time in seconds to strafe right.

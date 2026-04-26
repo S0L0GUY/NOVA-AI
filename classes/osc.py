@@ -76,7 +76,7 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/LookLeft", 1)
-        await asyncio.sleep(seconds)
+        await asyncio.sleep(min(seconds, 3))
         self.client.send_message("/input/LookLeft", 0)
 
     async def look_right(self, seconds: float):
@@ -87,7 +87,7 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/LookRight", 1)
-        await asyncio.sleep(seconds)
+        await asyncio.sleep(min(seconds, 3))
         self.client.send_message("/input/LookRight", 0)
 
     async def jump(self):
@@ -116,7 +116,7 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/MoveForward", 1)
-        await asyncio.sleep(seconds)
+        await asyncio.sleep(min(seconds, 10))
         self.client.send_message("/input/MoveForward", 0)
 
     async def move_backward(self, seconds: float):
@@ -127,7 +127,7 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/MoveBackward", 1)
-        await asyncio.sleep(seconds)
+        await asyncio.sleep(min(seconds, 10))
         self.client.send_message("/input/MoveBackward", 0)
 
     async def move_left(self, seconds: float):
@@ -138,7 +138,7 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/MoveLeft", 1)
-        await asyncio.sleep(seconds)
+        await asyncio.sleep(min(seconds, 5))
         self.client.send_message("/input/MoveLeft", 0)
 
     async def move_right(self, seconds: float):
@@ -149,5 +149,5 @@ class VRChatOSC:
         """
 
         self.client.send_message("/input/MoveRight", 1)
-        await asyncio.sleep(seconds)
+        await asyncio.sleep(min(seconds, 5))
         self.client.send_message("/input/MoveRight", 0)
