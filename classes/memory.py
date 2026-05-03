@@ -2,7 +2,7 @@
 
 import json
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Optional
@@ -178,6 +178,108 @@ class MemoryManager:
             cursor = conn.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
             conn.commit()
             return cursor.rowcount > 0
+
+    def purge_expired(self, ttl_days_map: Optional[dict] = None, archive_db_path: Optional[str] = None) -> list[dict]:
+        """Purge expired memories according to TTL map.
+
+        ttl_days_map: mapping of memory type string to days (int). If a type maps to
+        0 or a non-positive value, it is not auto-deleted.
+
+        Returns a list of metadata for deleted memories.
+        """
+        # Defaults if not provided
+        defaults = {
+            MemoryType.QUICK_NOTE.value: 3,
+            MemoryType.SHORT_TERM.value: 7,
+            MemoryType.LONG_TERM.value: 0,
+        }
+
+        ttl_map = {}
+        if ttl_days_map:
+            # normalize keys to str
+            for k, v in ttl_days_map.items():
+                ttl_map[str(k)] = int(v) if v is not None else 0
+
+        # Fill missing with defaults
+        for k, v in defaults.items():
+            ttl_map.setdefault(k, v)
+
+        now = datetime.now()
+        deleted = []
+
+        # Fetch all memories and filter in Python to avoid SQL datetime format issues
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute("SELECT * FROM memories")
+            rows = cursor.fetchall()
+
+        for row in rows:
+            mem_type = row["type"]
+            ttl_days = int(ttl_map.get(mem_type, 0))
+            if ttl_days <= 0:
+                continue
+
+            try:
+                created = datetime.fromisoformat(row["created_at"])
+            except Exception:
+                # Skip rows with invalid dates
+                continue
+
+            if created + timedelta(days=ttl_days) <= now:
+                # archive (if requested) then delete
+                if archive_db_path:
+                    try:
+                        # Ensure archive DB/table exists and insert row data with deleted_at
+                        with sqlite3.connect(archive_db_path) as aconn:
+                            aconn.execute(
+                                """
+                                CREATE TABLE IF NOT EXISTS archived_memories (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    orig_id INTEGER,
+                                    type TEXT,
+                                    content TEXT,
+                                    tags TEXT,
+                                    created_at TEXT,
+                                    updated_at TEXT,
+                                    importance INTEGER,
+                                    deleted_at TEXT
+                                )
+                                """
+                            )
+                            aconn.execute(
+                                """
+                                INSERT INTO archived_memories (
+                                    orig_id, type, content, tags, created_at, updated_at, importance, deleted_at
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                """,
+                                (
+                                    row["id"],
+                                    mem_type,
+                                    row["content"],
+                                    row["tags"],
+                                    row["created_at"],
+                                    row["updated_at"],
+                                    row["importance"],
+                                    now.isoformat(),
+                                ),
+                            )
+                            aconn.commit()
+                    except Exception:
+                        # If archiving fails, continue and still attempt deletion
+                        pass
+
+                # delete from main DB
+                if self.delete_memory(row["id"]):
+                    deleted.append(
+                        {
+                            "id": row["id"],
+                            "type": mem_type,
+                            "created_at": row["created_at"],
+                            "content": row["content"],
+                        }
+                    )
+
+        return deleted
 
     def get_memory(self, memory_id: int) -> Optional[dict]:
         """Get a specific memory by ID."""
