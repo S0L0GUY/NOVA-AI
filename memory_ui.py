@@ -27,6 +27,7 @@ tab = st.sidebar.radio(
         "Short-Term Memories",
         "Long-Term Memories",
         "Quick Notes",
+        "Archived Memories",
         "Search",
         "Statistics",
     ],
@@ -91,7 +92,7 @@ def display_memory(memory, col=None):
         with col3:
             if st.button("🗑️ Delete", key=f"delete_{memory['id']}"):
                 if manager.delete_memory(memory["id"]):
-                    st.success("Deleted!")
+                    st.success("Archived!")
                     st.rerun()
 
 
@@ -152,6 +153,63 @@ def render_quick_notes():
     render_memory_grid(memories, "No quick notes")
 
 
+def display_archived(memory):
+    """Display a single archived memory card with restore/delete actions."""
+    with st.container():
+        row1, row2 = st.columns([3, 1])
+        with row1:
+            st.subheader(
+                f"#{memory['archived_id']} - {memory['type'].replace('_', ' ').title()}"
+            )
+        with row2:
+            st.caption(
+                f"Deleted: {datetime.fromisoformat(memory['deleted_at']).strftime('%Y-%m-%d %H:%M')}"
+            )
+
+        st.write(memory["content"])
+
+        if memory.get("tags"):
+            tag_str = " ".join([f"🏷️ {tag}" for tag in memory["tags"]])
+            st.caption(tag_str)
+
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.caption(
+                f"Created: {datetime.fromisoformat(memory['created_at']).strftime('%Y-%m-%d %H:%M')}"
+            )
+            st.caption(
+                f"Updated: {datetime.fromisoformat(memory['updated_at']).strftime('%Y-%m-%d %H:%M')}"
+            )
+        with col2:
+            if st.button("↩️ Restore", key=f"restore_{memory['archived_id']}"):
+                if manager.restore_archived_memory(memory["archived_id"]):
+                    st.success("Restored to main memories.")
+                    st.rerun()
+                else:
+                    st.error("Failed to restore. See logs.")
+
+            if st.button(
+                "🗑️ Delete Permanently", key=f"del_arch_{memory['archived_id']}"
+            ):
+                if manager.delete_archived_memory(memory["archived_id"]):
+                    st.success("Deleted permanently.")
+                    st.rerun()
+                else:
+                    st.error("Failed to delete archived memory.")
+
+
+def render_archived():
+    st.header("🗄️ Archived Memories")
+    archived = manager.fetch_archived_memories("memories_archive.db")
+    if archived:
+        col1, col2 = st.columns(2)
+        for idx, memory in enumerate(archived):
+            with col1 if idx % 2 == 0 else col2:
+                display_archived(memory)
+    else:
+        st.info("No archived memories found.")
+
+
 def render_search():
     st.header("🔍 Search Memories")
     query = st.text_input("Search by content or tags")
@@ -206,6 +264,7 @@ TAB_RENDERERS = {
     "Short-Term Memories": render_short_term,
     "Long-Term Memories": render_long_term,
     "Quick Notes": render_quick_notes,
+    "Archived Memories": render_archived,
     "Search": render_search,
     "Statistics": render_statistics,
 }

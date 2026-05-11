@@ -187,7 +187,10 @@ def _init_resources(cfg: config.Config) -> dict:
         }
         result = supervisor.run_once(ttl_days_map=ttl_map)
         if result and result.get("deleted"):
-            log(f"MemorySupervisor purged {len(result['deleted'])} memories on startup", "info")
+            log(
+                f"MemorySupervisor purged {len(result['deleted'])} memories on startup",
+                "info",
+            )
     except Exception as e:
         log(f"MemorySupervisor error: {e}", "error")
     tools = None

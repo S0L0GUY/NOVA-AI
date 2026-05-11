@@ -3,6 +3,7 @@
 This module provides a small `MemorySupervisor` class that runs purges
 and returns summaries. Designed to be simple and invoked at startup.
 """
+
 from datetime import datetime
 from typing import Optional
 
@@ -15,7 +16,9 @@ class MemorySupervisor:
         self.logger = logger
         self.last_purge = None
 
-    def run_once(self, ttl_days_map: Optional[dict] = None, dry_run: bool = False) -> dict:
+    def run_once(
+        self, ttl_days_map: Optional[dict] = None, dry_run: bool = False
+    ) -> dict:
         """Run a single purge operation.
 
         ttl_days_map: mapping of memory type (string) to TTL days (int).
@@ -41,6 +44,7 @@ class MemorySupervisor:
 
             # inspect rows
             import sqlite3
+
             conn = sqlite3.connect(self.memory_manager.db_path)
             conn.row_factory = sqlite3.Row
             cur = conn.execute("SELECT * FROM memories")
@@ -54,14 +58,27 @@ class MemorySupervisor:
                     created = datetime.fromisoformat(row["created_at"])
                 except Exception:
                     continue
-                if created and created.day and (created) and (created + __import__('datetime').timedelta(days=ttl_days) <= now):
-                    candidates.append({
-                        "id": row["id"],
-                        "type": mem_type,
-                        "created_at": row["created_at"],
-                    })
+                if (
+                    created
+                    and created.day
+                    and (created)
+                    and (
+                        created + __import__("datetime").timedelta(days=ttl_days) <= now
+                    )
+                ):
+                    candidates.append(
+                        {
+                            "id": row["id"],
+                            "type": mem_type,
+                            "created_at": row["created_at"],
+                        }
+                    )
             conn.close()
-            return {"deleted": candidates, "timestamp": datetime.now().isoformat(), "dry_run": True}
+            return {
+                "deleted": candidates,
+                "timestamp": datetime.now().isoformat(),
+                "dry_run": True,
+            }
 
         # perform actual purge - archive into a secondary DB file next to the primary DB
         deleted = []
@@ -88,7 +105,10 @@ class MemorySupervisor:
             }
             if self.logger:
                 try:
-                    self.logger(f"MemorySupervisor purged {len(deleted)} memories on startup", "info")
+                    self.logger(
+                        f"MemorySupervisor purged {len(deleted)} memories on startup",
+                        "info",
+                    )
                 except Exception:
                     pass
         except Exception as e:
@@ -97,4 +117,8 @@ class MemorySupervisor:
                     self.logger(f"MemorySupervisor error: {e}", "error")
                 except Exception:
                     pass
-        return {"deleted": deleted, "timestamp": datetime.now().isoformat(), "dry_run": False}
+        return {
+            "deleted": deleted,
+            "timestamp": datetime.now().isoformat(),
+            "dry_run": False,
+        }
