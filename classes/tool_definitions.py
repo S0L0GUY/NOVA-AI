@@ -191,10 +191,13 @@ def capture_screenshot():
     """
 
 
-def wander():
+def wander(duration_seconds: float = 3.0):
     """
-    Randomly moves you around.
+    Randomly moves you around for a specified duration.
     Use when you want to move away from where you are.
+
+    Args:
+        duration_seconds: The amount of time in seconds to wander.
     """
 
 
