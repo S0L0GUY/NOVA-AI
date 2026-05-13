@@ -1,7 +1,7 @@
 import asyncio
+import random
 import textwrap
 import time
-import random
 
 from pythonosc import udp_client
 

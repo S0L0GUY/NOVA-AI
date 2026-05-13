@@ -75,7 +75,7 @@ class InputHandler:
                     if self.context and self.context.get("response_idle_running"):
                         try:
                             mv = memoryview(data)
-                            samples = mv.cast('h')
+                            samples = mv.cast("h")
                             max_amp = 0
                             for s in samples:
                                 a = s if s >= 0 else -s
@@ -85,7 +85,9 @@ class InputHandler:
                                 start = self.context.get("response_idle_start")
                                 if start is not None:
                                     elapsed = time.monotonic() - start
-                                    self.context["response_idle_seconds"] = float(elapsed)
+                                    self.context["response_idle_seconds"] = float(
+                                        elapsed
+                                    )
                                 self.context["response_idle_running"] = False
                                 self.context["response_idle_start"] = None
                                 try:
@@ -128,7 +130,10 @@ class InputHandler:
                             try:
                                 from classes.ui import log as _log
 
-                                _log(f"InputHandler: stopped idle timer at {self.context.get('response_idle_seconds', 0.0):.2f}s (typing)", "debug")
+                                _log(
+                                    f"InputHandler: stopped idle timer at {self.context.get('response_idle_seconds', 0.0):.2f}s (typing)",
+                                    "debug",
+                                )
                             except Exception:
                                 pass
                     except Exception:
