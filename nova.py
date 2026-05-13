@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import time
 
 import classes.config as config
 from classes.audio import AudioManager
@@ -102,6 +103,55 @@ async def _run_gemini_session(
             last_displayed_length = 0
 
 
+async def _idle_monitor_loop(
+    context: dict, vrchat_osc: "VRChatOSC", check_interval: float = 1.0
+) -> None:
+    """Background task that watches the idle timer and triggers actions at thresholds.
+
+    Calls `vrchat_osc.wander()` once per idle period when the idle time reaches 120 seconds.
+    """
+    try:
+        while True:
+            try:
+                running = bool(context.get("response_idle_running", False))
+                start = context.get("response_idle_start")
+                elapsed = 0.0
+                if running and start is not None:
+                    elapsed = time.monotonic() - start
+                    # update the exposed elapsed field for monitors
+                    context["response_idle_seconds"] = float(elapsed)
+                else:
+                    elapsed = float(context.get("response_idle_seconds", 0.0))
+
+                last_trigger = context.get("response_idle_last_trigger")
+                trigger_interval = 60.0
+                # Trigger repeatedly every `trigger_interval` seconds while idle
+                if elapsed >= trigger_interval and (
+                    last_trigger is None
+                    or (elapsed - float(last_trigger)) >= trigger_interval
+                ):
+                    did_trigger = False
+                    try:
+                        if vrchat_osc is not None:
+                            await vrchat_osc.wander(20.0)
+                            did_trigger = True
+                        else:
+                            pass
+                    except Exception:
+                        did_trigger = False
+
+                    if did_trigger:
+                        # record the elapsed time at which we last triggered
+                        context["response_idle_last_trigger"] = float(elapsed)
+
+            except Exception:
+                pass
+
+            await asyncio.sleep(check_interval)
+    except asyncio.CancelledError:
+        return
+
+
 async def _on_gemini_text(
     text: str,
     gemini_response_chunks: list[str],
@@ -152,6 +202,15 @@ async def _on_turn_complete(
             if pages:
                 await vrchat_osc.display_pages(pages)
     finally:
+        # Start the idle timer: record monotonic start time and mark running
+        try:
+            context["response_idle_start"] = time.monotonic()
+            context["response_idle_seconds"] = 0.0
+            context["response_idle_running"] = True
+            context["response_idle_last_trigger"] = None
+        except Exception:
+            pass
+
         context["is_talking"]["active"] = False
 
 
@@ -251,7 +310,22 @@ async def main() -> None:
         "text_input_queue": text_input_queue,
         "is_talking": {"active": False},
         "is_typing": False,
+        # Timer: monotonic start timestamp when Nova stops speaking, None otherwise
+        "response_idle_start": None,
+        # Elapsed seconds since Nova stopped speaking (float)
+        "response_idle_seconds": 0.0,
+        # Whether the idle timer is currently running
+        "response_idle_running": False,
+        # Timestamp (seconds elapsed) of the last idle-trigger; None if never
+        "response_idle_last_trigger": None,
     }
+
+    # Give the input handler a reference to the shared context so it can
+    # stop the idle timer whenever the user begins input (speaking/typing).
+    try:
+        input_handler.set_context(context)
+    except Exception:
+        pass
 
     # Start banner resend loop if OSC is enabled
     banner_task = None
@@ -259,6 +333,9 @@ async def main() -> None:
         banner_task = asyncio.create_task(
             _banner_resend_loop(vrchat_osc, context["is_talking"])
         )
+
+    # Start background monitor that checks idle time and triggers actions
+    idle_monitor_task = asyncio.create_task(_idle_monitor_loop(context, vrchat_osc))
 
     log("Starting Gemini Live session", "info")
 
@@ -294,6 +371,8 @@ async def main() -> None:
             pass
         if banner_task:
             banner_task.cancel()
+        if idle_monitor_task:
+            idle_monitor_task.cancel()
 
 
 if __name__ == "__main__":

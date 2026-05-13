@@ -39,6 +39,14 @@ class InputHandler:
             else None
         )
         self.loop: asyncio.AbstractEventLoop | None = None
+        # Optional shared context dict (set by caller) for communicating timer state
+        self.context: dict | None = None
+        # Simple voice activity detection threshold (signed 16-bit samples)
+        self._vad_threshold = 500
+
+    def set_context(self, context: dict) -> None:
+        """Attach a shared runtime context so the input handler can stop the idle timer."""
+        self.context = context
 
     def start(self, loop: asyncio.AbstractEventLoop) -> None:
         """Start input threads and provide them with the async event loop reference."""
@@ -61,6 +69,42 @@ class InputHandler:
         try:
             while True:
                 data = self.audio_manager.read_audio_chunk()
+                # If an idle timer is running (AI finished speaking), stop it when user speaks.
+                # Use a simple VAD: only stop when audio amplitude exceeds threshold.
+                try:
+                    if self.context and self.context.get("response_idle_running"):
+                        try:
+                            mv = memoryview(data)
+                            samples = mv.cast("h")
+                            max_amp = 0
+                            for s in samples:
+                                a = s if s >= 0 else -s
+                                if a > max_amp:
+                                    max_amp = a
+                            if max_amp >= self._vad_threshold:
+                                start = self.context.get("response_idle_start")
+                                if start is not None:
+                                    elapsed = time.monotonic() - start
+                                    self.context["response_idle_seconds"] = float(
+                                        elapsed
+                                    )
+                                self.context["response_idle_running"] = False
+                                self.context["response_idle_start"] = None
+                                try:
+                                    from classes.ui import log as _log
+
+                                    _log(
+                                        f"InputHandler: VAD stopped idle timer at {self.context.get('response_idle_seconds', 0.0):.2f}s",
+                                        "debug",
+                                    )
+                                except Exception:
+                                    pass
+                        except Exception:
+                            # If VAD fails, don't stop the timer on raw audio to avoid false positives
+                            pass
+                except Exception:
+                    pass
+
                 if self.loop:
                     asyncio.run_coroutine_threadsafe(
                         self.audio_input_queue.put(data), self.loop
@@ -74,6 +118,27 @@ class InputHandler:
             while True:
                 user_input = input()
                 if user_input.strip() and self.loop:
+                    # Stop idle timer when user begins typing
+                    try:
+                        if self.context and self.context.get("response_idle_running"):
+                            start = self.context.get("response_idle_start")
+                            if start is not None:
+                                elapsed = time.monotonic() - start
+                                self.context["response_idle_seconds"] = float(elapsed)
+                            self.context["response_idle_running"] = False
+                            self.context["response_idle_start"] = None
+                            try:
+                                from classes.ui import log as _log
+
+                                _log(
+                                    f"InputHandler: stopped idle timer at {self.context.get('response_idle_seconds', 0.0):.2f}s (typing)",
+                                    "debug",
+                                )
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+
                     asyncio.run_coroutine_threadsafe(
                         self.text_input_queue.put(user_input), self.loop
                     )

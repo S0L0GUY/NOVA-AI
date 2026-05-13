@@ -191,6 +191,16 @@ def capture_screenshot():
     """
 
 
+def wander(duration_seconds: float = 3.0):
+    """
+    Randomly moves you around for a specified duration.
+    Use when you want to move away from where you are.
+
+    Args:
+        duration_seconds: The amount of time in seconds to wander.
+    """
+
+
 # ==============================================================================
 # Tool Definitions and Mapping
 # ==============================================================================
@@ -216,6 +226,7 @@ def get_tool_definitions():
         move_left,
         move_right,
         capture_screenshot,
+        wander,
         save_short_term_memory,
         save_long_term_memory,
         save_quick_note,
@@ -284,6 +295,7 @@ def get_tool_mapping(vrchat_osc, memory_manager=None):
         "move_left": vrchat_osc.move_left,
         "move_right": vrchat_osc.move_right,
         "capture_screenshot": _capture_screenshot_impl,
+        "wander": vrchat_osc.wander,
         "save_short_term_memory": lambda content, tags=None: memory_manager.store_memory(
             content, MemoryType.SHORT_TERM, tags
         ),
