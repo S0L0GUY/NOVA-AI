@@ -1,6 +1,7 @@
 import asyncio
 import textwrap
 import time
+import random
 
 from pythonosc import udp_client
 
@@ -151,3 +152,24 @@ class VRChatOSC:
         self.client.send_message("/input/MoveRight", 1)
         await asyncio.sleep(min(seconds, 5))
         self.client.send_message("/input/MoveRight", 0)
+
+    async def wander(self, duration_seconds: float):
+        """
+        Makes the avatar wander around by randomly looking and moving for a specified duration.
+        Args:
+            duration_seconds (float): The total duration in seconds to wander.
+        """
+
+        end_time = time.monotonic() + duration_seconds
+        while time.monotonic() < end_time:
+            action = random.choice(
+                [
+                    self.look_left,
+                    self.look_right,
+                    self.move_forward,
+                    self.move_backward,
+                    self.move_left,
+                    self.move_right,
+                ]
+            )
+            await action(random.uniform(0.5, 2.0))
