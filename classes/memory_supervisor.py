@@ -84,14 +84,9 @@ class MemorySupervisor:
         deleted = []
         try:
             try:
-                archive_path = None
-                try:
-                    archive_path = str(
-                        self.memory_manager.db_path.parent / "memories_archive.db"
-                    )
-                except Exception:
-                    archive_path = "memories_archive.db"
-
+                archive_path = str(
+                    self.memory_manager.db_path.parent / "memories_archive.db"
+                )
             except Exception:
                 archive_path = "memories_archive.db"
 
