@@ -92,7 +92,7 @@ def display_memory(memory, col=None):
         with col3:
             if st.button("🗑️ Delete", key=f"delete_{memory['id']}"):
                 if manager.delete_memory(memory["id"]):
-                    st.success("Archived!")
+                    st.success("Deleted (archived when possible).")
                     st.rerun()
 
 
