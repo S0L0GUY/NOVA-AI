@@ -266,9 +266,12 @@ class MemoryManager:
 
         ttl_map = {}
         if ttl_days_map:
-            # normalize keys to str
+            # normalize keys to str and coerce values defensively
             for k, v in ttl_days_map.items():
-                ttl_map[str(k)] = int(v) if v is not None else 0
+                try:
+                    ttl_map[str(k)] = int(v) if v is not None else 0
+                except (TypeError, ValueError):
+                    ttl_map[str(k)] = 0
 
         # Fill missing with defaults
         for k, v in defaults.items():
