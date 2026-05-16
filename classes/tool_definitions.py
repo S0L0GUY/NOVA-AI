@@ -140,6 +140,14 @@ def fetch_all_memories():
     """
 
 
+def fetch_all_archived_memories():
+    """
+    Fetch all archived memories that have been marked as inactive or expired.
+    Use this to review past information that may no longer be active but could be relevant.
+    Never fetch these memories unless asked to by the user.
+    """
+
+
 def fetch_short_term_memories():
     """Fetch all short-term memories. Use to recall session-specific information."""
 
@@ -231,6 +239,7 @@ def get_tool_definitions():
         save_long_term_memory,
         save_quick_note,
         fetch_all_memories,
+        fetch_all_archived_memories,
         fetch_short_term_memories,
         fetch_long_term_memories,
         fetch_quick_notes,
@@ -307,6 +316,11 @@ def get_tool_mapping(vrchat_osc, memory_manager=None):
         ),
         "fetch_all_memories": lambda: _format_memories(
             memory_manager.fetch_all_memories()
+        ),
+        "fetch_all_archived_memories": lambda: json.dumps(
+            memory_manager.fetch_archived_memories("memories_archive.db"),
+            indent=2,
+            default=str,
         ),
         "fetch_short_term_memories": lambda: _format_memories(
             memory_manager.fetch_memories(MemoryType.SHORT_TERM)

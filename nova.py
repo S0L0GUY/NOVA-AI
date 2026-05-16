@@ -8,6 +8,7 @@ from classes.audio import AudioManager
 from classes.gemini_live import GeminiLive
 from classes.input_handler import InputHandler
 from classes.memory import MemoryManager
+from classes.memory_supervisor import MemorySupervisor
 from classes.osc import VRChatOSC
 from classes.sfx import play_sound_async, wait_for_all
 from classes.tool_definitions import get_tool_definitions, get_tool_mapping
@@ -235,6 +236,34 @@ def _init_resources(cfg: config.Config) -> dict:
         VRChatOSC(cfg.get_osc_ip, cfg.get_osc_port) if cfg.get_osc_enabled else None
     )
     memory_manager = MemoryManager()
+    # Run supervisor purge on startup only when explicitly enabled in config.
+    try:
+        purge_on_startup = cfg.get("memory", "purge_on_startup", default=False)
+        if isinstance(purge_on_startup, str):
+            purge_on_startup = purge_on_startup.strip().lower() in (
+                "1",
+                "true",
+                "yes",
+                "on",
+            )
+        else:
+            purge_on_startup = bool(purge_on_startup)
+
+        if purge_on_startup:
+            supervisor = MemorySupervisor(memory_manager, logger=log)
+            ttl_map = {
+                "quick_note": cfg.get("memory", "quick_note_days", default=3),
+                "short_term": cfg.get("memory", "short_term_days", default=7),
+                "long_term": cfg.get("memory", "long_term_days", default=0),
+            }
+            result = supervisor.run_once(ttl_days_map=ttl_map)
+            if result and result.get("deleted"):
+                log(
+                    f"MemorySupervisor purged {len(result['deleted'])} memories on startup",
+                    "info",
+                )
+    except Exception as e:
+        log(f"MemorySupervisor error: {e}", "error")
     tools = None
     tool_mapping = None
     if vrchat_osc:
