@@ -317,8 +317,10 @@ def get_tool_mapping(vrchat_osc, memory_manager=None):
         "fetch_all_memories": lambda: _format_memories(
             memory_manager.fetch_all_memories()
         ),
-        "fetch_all_archived_memories": lambda: _format_memories(
-            memory_manager.fetch_archived_memories("memories_archive.db")
+        "fetch_all_archived_memories": lambda: json.dumps(
+            memory_manager.fetch_archived_memories("memories_archive.db"),
+            indent=2,
+            default=str,
         ),
         "fetch_short_term_memories": lambda: _format_memories(
             memory_manager.fetch_memories(MemoryType.SHORT_TERM)
