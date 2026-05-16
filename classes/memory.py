@@ -443,17 +443,17 @@ class MemoryManager:
 
             result.append(
                 {
-                    "archived_id": rd.get("id") or rd.get("archived_id"),
-                    "orig_id": rd.get("orig_id") or rd.get("origId") or rd.get("orig"),
-                    "type": rd.get("type") or rd.get("mem_type"),
-                    "content": rd.get("content"),
+                    "archived_id": rd["id"],
+                    "orig_id": rd["orig_id"],
+                    "type": rd["type"],
+                    "content": rd["content"],
                     "tags": tags,
-                    "created_at": rd.get("created_at") or rd.get("createdAt"),
-                    "updated_at": rd.get("updated_at") or rd.get("updatedAt"),
+                    "created_at": rd["created_at"],
+                    "updated_at": rd["updated_at"],
                     "importance": (
-                        rd.get("importance") if rd.get("importance") is not None else 0
+                        rd["importance"] if rd["importance"] is not None else 0
                     ),
-                    "deleted_at": rd.get("deleted_at") or rd.get("deletedAt"),
+                    "deleted_at": rd["deleted_at"],
                 }
             )
 
