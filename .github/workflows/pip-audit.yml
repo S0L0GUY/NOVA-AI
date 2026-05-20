@@ -35,4 +35,4 @@ jobs:
     - name: Run pip-audit on the project
       run: |
         # Audit the entire project for known vulnerabilities
-        pip-audit .
+        pip-audit
