@@ -30,4 +30,9 @@ jobs:
     - name: Run pip-audit on requirements.txt
       run: |
         # Audit the requirements file for known vulnerabilities
-        pip-audit -r requirements.txt || true
+        pip-audit -r requirements.txt
+
+    - name: Run pip-audit on the project
+      run: |
+        # Audit the entire project for known vulnerabilities
+        pip-audit

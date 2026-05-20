@@ -91,6 +91,28 @@ class VRChatOSC:
         await asyncio.sleep(min(seconds, 3))
         self.client.send_message("/input/LookRight", 0)
 
+    async def look_left_capped(self, seconds: float):
+        """
+        Sends a command to make the avatar look left by a capped angle.
+        Args:
+            seconds (float): The amount of time in seconds to look left.
+        """
+
+        self.client.send_message("/input/LookLeft", 1)
+        await asyncio.sleep(min(seconds, 0.5))
+        self.client.send_message("/input/LookLeft", 0)
+
+    async def look_right_capped(self, seconds: float):
+        """
+        Sends a command to make the avatar look right by a capped angle.
+        Args:
+            seconds (float): The amount of time in seconds to look right.
+        """
+
+        self.client.send_message("/input/LookRight", 1)
+        await asyncio.sleep(min(seconds, 0.5))
+        self.client.send_message("/input/LookRight", 0)
+
     async def jump(self):
         """
         Sends a command to make the avatar jump.
@@ -164,12 +186,9 @@ class VRChatOSC:
         while time.monotonic() < end_time:
             action = random.choice(
                 [
-                    self.look_left,
-                    self.look_right,
+                    self.look_left_capped,
+                    self.look_right_capped,
                     self.move_forward,
-                    self.move_backward,
-                    self.move_left,
-                    self.move_right,
                 ]
             )
             await action(random.uniform(0.5, 2.0))
