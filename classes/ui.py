@@ -62,6 +62,8 @@ def handle_event(event: dict) -> None:
         log("Turn complete", "success", prefix="├───")
     elif event_type == "interrupted":
         log("Response interrupted", "warning", prefix="├───")
+    elif event_type == "session_resumption":
+        log(f"Session needs resumption: {event.get('error')}", "warning", prefix="├───")
     elif event_type == "tool_call":
         log(f"Tool: {event.get('name')} → {event.get('result')}", "info", prefix="├───")
     elif event_type == "error":

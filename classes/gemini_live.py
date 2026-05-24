@@ -248,6 +248,9 @@ class GeminiLive:
 
         if server_content.interrupted:
             await self._invoke_callback(audio_interrupt_callback)
+            # Also emit a user message so the conversation shows that the user
+            # interrupted the AI response (useful for transcript/UI consumers).
+            await event_queue.put({"type": "user", "text": "User interrupted"})
             await event_queue.put({"type": "interrupted"})
 
     async def _process_received_response(
@@ -282,9 +285,28 @@ class GeminiLive:
             await self._handle_tool_call(session, tool_call, event_queue)
 
     async def _handle_receive_error(self, event_queue, error):
-        if getattr(error, "code", None) == 1000:
+        code = getattr(error, "code", None)
+        if code == 1000:
             logger.info(
                 "receive_loop stopped: Gemini Live connection closed normally (1000)"
+            )
+            return
+
+        # Special-case code 1008 (client failed to close after GoAway):
+        # treat as a recoverable condition and notify the caller so it can
+        # attempt to restart the session while preserving conversation state.
+        if code == 1008:
+            logger.info(
+                "receive_loop recoverable error 1008: %s: %s",
+                type(error).__name__,
+                error,
+            )
+            await event_queue.put(
+                {
+                    "type": "session_resumption",
+                    "code": 1008,
+                    "error": f"{type(error).__name__}: {error}",
+                }
             )
             return
 
@@ -295,7 +317,11 @@ class GeminiLive:
             traceback.format_exc(),
         )
         await event_queue.put(
-            {"type": "error", "error": f"{type(error).__name__}: {error}"}
+            {
+                "type": "error",
+                "error": f"{type(error).__name__}: {error}",
+                "code": code,
+            }
         )
 
     async def _receive_loop(

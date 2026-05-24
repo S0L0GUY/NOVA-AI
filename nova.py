@@ -66,40 +66,119 @@ async def _run_gemini_session(
         "text": context.get("text_input_queue"),
     }
 
-    async for event in gemini_live.start_session(
-        audio_input_queue=queues["audio"],
-        video_input_queue=queues["video"],
-        text_input_queue=queues["text"],
-        audio_output_callback=audio_manager.write_audio_chunk,
-        audio_interrupt_callback=audio_manager.interrupt_output,
-    ):
-        handle_event(event)
+    # Maintain a local transcript so we can attempt to resume the conversation
+    # if the Gemini Live session ends with a recoverable error (e.g. code 1008).
+    conversation_history: list[dict] = []
 
-        if not vrchat_osc:
+    # Keep trying to maintain a live session; on recoverable session errors
+    # the loop will restart the Gemini Live connection and attempt to reseed
+    # it using a short transcript summary sent into the text queue.
+    while True:
+        try:
+            async for event in gemini_live.start_session(
+                audio_input_queue=queues["audio"],
+                video_input_queue=queues["video"],
+                text_input_queue=queues["text"],
+                audio_output_callback=audio_manager.write_audio_chunk,
+                audio_interrupt_callback=audio_manager.interrupt_output,
+            ):
+                # The Gemini client may yield special events indicating errors
+                # or that the session should be resumed. Handle those specially.
+                if isinstance(event, dict) and event.get("type") in (
+                    "error",
+                    "session_resumption",
+                ):
+                    # Surface the event to the UI/logging and decide whether to
+                    # reconnect. For recoverable session resumption events
+                    # (`session_resumption`), we'll restart the outer loop.
+                    handle_event(event)
+                    if event.get("type") == "session_resumption":
+                        # Pause briefly before reconnecting to avoid a tight loop
+                        await asyncio.sleep(0.5)
+                        break
+                    # For non-recoverable errors, re-raise so the caller can
+                    # handle shutdown behavior.
+                    raise Exception(event.get("error"))
+
+                # Normal event processing
+                handle_event(event)
+
+                # Record conversation history for user and gemini messages
+                if isinstance(event, dict) and event.get("type") in (
+                    "user",
+                    "gemini",
+                ): 
+                    conversation_history.append(event)
+
+                if not vrchat_osc:
+                    continue
+
+                if event.get("type") == "gemini":
+                    text = event.get("text", "")
+                    if not text:
+                        continue
+
+                    context["is_talking"]["active"] = True
+                    last_displayed_length, is_typing = await _on_gemini_text(
+                        text,
+                        gemini_response_chunks,
+                        last_displayed_length,
+                        vrchat_osc,
+                        is_typing,
+                    )
+
+                elif event.get("type") == "turn_complete":
+                    await _on_turn_complete(
+                        gemini_response_chunks,
+                        vrchat_osc,
+                        last_displayed_length,
+                        context,
+                    )
+                    last_displayed_length = 0
+
+        except Exception as e:
+            # If the inner loop raised a non-recoverable error, surface it
+            # and stop attempting to reconnect.
+            log(f"Session run error: {e}", "error")
+            raise
+
+        # If we reach here, the inner async for ended. Attempt to reconnect
+        # and reseed the session with a brief transcript of recent messages.
+        try:
+            # Build a short resume message from the last few conversation turns.
+            if conversation_history:
+                # Take the last 6 messages (or fewer) to avoid sending too
+                # large a payload into the text queue.
+                recent = conversation_history[-6:]
+                resume_parts = []
+                for ev in recent:
+                    t = ev.get("type")
+                    txt = ev.get("text", "").strip()
+                    if not txt:
+                        continue
+                    prefix = "User" if t == "user" else "Assistant"
+                    resume_parts.append(f"{prefix}: {txt}")
+
+                if resume_parts:
+                    resume_text = (
+                        "(resume) Previous conversation for context:\n" + "\n".join(resume_parts)
+                    )
+                    try:
+                        # Put the resume text into the text queue so the new
+                        # session receives it as immediate input and can
+                        # continue the conversation coherently.
+                        await queues["text"].put(resume_text)
+                    except Exception:
+                        pass
+
+            # Short backoff before attempting to reconnect
+            await asyncio.sleep(0.5)
             continue
-
-        if event.get("type") == "gemini":
-            text = event.get("text", "")
-            if not text:
-                continue
-
-            context["is_talking"]["active"] = True
-            last_displayed_length, is_typing = await _on_gemini_text(
-                text,
-                gemini_response_chunks,
-                last_displayed_length,
-                vrchat_osc,
-                is_typing,
-            )
-
-        elif event.get("type") == "turn_complete":
-            await _on_turn_complete(
-                gemini_response_chunks,
-                vrchat_osc,
-                last_displayed_length,
-                context,
-            )
-            last_displayed_length = 0
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            # If reseeding failed for some reason, break and let caller handle
+            break
 
 
 async def _on_gemini_text(
