@@ -14,3 +14,5 @@ pyaudio
 PyYAML
 python-osc
 pysqlite3
+pytest
+pytest-cov
