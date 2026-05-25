@@ -105,7 +105,10 @@ async def _run_gemini_session(
 
 
 async def _idle_monitor_loop(
-    context: dict, vrchat_osc: "VRChatOSC", check_interval: float = 1.0
+    context: dict,
+    vrchat_osc: "VRChatOSC",
+    idle_wandering_enabled: bool = True,
+    check_interval: float = 1.0,
 ) -> None:
     """Background task that watches the idle timer and triggers actions at thresholds.
 
@@ -127,9 +130,13 @@ async def _idle_monitor_loop(
                 last_trigger = context.get("response_idle_last_trigger")
                 trigger_interval = 60.0
                 # Trigger repeatedly every `trigger_interval` seconds while idle
-                if elapsed >= trigger_interval and (
-                    last_trigger is None
-                    or (elapsed - float(last_trigger)) >= trigger_interval
+                if (
+                    idle_wandering_enabled
+                    and elapsed >= trigger_interval
+                    and (
+                        last_trigger is None
+                        or (elapsed - float(last_trigger)) >= trigger_interval
+                    )
                 ):
                     did_trigger = False
                     try:
@@ -364,7 +371,13 @@ async def main() -> None:
         )
 
     # Start background monitor that checks idle time and triggers actions
-    idle_monitor_task = asyncio.create_task(_idle_monitor_loop(context, vrchat_osc))
+    idle_monitor_task = asyncio.create_task(
+        _idle_monitor_loop(
+            context,
+            vrchat_osc,
+            idle_wandering_enabled=cfg.get_osc_idle_wandering_enabled,
+        )
+    )
 
     log("Starting Gemini Live session", "info")
 
