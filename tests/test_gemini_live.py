@@ -73,7 +73,9 @@ def test_custom_system_instruction_used():
     GeminiLive = _import_gemini_live()
     with patch("classes.gemini_live.genai.Client"):
         gl = GeminiLive(
-            api_key="k", model="m", input_sample_rate=16000,
+            api_key="k",
+            model="m",
+            input_sample_rate=16000,
             system_instruction="custom prompt",
         )
         assert gl.system_instruction == "custom prompt"
@@ -98,9 +100,7 @@ def test_custom_voice_used():
 def test_voice_falls_back_to_puck_when_falsy():
     GeminiLive = _import_gemini_live()
     with patch("classes.gemini_live.genai.Client"):
-        gl = GeminiLive(
-            api_key="k", model="m", input_sample_rate=16000, voice_name=""
-        )
+        gl = GeminiLive(api_key="k", model="m", input_sample_rate=16000, voice_name="")
         assert gl.voice_name == "Puck"
 
 
@@ -195,11 +195,14 @@ def test_handle_tool_call_dispatches_sync_function():
         # send_tool_response is async in real code; make it an async mock here
         async def _send(**kwargs):
             session.tool_response_kwargs = kwargs
+
         session.send_tool_response = _send
 
         with patch("classes.gemini_live.genai.Client"):
             gl = GeminiLive(
-                api_key="k", model="m", input_sample_rate=16000,
+                api_key="k",
+                model="m",
+                input_sample_rate=16000,
                 tool_mapping={"my_tool": lambda x: f"got-{x}"},
             )
         q = asyncio.Queue()
@@ -232,11 +235,14 @@ def test_handle_tool_call_dispatches_async_function():
 
         async def _send(**kwargs):
             pass
+
         session.send_tool_response = _send
 
         with patch("classes.gemini_live.genai.Client"):
             gl = GeminiLive(
-                api_key="k", model="m", input_sample_rate=16000,
+                api_key="k",
+                model="m",
+                input_sample_rate=16000,
                 tool_mapping={"async_tool": async_tool},
             )
         q = asyncio.Queue()
@@ -264,11 +270,14 @@ def test_handle_tool_call_unknown_skipped():
 
         async def _send(**kwargs):
             sent.append(kwargs)
+
         session.send_tool_response = _send
 
         with patch("classes.gemini_live.genai.Client"):
             gl = GeminiLive(
-                api_key="k", model="m", input_sample_rate=16000,
+                api_key="k",
+                model="m",
+                input_sample_rate=16000,
                 tool_mapping={"other": lambda: None},
             )
         q = asyncio.Queue()
@@ -299,11 +308,14 @@ def test_handle_tool_call_captures_exception_as_error_result():
 
         async def _send(**kwargs):
             pass
+
         session.send_tool_response = _send
 
         with patch("classes.gemini_live.genai.Client"):
             gl = GeminiLive(
-                api_key="k", model="m", input_sample_rate=16000,
+                api_key="k",
+                model="m",
+                input_sample_rate=16000,
                 tool_mapping={"bad": bad},
             )
         q = asyncio.Queue()

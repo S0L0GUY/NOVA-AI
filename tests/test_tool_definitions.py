@@ -26,11 +26,23 @@ def test_tool_names_unique():
 def test_expected_tools_present():
     names = {t.__name__ for t in get_tool_definitions()}
     must_have = {
-        "toggle_voice", "look_left", "look_right", "jump",
-        "move_forward", "move_backward", "move_left", "move_right",
-        "save_short_term_memory", "save_long_term_memory", "save_quick_note",
-        "fetch_all_memories", "search_memories", "delete_memory",
-        "update_memory", "capture_screenshot", "wander",
+        "toggle_voice",
+        "look_left",
+        "look_right",
+        "jump",
+        "move_forward",
+        "move_backward",
+        "move_left",
+        "move_right",
+        "save_short_term_memory",
+        "save_long_term_memory",
+        "save_quick_note",
+        "fetch_all_memories",
+        "search_memories",
+        "delete_memory",
+        "update_memory",
+        "capture_screenshot",
+        "wander",
     }
     missing = must_have - names
     assert not missing, f"Missing tools: {missing}"
@@ -87,6 +99,6 @@ def test_mapping_search(memory):
 def test_mapping_covers_all_declared_tools(memory):
     mapping = get_tool_mapping(MagicMock(), memory_manager=memory)
     declared = {t.__name__ for t in get_tool_definitions()}
-    assert declared <= set(mapping.keys()), (
-        f"Tools declared but not mapped: {declared - set(mapping.keys())}"
-    )
+    assert declared <= set(
+        mapping.keys()
+    ), f"Tools declared but not mapped: {declared - set(mapping.keys())}"

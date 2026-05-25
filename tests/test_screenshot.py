@@ -64,8 +64,9 @@ def test_capture_falls_back_to_primary_monitor():
     fake_ctx.__enter__.return_value = fake_sct
     fake_ctx.__exit__.return_value = False
 
-    with patch("classes.screenshot.mss.mss", return_value=fake_ctx), \
-         patch.object(ScreenshotManager, "_convert_to_jpeg", return_value=b"jpeg-data") as conv:
+    with patch("classes.screenshot.mss.mss", return_value=fake_ctx), patch.object(
+        ScreenshotManager, "_convert_to_jpeg", return_value=b"jpeg-data"
+    ) as conv:
         result = sm.capture_screenshot()
 
     assert result == b"jpeg-data"
@@ -117,10 +118,11 @@ def test_capture_uses_window_bounds_when_hwnd_found():
 
     bounds = {"left": 10, "top": 20, "width": 800, "height": 600}
 
-    with patch("classes.screenshot.mss.mss", return_value=fake_ctx), \
-         patch.object(sm, "get_window_handle", return_value=12345), \
-         patch.object(sm, "get_window_bounds", return_value=bounds), \
-         patch.object(ScreenshotManager, "_convert_to_jpeg", return_value=b"win-jpeg"):
+    with patch("classes.screenshot.mss.mss", return_value=fake_ctx), patch.object(
+        sm, "get_window_handle", return_value=12345
+    ), patch.object(sm, "get_window_bounds", return_value=bounds), patch.object(
+        ScreenshotManager, "_convert_to_jpeg", return_value=b"win-jpeg"
+    ):
         result = sm.capture_screenshot()
 
     assert result == b"win-jpeg"

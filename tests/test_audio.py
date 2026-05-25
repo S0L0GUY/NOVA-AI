@@ -20,7 +20,9 @@ def _make_audio():
     am.p = MagicMock()
     # Each call to p.open() returns a distinct stream mock so input and output
     # streams can be asserted on independently.
-    am.p.open.side_effect = lambda **kwargs: MagicMock(name=f"stream_{kwargs.get('rate')}")
+    am.p.open.side_effect = lambda **kwargs: MagicMock(
+        name=f"stream_{kwargs.get('rate')}"
+    )
     return am
 
 
@@ -72,6 +74,7 @@ def test_interrupt_clears_queue():
 def test_read_audio_chunk_requires_initialize():
     am = _make_audio()
     import pytest
+
     with pytest.raises(RuntimeError):
         am.read_audio_chunk()
 

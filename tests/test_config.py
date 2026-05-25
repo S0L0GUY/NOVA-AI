@@ -50,9 +50,7 @@ def test_system_prompt_list_format(tmp_path):
     cfg_path = tmp_path / "config.yaml"
     cfg_path.write_text("prompt:\n  name: system_instruction\n")
     prompt_path = tmp_path / "prompt.yaml"
-    prompt_path.write_text(
-        "system_instruction:\n  - line one\n  - line two\n"
-    )
+    prompt_path.write_text("system_instruction:\n  - line one\n  - line two\n")
     cfg = Config(path=str(cfg_path), prompt_path=str(prompt_path))
     assert cfg.get_system_prompt == "line one\nline two"
 

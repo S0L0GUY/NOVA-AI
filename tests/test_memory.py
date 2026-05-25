@@ -174,9 +174,12 @@ def test_restore_archived_memory(memory_manager, tmp_path):
     archived = memory_manager.fetch_archived_memories(archive_db_path=str(archive))
     archived_id = archived[0]["archived_id"]
 
-    assert memory_manager.restore_archived_memory(
-        archived_id, archive_db_path=str(archive)
-    ) is True
+    assert (
+        memory_manager.restore_archived_memory(
+            archived_id, archive_db_path=str(archive)
+        )
+        is True
+    )
 
     contents = {m["content"] for m in memory_manager.fetch_all_memories()}
     assert "restore-me" in contents
@@ -193,9 +196,10 @@ def test_delete_archived_memory(memory_manager, tmp_path):
     archived = memory_manager.fetch_archived_memories(archive_db_path=str(archive))
     archived_id = archived[0]["archived_id"]
 
-    assert memory_manager.delete_archived_memory(
-        archived_id, archive_db_path=str(archive)
-    ) is True
+    assert (
+        memory_manager.delete_archived_memory(archived_id, archive_db_path=str(archive))
+        is True
+    )
     assert memory_manager.fetch_archived_memories(archive_db_path=str(archive)) == []
 
 

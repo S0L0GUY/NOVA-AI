@@ -79,6 +79,7 @@ def test_look_left_caps_duration(osc):
     # Should not block longer than the cap (3s); we pass a huge value but expect quick return
     # by mocking sleep.
     with patch("classes.osc.asyncio.sleep") as mock_sleep:
+
         async def _fake_sleep(_):
             return None
 
@@ -90,6 +91,7 @@ def test_look_left_caps_duration(osc):
 
 def test_move_forward_caps_at_10(osc):
     with patch("classes.osc.asyncio.sleep") as mock_sleep:
+
         async def _fake_sleep(_):
             return None
 
@@ -100,6 +102,7 @@ def test_move_forward_caps_at_10(osc):
 
 def test_look_right_caps_at_3(osc):
     with patch("classes.osc.asyncio.sleep") as mock_sleep:
+
         async def _fake_sleep(_):
             return None
 
@@ -113,6 +116,7 @@ def test_look_right_caps_at_3(osc):
 
 def test_look_left_capped_at_half_second(osc):
     with patch("classes.osc.asyncio.sleep") as mock_sleep:
+
         async def _fake_sleep(_):
             return None
 
@@ -123,6 +127,7 @@ def test_look_left_capped_at_half_second(osc):
 
 def test_look_right_capped_at_half_second(osc):
     with patch("classes.osc.asyncio.sleep") as mock_sleep:
+
         async def _fake_sleep(_):
             return None
 
@@ -133,8 +138,10 @@ def test_look_right_capped_at_half_second(osc):
 
 def test_move_backward_caps(osc):
     with patch("classes.osc.asyncio.sleep") as mock_sleep:
+
         async def _fake_sleep(_):
             return None
+
         mock_sleep.side_effect = _fake_sleep
         asyncio.run(osc.move_backward(999))
         assert mock_sleep.call_args.args[0] == 10
@@ -145,8 +152,10 @@ def test_move_backward_caps(osc):
 
 def test_move_left_right_cap_at_5(osc):
     with patch("classes.osc.asyncio.sleep") as mock_sleep:
+
         async def _fake_sleep(_):
             return None
+
         mock_sleep.side_effect = _fake_sleep
         asyncio.run(osc.move_left(999))
         assert mock_sleep.call_args.args[0] == 5
@@ -157,8 +166,10 @@ def test_move_left_right_cap_at_5(osc):
 def test_display_pages_sends_each(osc):
     pages = ["one", "two", "three"]
     with patch("classes.osc.asyncio.sleep") as mock_sleep:
+
         async def _fake_sleep(_):
             return None
+
         mock_sleep.side_effect = _fake_sleep
         asyncio.run(osc.display_pages(pages, delay_seconds=0))
     sent = _sent(osc, "/chatbox/input")
@@ -173,10 +184,13 @@ def test_wander_runs_and_exits(osc):
     # provide as many values as the loop asks for.
     times = iter([0.0, 0.0, 0.0, 0.0, 999.0])
 
-    with patch("classes.osc.asyncio.sleep") as mock_sleep, \
-         patch("classes.osc.time.monotonic", side_effect=lambda: next(times, 999.0)):
+    with patch("classes.osc.asyncio.sleep") as mock_sleep, patch(
+        "classes.osc.time.monotonic", side_effect=lambda: next(times, 999.0)
+    ):
+
         async def _fake_sleep(_):
             return None
+
         mock_sleep.side_effect = _fake_sleep
         asyncio.run(osc.wander(1.0))
     # At least one OSC message was sent during wander
