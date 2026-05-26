@@ -1,5 +1,6 @@
 """Shared pytest fixtures for NOVA-AI test suite."""
 
+import shutil
 import sys
 from pathlib import Path
 
@@ -9,6 +10,10 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+
+EXAMPLE_CONFIG = ROOT / "config.yaml.example"
+EXAMPLE_PROMPT = ROOT / "prompt.yaml.example"
 
 
 @pytest.fixture
@@ -26,27 +31,29 @@ def memory_manager(tmp_db):
 
 
 @pytest.fixture
+def example_config_data():
+    """Parsed contents of config.yaml.example."""
+    with open(EXAMPLE_CONFIG, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
+@pytest.fixture
+def example_prompt_data():
+    """Parsed contents of prompt.yaml.example."""
+    with open(EXAMPLE_PROMPT, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
+@pytest.fixture
 def sample_config_files(tmp_path):
-    """Create temp config.yaml and prompt.yaml files. Returns (config_path, prompt_path)."""
+    """Copy config.yaml.example and prompt.yaml.example into a tmp dir.
+
+    Returns (config_path, prompt_path). Tests assert against the real
+    example file values so the fixture stays in sync with the project
+    template rather than drifting via hardcoded duplicates.
+    """
     config_path = tmp_path / "config.yaml"
     prompt_path = tmp_path / "prompt.yaml"
-
-    config_data = {
-        "gemini": {
-            "API_key": "test-api-key",
-            "model": "gemini-test-model",
-            "voice": "Charon",
-        },
-        "osc": {
-            "enabled": True,
-            "ip": "192.168.1.10",
-            "port": 9100,
-            "receive_port": 9101,
-        },
-        "prompt": {"name": "system_instruction"},
-    }
-    prompt_data = {"system_instruction": "You are a test assistant."}
-
-    config_path.write_text(yaml.safe_dump(config_data))
-    prompt_path.write_text(yaml.safe_dump(prompt_data))
+    shutil.copyfile(EXAMPLE_CONFIG, config_path)
+    shutil.copyfile(EXAMPLE_PROMPT, prompt_path)
     return config_path, prompt_path

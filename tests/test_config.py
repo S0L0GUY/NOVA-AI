@@ -1,20 +1,36 @@
-"""Tests for classes/config.py: YAML loading and property accessors."""
+"""Tests for classes/config.py: YAML loading and property accessors.
+
+The `sample_config_files` fixture copies config.yaml.example and
+prompt.yaml.example into a tmp dir, so these tests assert against the
+real project template values rather than duplicating literals.
+"""
 
 from classes.config import DEFAULT_SYSTEM_PROMPT, Config
 
 
-def test_loads_values(sample_config_files):
+def test_loads_values_from_example(
+    sample_config_files, example_config_data, example_prompt_data
+):
+    """All accessors return the exact values from config.yaml.example."""
     cfg_path, prompt_path = sample_config_files
     cfg = Config(path=str(cfg_path), prompt_path=str(prompt_path))
 
-    assert cfg.get_gemini_api_key == "test-api-key"
-    assert cfg.get_gemini_model == "gemini-test-model"
-    assert cfg.get_gemini_voice == "Charon"
-    assert cfg.get_osc_enabled is True
-    assert cfg.get_osc_ip == "192.168.1.10"
-    assert cfg.get_osc_port == 9100
-    assert cfg.get_osc_receive_port == 9101
-    assert cfg.get_system_prompt == "You are a test assistant."
+    gemini = example_config_data["gemini"]
+    osc = example_config_data["osc"]
+    prompt_name = example_config_data["prompt"]["name"]
+
+    assert cfg.get_gemini_api_key == gemini["API_key"]
+    assert cfg.get_gemini_model == gemini["model"]
+    assert cfg.get_gemini_voice == gemini["voice"]
+    assert cfg.get_osc_enabled is bool(osc["enabled"])
+    assert cfg.get_osc_ip == osc["ip"]
+    assert cfg.get_osc_port == osc["port"]
+    assert cfg.get_osc_receive_port == osc["receive_port"]
+    assert cfg.get_prompt_name == prompt_name
+
+    # System prompt should come from the example prompt file under the configured name
+    expected_prompt = example_prompt_data[prompt_name].strip()
+    assert cfg.get_system_prompt == expected_prompt
 
 
 def test_nested_get_with_missing_key_returns_default(sample_config_files):
