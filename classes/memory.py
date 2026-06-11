@@ -28,8 +28,7 @@ class MemoryManager:
     def _init_db(self) -> None:
         """Initialize database schema if it doesn't exist."""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS memories (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     type TEXT NOT NULL CHECK(type IN ('short_term', 'long_term', 'quick_note')),
@@ -39,8 +38,7 @@ class MemoryManager:
                     updated_at TEXT NOT NULL,
                     importance INTEGER DEFAULT 1
                 )
-            """
-            )
+            """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_type ON memories(type)")
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_created ON memories(created_at)"
@@ -204,8 +202,7 @@ class MemoryManager:
         # Try to insert into archive DB, but do not fail deletion if archiving fails
         try:
             with sqlite3.connect(archive_db_path) as aconn:
-                aconn.execute(
-                    """
+                aconn.execute("""
                     CREATE TABLE IF NOT EXISTS archived_memories (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         orig_id INTEGER,
@@ -217,8 +214,7 @@ class MemoryManager:
                         importance INTEGER,
                         deleted_at TEXT
                     )
-                    """
-                )
+                    """)
                 aconn.execute(
                     """
                     INSERT INTO archived_memories (
