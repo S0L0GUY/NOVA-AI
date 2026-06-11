@@ -7,5 +7,12 @@ osc:
   ip: "127.0.0.1"
   port: 9000
   receive_port: 9001
+  idle_wandering_enabled: true # Set to false to disable timer-based auto wandering.
 prompt:
   name: "regular_prompt" # Set to your prompt of choice in the prompt.yaml file
+
+# Memory retention policy (days). Set to 0 to disable auto-deletion for that type.
+memory:
+  quick_note_days: 3
+  short_term_days: 7
+  long_term_days: 0
