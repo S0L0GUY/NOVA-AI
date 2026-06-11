@@ -101,6 +101,14 @@ class Config:
         return self.get("osc", "receive_port", default=9001)
 
     @property
+    def get_osc_idle_wandering_enabled(self) -> bool:
+        """Check if timer-based idle wandering is enabled (default: true)."""
+        value = self.get("osc", "idle_wandering_enabled", default=True)
+        if isinstance(value, str):
+            return value.strip().lower() in ("1", "true", "yes", "on")
+        return bool(value)
+
+    @property
     def get_prompt_name(self) -> str:
         """Get the name of the system prompt to use from config (default: 'system_instruction')."""
         return self.get("prompt", "name", default="system_instruction")
