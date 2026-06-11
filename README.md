@@ -75,6 +75,36 @@ python nova.py
 python memory_ui.py
 ```
 
+- Export memories to JSON backup:
+
+```bash
+python memory_cli.py export memory-backup.json
+```
+
+- Export memories with filters (type/tags/query):
+
+```bash
+python memory_cli.py export memory-backup.json --type long_term --tags fact,rule --query user
+```
+
+- Restore memories from a JSON backup (deduplicates by default):
+
+```bash
+python memory_cli.py import memory-backup.json
+```
+
+- Run schema migration checks for older memory databases:
+
+```bash
+python memory_cli.py migrate
+```
+
+- Run scheduled JSON backups every 30 minutes (2 runs shown here):
+
+```bash
+python memory_cli.py backup-schedule --interval-minutes 30 --run-count 2
+```
+
 Project layout
 
 ```

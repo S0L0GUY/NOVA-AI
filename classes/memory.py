@@ -46,7 +46,15 @@ class MemoryManager:
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_importance ON memories(importance)"
             )
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS memory_schema_migrations (
+                    version TEXT PRIMARY KEY,
+                    applied_at TEXT NOT NULL
+                )
+            """)
             conn.commit()
+
+        self.migrate_schema()
 
     def store_memory(
         self,
@@ -133,6 +141,242 @@ class MemoryManager:
             }
             for row in rows
         ]
+
+    def export_memories(
+        self,
+        export_path: str,
+        memory_type: Optional[MemoryType] = None,
+        tags: Optional[list[str]] = None,
+        query: Optional[str] = None,
+    ) -> dict:
+        """Export memories as JSON with metadata and optional filtering."""
+        sql_query = "SELECT * FROM memories WHERE 1=1"
+        params = []
+
+        if memory_type:
+            sql_query += " AND type = ?"
+            params.append(memory_type.value)
+
+        if query:
+            sql_query += " AND (content LIKE ? OR tags LIKE ?)"
+            like_query = f"%{query}%"
+            params.extend([like_query, like_query])
+
+        sql_query += " ORDER BY updated_at DESC"
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(sql_query, params).fetchall()
+            memories = [
+                {
+                    "id": row["id"],
+                    "type": row["type"],
+                    "content": row["content"],
+                    "tags": json.loads(row["tags"]),
+                    "created_at": row["created_at"],
+                    "updated_at": row["updated_at"],
+                    "importance": row["importance"],
+                }
+                for row in rows
+            ]
+            if tags:
+                required_tags = {str(tag).strip() for tag in tags if str(tag).strip()}
+                memories = [
+                    m
+                    for m in memories
+                    if required_tags.issubset(set(m.get("tags") or []))
+                ]
+
+        payload = {
+            "schema_version": 1,
+            "exported_at": datetime.now().isoformat(),
+            "source_db": str(self.db_path),
+            "memories": memories,
+        }
+
+        export_file = Path(export_path)
+        export_file.parent.mkdir(parents=True, exist_ok=True)
+        with export_file.open("w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+
+        return {"path": str(export_file), "count": len(memories)}
+
+    def import_memories(self, import_path: str, deduplicate: bool = True) -> dict:
+        """Import memories from a JSON export file."""
+        import_file = Path(import_path)
+        with import_file.open("r", encoding="utf-8") as f:
+            raw_data = json.load(f)
+
+        if isinstance(raw_data, dict):
+            memories = raw_data.get("memories", [])
+        elif isinstance(raw_data, list):
+            memories = raw_data
+        else:
+            raise ValueError("Invalid import format: expected JSON object or list")
+
+        def _normalize_and_sort_tags(raw_tags) -> list[str]:
+            if isinstance(raw_tags, list):
+                return sorted({str(t).strip() for t in raw_tags if str(t).strip()})
+            return []
+
+        def _dedupe_key(memory: dict) -> tuple:
+            tags = _normalize_and_sort_tags(memory.get("tags"))
+            return (
+                str(memory.get("type", "")).strip(),
+                str(memory.get("content", "")).strip(),
+                tuple(tags),
+            )
+
+        existing_keys = set()
+        if deduplicate:
+            with sqlite3.connect(self.db_path) as existing_conn:
+                existing_conn.row_factory = sqlite3.Row
+                rows = existing_conn.execute(
+                    "SELECT type, content, tags FROM memories"
+                ).fetchall()
+                for row in rows:
+                    try:
+                        row_tags = json.loads(row["tags"] or "[]")
+                    except Exception:
+                        row_tags = []
+                    existing_keys.add(
+                        _dedupe_key(
+                            {
+                                "type": row["type"],
+                                "content": row["content"],
+                                "tags": row_tags,
+                            }
+                        )
+                    )
+
+        inserted = 0
+        skipped_duplicates = 0
+        skipped_invalid = 0
+        import_seen_keys = set()
+
+        with sqlite3.connect(self.db_path) as conn:
+            for memory in memories:
+                if not isinstance(memory, dict):
+                    skipped_invalid += 1
+                    continue
+
+                mem_type = str(memory.get("type", "")).strip()
+                content = str(memory.get("content", "")).strip()
+                tags = _normalize_and_sort_tags(memory.get("tags"))
+                created_at = memory.get("created_at")
+                if created_at is None:
+                    created_at = datetime.now().isoformat()
+                updated_at = memory.get("updated_at")
+                if updated_at is None:
+                    updated_at = created_at
+                try:
+                    importance = int(memory.get("importance", 1))
+                except (TypeError, ValueError):
+                    importance = 1
+
+                if mem_type not in {t.value for t in MemoryType} or not content:
+                    skipped_invalid += 1
+                    continue
+
+                key = _dedupe_key(
+                    {"type": mem_type, "content": content, "tags": tags}
+                )
+                if deduplicate:
+                    if key in import_seen_keys:
+                        skipped_duplicates += 1
+                        continue
+                    if key in existing_keys:
+                        skipped_duplicates += 1
+                        continue
+
+                conn.execute(
+                    """
+                    INSERT INTO memories (type, content, tags, created_at, updated_at, importance)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        mem_type,
+                        content,
+                        json.dumps(tags),
+                        created_at,
+                        updated_at,
+                        importance,
+                    ),
+                )
+                inserted += 1
+                if deduplicate:
+                    import_seen_keys.add(key)
+                    existing_keys.add(key)
+            conn.commit()
+
+        return {
+            "imported": inserted,
+            "skipped_duplicates": skipped_duplicates,
+            "skipped_invalid": skipped_invalid,
+            "total_in_file": len(memories),
+        }
+
+    def migrate_schema(self) -> dict:
+        """Apply additive schema migrations for older memories DB files."""
+        applied_changes = []
+        now = datetime.now().isoformat()
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            columns = {
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(memories)").fetchall()
+            }
+
+            if "tags" not in columns:
+                conn.execute("ALTER TABLE memories ADD COLUMN tags TEXT DEFAULT '[]'")
+                applied_changes.append("added_tags_column")
+            if "created_at" not in columns:
+                conn.execute(
+                    "ALTER TABLE memories ADD COLUMN created_at TEXT DEFAULT ''"
+                )
+                applied_changes.append("added_created_at_column")
+            if "updated_at" not in columns:
+                conn.execute(
+                    "ALTER TABLE memories ADD COLUMN updated_at TEXT DEFAULT ''"
+                )
+                applied_changes.append("added_updated_at_column")
+            if "importance" not in columns:
+                conn.execute(
+                    "ALTER TABLE memories ADD COLUMN importance INTEGER DEFAULT 1"
+                )
+                applied_changes.append("added_importance_column")
+
+            conn.execute(
+                """
+                UPDATE memories
+                SET tags = COALESCE(NULLIF(tags, ''), '[]'),
+                    importance = COALESCE(importance, 1)
+                """
+            )
+            conn.execute(
+                """
+                UPDATE memories
+                SET created_at = COALESCE(NULLIF(created_at, ''), ?)
+                """,
+                (now,),
+            )
+            conn.execute(
+                """
+                UPDATE memories
+                SET updated_at = COALESCE(NULLIF(updated_at, ''), created_at)
+                """
+            )
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO memory_schema_migrations (version, applied_at)
+                VALUES (?, ?)
+                """,
+                ("v1_baseline", now),
+            )
+            conn.commit()
+
+        return {"applied_changes": applied_changes, "timestamp": now}
 
     def update_memory(
         self,
